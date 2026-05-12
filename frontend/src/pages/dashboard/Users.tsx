@@ -4,8 +4,8 @@ import {
   Users, Search, Edit3, UserX, Shield,
   X, AlertTriangle, LayoutGrid, List, Filter,
 } from 'lucide-react';
-import { usersApi } from '@/api/client';
-import { useToast } from '@/components/ui/use-toast';
+import { usersApi } from '../../api/client';
+import { useToast } from '../../components/ui/use-toast';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 

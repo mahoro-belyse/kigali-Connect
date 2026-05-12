@@ -1,6 +1,6 @@
 // src/components/ProtectedRoute.tsx
 import { Navigate, Outlet, useLocation } from 'react-router-dom';
-import { useAuth } from '@/context/AuthContext';
+import { useAuth } from '../context/AuthContext';
 
 interface ProtectedRouteProps {
   allowedRoles?: ('admin' | 'event_manager' | 'client')[];

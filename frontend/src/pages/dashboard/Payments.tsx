@@ -1,12 +1,11 @@
-// src/pages/dashboard/Payments.tsx
 import { useState, useEffect, useCallback } from 'react';
 import {
   DollarSign, CreditCard, TrendingUp, RefreshCw,
   Receipt, AlertTriangle, Search, Filter, X,
 } from 'lucide-react';
-import { paymentsApi } from '@/api/client';
-import { useAuth } from '@/context/AuthContext';
-import { useToast } from '@/components/ui/use-toast';
+import { paymentsApi } from '../../api/client';
+import { useAuth } from '../../context/AuthContext';
+import { useToast } from '../../components/ui/use-toast';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 

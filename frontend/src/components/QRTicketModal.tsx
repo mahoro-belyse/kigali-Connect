@@ -1,4 +1,3 @@
-// src/components/QRTicketModal.tsx
 import { useEffect, useRef } from 'react';
 import { X, Download, Printer, Calendar, MapPin, Ticket } from 'lucide-react';
 

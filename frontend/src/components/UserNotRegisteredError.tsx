@@ -1,11 +1,5 @@
-// src/components/UserNotRegisteredError.tsx
-// ─────────────────────────────────────────────────────────────────────────────
-// Shown when a user is authenticated but not registered/approved in the system.
-// In our FastAPI backend this shouldn't normally happen since registration
-// is open — but kept as a safety net for edge cases.
-// ─────────────────────────────────────────────────────────────────────────────
 import { ShieldAlert, LogOut, RefreshCw, Mail } from 'lucide-react';
-import { useAuth } from '@/context/AuthContext';
+import { useAuth } from '../context/AuthContext';
 
 export default function UserNotRegisteredError() {
   const { logout } = useAuth();

@@ -1,13 +1,12 @@
-// src/pages/Events.tsx
 import { useState, useEffect, useCallback } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import {
   Search, Calendar, MapPin, Users,
   ChevronLeft, ChevronRight, Filter, X,
 } from 'lucide-react';
-import Navbar from '@/components/Navbar';
-import Footer from '@/components/Footer';
-import { eventsApi } from '@/api/client';
+import Navbar from '../components/Navbar';
+import Footer from '../components/Footer';
+import { eventsApi } from '../api/client';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 

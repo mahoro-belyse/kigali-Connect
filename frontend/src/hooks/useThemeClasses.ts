@@ -1,10 +1,3 @@
-// src/hooks/useThemeClasses.ts
-// ─────────────────────────────────────────────────────────────────────────────
-// Stub — returns fixed dark-theme class strings.
-// Kept so any lingering Base44 imports compile without errors.
-// All new components should use Tailwind classes directly.
-// ─────────────────────────────────────────────────────────────────────────────
-
 interface ThemeClasses {
   isDark: true;
   bg: string;

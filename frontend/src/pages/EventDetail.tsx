@@ -1,16 +1,15 @@
-// src/pages/EventDetail.tsx
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import {
   Calendar, MapPin, Users, Star, ArrowLeft,
   Minus, Plus, CheckCircle, Clock, Tag,
 } from 'lucide-react';
-import Navbar from '@/components/Navbar';
-import Footer from '@/components/Footer';
-import { eventsApi, bookingsApi, reviewsApi } from '@/api/client';
-import { useAuth } from '@/context/AuthContext';
-import { useToast } from '@/components/ui/use-toast';
-import QRTicketModal from '@/components/QRTicketModal';
+import Navbar from '../components/Navbar';
+import Footer from '../components/Footer';
+import { eventsApi, bookingsApi, reviewsApi } from '../api/client';
+import { useAuth } from '../context/AuthContext';
+import { useToast } from '../components/ui/use-toast';
+import QRTicketModal from '../components/QRTicketModal';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 

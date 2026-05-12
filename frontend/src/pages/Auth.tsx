@@ -1,14 +1,13 @@
-// src/pages/Auth.tsx
 import { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import {
   Mail, Lock, Eye, EyeOff, User,
   AtSign, Phone, Shield, ArrowLeft,
 } from 'lucide-react';
-import Navbar from '@/components/Navbar';
-import { useAuth } from '@/context/AuthContext';
-import { authApi } from '@/api/client';
-import { useToast } from '@/components/ui/use-toast';
+import Navbar from '../components/Navbar';
+import { useAuth } from '../context/AuthContext';
+import { authApi } from '../api/client';
+import { useToast } from '../components/ui/use-toast';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -105,7 +104,7 @@ function FieldInput({
 
 function LockoutTimer({ seconds, onExpire }: { seconds: number; onExpire: () => void }) {
   const [remaining, setRemaining] = useState(seconds);
-  const timerRef = useRef<ReturnType<typeof setInterval>>();
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {
     setRemaining(seconds);

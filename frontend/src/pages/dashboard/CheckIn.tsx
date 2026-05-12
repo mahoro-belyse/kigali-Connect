@@ -1,8 +1,7 @@
-// src/pages/dashboard/CheckIn.tsx
 import { useState, useEffect, useRef } from 'react';
 import { QrCode, CheckCircle, XCircle, Search, Users, RefreshCw } from 'lucide-react';
-import { bookingsApi, eventsApi } from '@/api/client';
-import { useToast } from '@/components/ui/use-toast';
+import { bookingsApi, eventsApi } from '../../api/client';
+import { useToast } from '../../components/ui/use-toast';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 

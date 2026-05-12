@@ -1,13 +1,12 @@
-// src/pages/dashboard/Bookings.tsx
 import { useState, useEffect, useCallback } from 'react';
 import {
   Eye, CheckCircle, XCircle, Search,
   Ticket, Filter, AlertTriangle,
 } from 'lucide-react';
-import { useAuth } from '@/context/AuthContext';
-import { bookingsApi, eventsApi } from '@/api/client';
-import { useToast } from '@/components/ui/use-toast';
-import QRTicketModal from '@/components/QRTicketModal';
+import { useAuth } from '../../context/AuthContext';
+import { bookingsApi, eventsApi } from '../../api/client';
+import { useToast } from '../../components/ui/use-toast';
+import QRTicketModal from '../../components/QRTicketModal';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 

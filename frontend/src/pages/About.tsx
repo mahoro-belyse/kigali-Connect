@@ -1,7 +1,6 @@
-// src/pages/About.tsx
 import { Shield, Zap, Heart, Star, Globe, Users, Calendar, MapPin, Smile, Clock } from 'lucide-react';
-import Navbar from '@/components/Navbar';
-import Footer from '@/components/Footer';
+import Navbar from '../components/Navbar';
+import Footer from '../components/Footer';
 
 // ─── Static data ──────────────────────────────────────────────────────────────
 

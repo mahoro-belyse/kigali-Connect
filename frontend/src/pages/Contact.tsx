@@ -1,13 +1,13 @@
-// src/pages/Contact.tsx
 import { useState } from 'react';
 import {
   MapPin, Phone, Mail, Clock,
-  Twitter, Instagram, Facebook, Linkedin,
   User, MessageSquare, Send, CheckCircle,
 } from 'lucide-react';
-import Navbar from '@/components/Navbar';
-import Footer from '@/components/Footer';
-import { useToast } from '@/components/ui/use-toast';
+
+import { FaTwitter, FaInstagram, FaFacebook, FaLinkedin } from 'react-icons/fa';
+import Navbar from '../components/Navbar';
+import Footer from '../components/Footer';
+import { useToast } from '../components/ui/use-toast';
 
 // ─── Static data ──────────────────────────────────────────────────────────────
 
@@ -19,10 +19,10 @@ const CONTACT_INFO = [
 ] as const;
 
 const SOCIALS = [
-  { Icon: Twitter,   href: '#', label: 'Twitter'   },
-  { Icon: Instagram, href: '#', label: 'Instagram'  },
-  { Icon: Facebook,  href: '#', label: 'Facebook'   },
-  { Icon: Linkedin,  href: '#', label: 'LinkedIn'   },
+  { Icon: FaTwitter,   href: '#', label: 'Twitter'   },
+  { Icon: FaInstagram, href: '#', label: 'Instagram'  },
+  { Icon: FaFacebook,  href: '#', label: 'Facebook'   },
+  { Icon: FaLinkedin,  href: '#', label: 'LinkedIn'   },
 ];
 
 // ─── Types ────────────────────────────────────────────────────────────────────

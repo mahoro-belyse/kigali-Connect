@@ -1,4 +1,3 @@
-// src/pages/Home.tsx
 import { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import {
@@ -6,9 +5,9 @@ import {
   Music, Wrench, BookOpen, Trophy, Users, Layout,
   Search, MapPin, Check,
 } from 'lucide-react';
-import Navbar from '@/components/Navbar';
-import Footer from '@/components/Footer';
-import { eventsApi } from '@/api/client';
+import Navbar from '../components/Navbar';
+import Footer from '../components/Footer';
+import { eventsApi } from '../api/client';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 

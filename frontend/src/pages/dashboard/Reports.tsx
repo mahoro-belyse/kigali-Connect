@@ -1,4 +1,3 @@
-// src/pages/dashboard/Reports.tsx
 import { useState, useEffect, useCallback } from 'react';
 import {
   BarChart2, TrendingUp, TrendingDown, Users,
@@ -9,9 +8,9 @@ import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid,
   Tooltip, ResponsiveContainer, Legend,
 } from 'recharts';
-import { analyticsApi } from '@/api/client';
-import { useAuth } from '@/context/AuthContext';
-import { useToast } from '@/components/ui/use-toast';
+import { analyticsApi } from '../../api/client';
+import { useAuth } from '../../context/AuthContext';
+import { useToast } from '../../components/ui/use-toast';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -264,7 +263,7 @@ export default function Reports() {
                 <YAxis tick={AXIS_TICK} axisLine={false} tickLine={false}
                   tickFormatter={(v: number) => v >= 1000 ? `${(v/1000).toFixed(0)}k` : String(v)} />
                 <Tooltip contentStyle={TOOLTIP_STYLE}
-                  formatter={(v: number) => [`${v.toLocaleString()} RWF`, 'Revenue']} />
+                  formatter={(v) => v != null ? [`${Number(v).toLocaleString()} RWF`, 'Revenue'] : ['', 'Revenue']}/>
                 <Line
                   type="monotone" dataKey="revenue" stroke={COPPER} strokeWidth={2.5}
                   dot={{ fill: COPPER, r: 4 }} activeDot={{ r: 6 }}

@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
-import { MapPin, Phone, Mail, Twitter, Instagram, Facebook, Linkedin } from 'lucide-react';
+import { MapPin, Phone, Mail } from 'lucide-react';
+import { FaTwitter, FaInstagram, FaFacebook, FaLinkedin } from 'react-icons/fa';
 
 const PLATFORM_LINKS = [
   ['/', 'Home'],
@@ -16,10 +17,10 @@ const SUPPORT_LINKS = [
 ] as const;
 
 const SOCIAL = [
-  { Icon: Twitter,   href: '#', label: 'Twitter'  },
-  { Icon: Instagram, href: '#', label: 'Instagram' },
-  { Icon: Facebook,  href: '#', label: 'Facebook'  },
-  { Icon: Linkedin,  href: '#', label: 'LinkedIn'  },
+  { Icon: FaTwitter,   href: '#', label: 'Twitter'  },
+  { Icon: FaInstagram, href: '#', label: 'Instagram' },
+  { Icon: FaFacebook,  href: '#', label: 'Facebook'  },
+  { Icon: FaLinkedin,  href: '#', label: 'LinkedIn'  },
 ];
 
 export default function Footer() {

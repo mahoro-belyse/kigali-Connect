@@ -1,12 +1,11 @@
-// src/pages/dashboard/ManageEvents.tsx
 import { useState, useEffect, useRef, useCallback } from 'react';
 import {
   Calendar, Plus, Search, Edit3, Eye, Trash2,
   Upload, Rocket, XCircle, AlertTriangle,
   ChevronLeft, ChevronRight, X, ImageIcon,
 } from 'lucide-react';
-import { eventsApi } from '@/api/client';
-import { useToast } from '@/components/ui/use-toast';
+import { eventsApi } from '../../api/client';
+import { useToast } from '../../components/ui/use-toast';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 

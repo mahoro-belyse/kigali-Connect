@@ -3,7 +3,8 @@ import  {
   useEffect, useCallback
 } from 'react';
 import type { ReactNode } from 'react';
-import { authApi, User } from '@/api/client';
+import { authApi } from '../api/client';
+import type { User} from '../api/client';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 

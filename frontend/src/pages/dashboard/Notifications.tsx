@@ -1,11 +1,10 @@
-// src/pages/dashboard/Notifications.tsx
 import { useState, useEffect, useCallback } from 'react';
 import {
   Bell, CheckCheck, Clock, Ticket, Calendar,
   DollarSign, XCircle, AlertTriangle, Info, CheckCircle,
 } from 'lucide-react';
-import { notificationsApi } from '@/api/client';
-import { useToast } from '@/components/ui/use-toast';
+import { notificationsApi } from '../../api/client';
+import { useToast } from '../../components/ui/use-toast';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 

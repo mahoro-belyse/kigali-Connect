@@ -1,12 +1,11 @@
-// src/pages/dashboard/Profile.tsx
 import { useState, useEffect, useRef } from 'react';
 import {
   User, Camera, Shield, Lock, Mail, Phone,
   Edit3, Save, X, Eye, EyeOff, Calendar, CheckCircle,
 } from 'lucide-react';
-import { usersApi, authApi } from '@/api/client';
-import { useAuth } from '@/context/AuthContext';
-import { useToast } from '@/components/ui/use-toast';
+import { usersApi, authApi } from '../../api/client';
+import { useAuth } from '../../context/AuthContext';
+import { useToast } from '../../components/ui/use-toast';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 

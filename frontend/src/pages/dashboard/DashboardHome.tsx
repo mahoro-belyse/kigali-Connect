@@ -1,4 +1,3 @@
-// src/pages/dashboard/DashboardHome.tsx
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import {
@@ -9,9 +8,9 @@ import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid,
   Tooltip, ResponsiveContainer,
 } from 'recharts';
-import { useAuth } from '@/context/AuthContext';
-import { analyticsApi, bookingsApi, eventsApi } from '@/api/client';
-import QRTicketModal from '@/components/QRTicketModal';
+import { useAuth } from '../../context/AuthContext';
+import { analyticsApi, bookingsApi, eventsApi } from '../../api/client';
+import QRTicketModal from '../../components/QRTicketModal';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -422,7 +421,7 @@ function AdminManagerDashboard() {
                 <YAxis tick={{ fill: '#9a8f82', fontSize: 11 }} axisLine={false} tickLine={false}
                   tickFormatter={(v: number) => v >= 1000 ? `${(v/1000).toFixed(0)}k` : String(v)} />
                 <Tooltip contentStyle={tooltipStyle}
-                  formatter={(v: number) => [`${v.toLocaleString()} RWF`, 'Revenue']} />
+                  formatter={(v) => v != null ? [`${Number(v).toLocaleString()} RWF`, 'Revenue'] : ['', 'Revenue']}/>
                 <Bar dataKey="revenue" fill="#b87333" radius={[6, 6, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
