@@ -174,31 +174,35 @@ export default function Auth() {
     setView(location.pathname === '/register' ? 'register' : 'login');
   }, [location.pathname]);
 
-  // ── Login ─────────────────────────────────────────────────────────────────
+  // ── Login (error now stays on screen) ─────────────────────────────────────
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     if (lockout) return;
 
     setLoading(true);
-    setErrors({});
+    // Clear only the general error on new attempt (but previous error will be replaced)
+    setErrors((prev) => {
+  const { general, ...rest } = prev;
+  return rest;
+});
 
     const result = await authLogin(loginForm.email, loginForm.password);
 
     if (result.success) {
       toast({ title: '👋 Welcome back!' });
-      // Redirect to intended page or dashboard
       const from = (location.state as any)?.from ?? '/dashboard';
       navigate(from, { replace: true });
     } else if (result.locked) {
       setLockout(result.retryAfter ?? 60);
     } else {
+      // This error will stay until next submit (or optionally cleared on input)
       setErrors({ general: result.error ?? 'Invalid credentials' });
     }
 
     setLoading(false);
   };
 
-  // ── Register ──────────────────────────────────────────────────────────────
+  // ── Register with auto-login (unchanged) ──────────────────────────────────
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -226,12 +230,18 @@ export default function Auth() {
         phone:     regForm.phone || undefined,
         password:  regForm.password,
       });
-      toast({ title: '✅ Account created! Please sign in.' });
-      setView('login');
-      navigate('/login', { replace: true });
+
+      const loginResult = await authLogin(regForm.email, regForm.password);
+      if (loginResult.success) {
+        toast({ title: '✅ Account created! Welcome aboard.' });
+        navigate('/dashboard', { replace: true });
+      } else {
+        setErrors({ general: 'Account created but auto-login failed. Please sign in manually.' });
+        setView('login');
+        navigate('/login', { replace: true });
+      }
     } catch (err: any) {
       const detail = err.response?.data?.detail ?? 'Registration failed';
-      // Handle field-specific errors from backend
       if (typeof detail === 'string') {
         if (detail.toLowerCase().includes('email'))    setErrors({ email: detail });
         else if (detail.toLowerCase().includes('username')) setErrors({ username: detail });
@@ -244,13 +254,12 @@ export default function Auth() {
     }
   };
 
-  // ── Forgot password ───────────────────────────────────────────────────────
+  // ── Forgot password (unchanged) ───────────────────────────────────────────
   const handleForgot = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     try {
-      // Backend may or may not have this endpoint — we always show success
-      await authApi.logout().catch(() => {}); // placeholder
+      await authApi.logout().catch(() => {});
     } catch {}
     toast({ title: '📧 Reset link sent! Check your inbox.' });
     setLoading(false);
@@ -275,7 +284,6 @@ export default function Auth() {
             loading="eager"
           />
           <div className="absolute inset-0 bg-black/55" />
-          {/* Copper gradient overlay at bottom */}
           <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black/80 to-transparent" />
           <div className="absolute inset-0 flex flex-col justify-end p-12">
             <p className="text-3xl font-bold text-white italic mb-2">
@@ -313,13 +321,17 @@ export default function Auth() {
               </p>
             </div>
 
-            {/* ── LOGIN FORM ──────────────────────────────────────────────── */}
+            {/* ── LOGIN FORM (error now persists) ─────────────────────────── */}
             {view === 'login' && (
               <form onSubmit={handleLogin} className="space-y-4">
                 <FieldInput
                   icon={Mail} label="Email" type="email"
                   value={loginForm.email}
-                  onChange={(e) => setLoginForm((f) => ({ ...f, email: e.target.value }))}
+                  onChange={(e) => {
+                    setLoginForm((f) => ({ ...f, email: e.target.value }));
+                    // Optionally clear error when user starts typing (uncomment if desired)
+                    // if (errors.general) setErrors((prev) => ({ ...prev, general: undefined }));
+                  }}
                   placeholder="you@example.com"
                   autoComplete="email"
                   disabled={!!lockout}
@@ -327,7 +339,10 @@ export default function Auth() {
                 <FieldInput
                   icon={Lock} label="Password"
                   value={loginForm.password}
-                  onChange={(e) => setLoginForm((f) => ({ ...f, password: e.target.value }))}
+                  onChange={(e) => {
+                    setLoginForm((f) => ({ ...f, password: e.target.value }));
+                    // if (errors.general) setErrors((prev) => ({ ...prev, general: undefined }));
+                  }}
                   showToggle show={showPw} onToggle={() => setShowPw((v) => !v)}
                   placeholder="••••••••"
                   autoComplete="current-password"
@@ -382,7 +397,7 @@ export default function Auth() {
               </form>
             )}
 
-            {/* ── REGISTER FORM ───────────────────────────────────────────── */}
+            {/* ── REGISTER FORM (unchanged) ───────────────────────────────── */}
             {view === 'register' && (
               <form onSubmit={handleRegister} className="space-y-3">
                 <FieldInput
@@ -461,7 +476,7 @@ export default function Auth() {
               </form>
             )}
 
-            {/* ── FORGOT PASSWORD FORM ─────────────────────────────────────── */}
+            {/* ── FORGOT PASSWORD FORM (unchanged) ─────────────────────────── */}
             {view === 'forgot' && (
               <form onSubmit={handleForgot} className="space-y-4">
                 <p className="text-sm text-[#9a8f82] text-center mb-4">

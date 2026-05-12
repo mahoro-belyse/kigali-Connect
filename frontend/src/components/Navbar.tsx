@@ -2,8 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import {
   Calendar, Home, Tag, Info, Mail, ChevronDown,
-  Menu, X, LayoutDashboard, LogOut, List, Eye,
-  LogIn, UserPlus,
+  Menu, X, LayoutDashboard, LogOut, List, Eye
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
@@ -21,18 +20,6 @@ const megaItems = [
     icon: Eye,
     desc: 'View schedules, speakers, tickets and venue',
   },
-  {
-    label: 'Login',
-    to: '/login',
-    icon: LogIn,
-    desc: 'Access your dashboard and bookings',
-  },
-  {
-    label: 'Register',
-    to: '/register',
-    icon: UserPlus,
-    desc: 'Create an account to manage events and tickets',
-  },
 ];
 
 // ─── Main nav links ────────────────────────────────────────────────────────────
@@ -49,7 +36,7 @@ export default function Navbar() {
   const [megaOpen,   setMegaOpen]   = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [scrolled,   setScrolled]   = useState(false);
-  const megaRef = useRef<HTMLDivElement>(null);
+  const closeTimeout = useRef<number | null>(null);
 
   // ── Close mobile menu on route change ────────────────────────────────────
   useEffect(() => { setMobileOpen(false); }, [location.pathname]);
@@ -60,6 +47,28 @@ export default function Navbar() {
     window.addEventListener('scroll', onScroll);
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
+
+  // Helper: clear any pending timeout
+  const clearCloseTimeout = () => {
+    if (closeTimeout.current) {
+      clearTimeout(closeTimeout.current);
+      closeTimeout.current = null;
+    }
+  };
+
+  // Open dropdown (cancel any pending close)
+  const handleMouseEnter = () => {
+    clearCloseTimeout();
+    setMegaOpen(true);
+  };
+
+  // Close dropdown after a short delay (allows moving from button to dropdown)
+  const handleMouseLeave = () => {
+    clearCloseTimeout();
+    closeTimeout.current = window.setTimeout(() => {
+      setMegaOpen(false);
+    }, 200);
+  };
 
   const handleLogout = () => {
     logout();
@@ -105,14 +114,11 @@ export default function Navbar() {
             <Home className="w-3.5 h-3.5" />Home
           </Link>
 
-          {/* Events mega dropdown */}
-          <div
-            ref={megaRef}
-            className="relative"
-            onMouseEnter={() => setMegaOpen(true)}
-            onMouseLeave={() => setMegaOpen(false)}
-          >
+          {/* Events mega dropdown - fixed hover/click behavior */}
+          <div className="relative">
             <button
+              onMouseEnter={handleMouseEnter}
+              onMouseLeave={handleMouseLeave}
               className={`text-sm font-medium flex items-center gap-1 transition-colors ${
                 location.pathname.startsWith('/events')
                   ? 'text-[#b87333]'
@@ -130,6 +136,8 @@ export default function Navbar() {
 
             {/* Mega dropdown */}
             <div
+              onMouseEnter={handleMouseEnter}
+              onMouseLeave={handleMouseLeave}
               className={`absolute top-full left-1/2 -translate-x-1/2 mt-3 w-72
                 bg-[#1e1e1e] rounded-2xl border border-[rgba(184,115,51,0.2)]
                 shadow-2xl shadow-black/50 p-2

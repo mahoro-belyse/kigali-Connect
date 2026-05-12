@@ -146,6 +146,12 @@ function ClientDashboard() {
   const [loading,      setLoading]      = useState(true);
   const [qrBooking,    setQrBooking]    = useState<Booking | null>(null);
 
+  // Determine if this is the user's first login ever (created_at == last_login)
+  const isFirstLogin = !user?.last_login || user?.created_at === user?.last_login;
+  const welcomeMessage = isFirstLogin
+    ? "Welcome! Let's get started 🎉"
+    : `Welcome back, ${user?.full_name ?? 'there'} 👋`;
+
   useEffect(() => {
     Promise.all([
       bookingsApi.myBookings().catch(() => ({ data: [] })),
@@ -175,13 +181,13 @@ function ClientDashboard() {
 
   return (
     <div>
-      {/* Welcome banner */}
+      {/* Welcome banner - now dynamic */}
       <div
         className="rounded-2xl p-6 mb-6 text-white"
         style={{ background: 'linear-gradient(135deg,#b87333,#d4956a)' }}
       >
         <h1 className="text-2xl font-extrabold mb-1">
-          Welcome back, {user?.full_name ?? 'there'} 👋
+          {welcomeMessage}
         </h1>
         <p className="text-white/80 text-sm">Here's a summary of your event activity.</p>
       </div>
@@ -328,6 +334,12 @@ function AdminManagerDashboard() {
   const [userStats,      setUserStats]      = useState<UserStats | null>(null);
   const [loading,        setLoading]        = useState(true);
 
+  // Determine if this is the user's first login ever (created_at == last_login)
+  const isFirstLogin = !user?.last_login || user?.created_at === user?.last_login;
+  const welcomeSubtitle = isFirstLogin
+    ? "Welcome! Let's get started 🎉"
+    : `Welcome back, ${user?.full_name ?? 'there'}`;
+
   useEffect(() => {
     const calls: Promise<unknown>[] = [
       analyticsApi.dashboard().catch(() => ({ data: {} })),
@@ -392,10 +404,10 @@ function AdminManagerDashboard() {
 
   return (
     <div>
-      {/* Page header */}
+      {/* Page header - now dynamic */}
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-[#f5f0e8]">Dashboard Overview</h1>
-        <p className="text-sm text-[#9a8f82] mt-1">Welcome back, {user?.full_name ?? 'there'}</p>
+        <p className="text-sm text-[#9a8f82] mt-1">{welcomeSubtitle}</p>
       </div>
 
       {/* Stat cards */}
@@ -450,7 +462,7 @@ function AdminManagerDashboard() {
                   {['Event', 'Bookings', 'Revenue', 'Fill %'].map((h) => (
                     <th key={h} className="text-left py-2.5 px-4 font-medium text-[#9a8f82]">{h}</th>
                   ))}
-                </tr>
+                 </tr>
               </thead>
               <tbody>
                 {topEvents.map((e, i) => (

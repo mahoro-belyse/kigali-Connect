@@ -1,9 +1,10 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
   Calendar, ChevronLeft, ChevronRight, Star, Briefcase,
   Music, Wrench, BookOpen, Trophy, Users, Layout,
-  Search, MapPin, Check,
+  Search, MapPin, Check, Sparkles, Clock, Award, TrendingUp,
 } from 'lucide-react';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
@@ -31,6 +32,25 @@ interface EventItem {
   ticket_types?: { price: number }[];
 }
 
+// ─── Animation variants ──────────────────────────────────────────────────────
+
+const fadeInUp = {
+  hidden: { opacity: 0, y: 30 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.6 } },  // no ease string
+};
+
+const staggerContainer = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: { staggerChildren: 0.2, delayChildren: 0.1 },
+  },
+};
+
+const cardHover = {
+  rest: { y: 0, scale: 1 },
+  hover: { y: -6, scale: 1.02, transition: { duration: 0.2 } }, // no type/ease
+};
 // ─── Static data ──────────────────────────────────────────────────────────────
 
 const SLIDES: Slide[] = [
@@ -126,7 +146,7 @@ function AnimatedCounter({ end }: { end: number }) {
   return <span ref={ref}>{count.toLocaleString()}+</span>;
 }
 
-// ─── Event card ───────────────────────────────────────────────────────────────
+// ─── Redesigned Event Card (larger, more modern) ─────────────────────────────
 
 function EventCard({ event }: { event: EventItem }) {
   const lowestPrice = (): string => {
@@ -141,57 +161,88 @@ function EventCard({ event }: { event: EventItem }) {
     : '—';
 
   return (
-    <div className="bg-[#242424] rounded-2xl border border-[rgba(184,115,51,0.2)] overflow-hidden hover:-translate-y-1 hover:shadow-xl hover:border-[rgba(184,115,51,0.4)] transition-all duration-200 group">
-      <div className="relative overflow-hidden">
+    <motion.div
+      variants={cardHover}
+      initial="rest"
+      whileHover="hover"
+      animate="rest"
+      className="group relative bg-gradient-to-br from-[#242424] to-[#1e1e1e] rounded-2xl overflow-hidden shadow-xl border border-[rgba(184,115,51,0.2)] hover:shadow-2xl transition-shadow"
+    >
+      <div className="relative h-56 overflow-hidden">
         {event.cover_image ? (
-          <img src={event.cover_image} alt={event.title} className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" />
+          <img src={event.cover_image} alt={event.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
         ) : (
-          <div className="w-full h-48 bg-[rgba(184,115,51,0.08)] flex items-center justify-center">
-            <Calendar className="w-12 h-12 text-[#b87333]/30" />
+          <div className="w-full h-full bg-[rgba(184,115,51,0.1)] flex items-center justify-center">
+            <Calendar className="w-12 h-12 text-[#b87333]/40" />
           </div>
         )}
-        <span className="absolute top-3 left-3 px-2 py-1 text-xs font-semibold text-white rounded-lg capitalize" style={{ background: 'linear-gradient(135deg,#b87333,#d4956a)' }}>
-          {event.category}
-        </span>
-        {event.is_free && (
-          <span className="absolute top-3 right-3 px-2 py-1 text-xs font-bold bg-green-500 text-white rounded-lg">FREE</span>
-        )}
+        <div className="absolute top-4 left-4 flex gap-2">
+          <span className="px-2.5 py-1 text-xs font-bold rounded-full bg-black/60 backdrop-blur-sm text-white capitalize">
+            {event.category || 'Event'}
+          </span>
+          {event.is_free && (
+            <span className="px-2.5 py-1 text-xs font-bold rounded-full bg-green-500/90 text-white">FREE</span>
+          )}
+        </div>
       </div>
       <div className="p-5">
-        <h3 className="font-bold text-[#f5f0e8] mb-3 line-clamp-2">{event.title}</h3>
-        <div className="space-y-1.5 text-xs text-[#9a8f82] mb-4">
-          <div className="flex items-center gap-1.5"><Calendar className="w-3.5 h-3.5 text-[#b87333]" />{dateStr}</div>
-          <div className="flex items-center gap-1.5"><MapPin className="w-3.5 h-3.5 text-[#b87333]" />{[event.venue_name, event.city].filter(Boolean).join(', ') || '—'}</div>
-          <p className="font-semibold text-[#b87333]">{lowestPrice()}</p>
+        <h3 className="font-bold text-lg text-[#f5f0e8] mb-2 line-clamp-1">{event.title}</h3>
+        <div className="flex items-center gap-2 text-sm text-[#9a8f82] mb-3">
+          <Calendar className="w-3.5 h-3.5 text-[#b87333]" />
+          <span>{dateStr}</span>
         </div>
-        <Link to={`/events/${event.id}`} className="block w-full py-2.5 text-center text-sm font-semibold text-white rounded-xl hover:opacity-90 transition-opacity" style={{ background: 'linear-gradient(135deg,#b87333,#d4956a)' }}>
-          Book Now
-        </Link>
+        <div className="flex items-center gap-2 text-sm text-[#9a8f82] mb-4">
+          <MapPin className="w-3.5 h-3.5 text-[#b87333]" />
+          <span>{[event.venue_name, event.city].filter(Boolean).join(', ') || 'Online'}</span>
+        </div>
+        <div className="flex items-center justify-between">
+          <p className="font-bold text-[#b87333]">{lowestPrice()}</p>
+          <Link
+            to={`/events/${event.id}`}
+            className="px-4 py-2 text-sm font-semibold text-white rounded-xl bg-[#b87333]/20 hover:bg-[#b87333]/40 transition-colors"
+          >
+            Book Now
+          </Link>
+        </div>
       </div>
-    </div>
+    </motion.div>
   );
 }
-
-// ─── Skeleton card ────────────────────────────────────────────────────────────
 
 function SkeletonCard() {
   return (
-    <div className="bg-[#242424] rounded-2xl border border-[rgba(184,115,51,0.2)] overflow-hidden animate-pulse">
-      <div className="w-full h-48 bg-gray-400/10" />
+    <div className="bg-[#242424] rounded-2xl overflow-hidden animate-pulse">
+      <div className="h-56 bg-gray-400/10" />
       <div className="p-5 space-y-3">
-        <div className="h-4 bg-gray-400/10 rounded w-3/4" />
-        <div className="h-3 bg-gray-400/10 rounded w-1/2" />
-        <div className="h-3 bg-gray-400/10 rounded w-2/3" />
-        <div className="h-10 bg-gray-400/10 rounded-xl mt-4" />
+        <div className="h-5 bg-gray-400/10 rounded w-3/4" />
+        <div className="h-4 bg-gray-400/10 rounded w-1/2" />
+        <div className="h-4 bg-gray-400/10 rounded w-2/3" />
+        <div className="flex justify-between mt-4">
+          <div className="h-6 bg-gray-400/10 rounded w-1/3" />
+          <div className="h-9 bg-gray-400/10 rounded w-1/3" />
+        </div>
       </div>
     </div>
   );
 }
 
-// ─── Home page ────────────────────────────────────────────────────────────────
+// ─── New component: Featured Section Title (with Sparkles) ───────────────────
+function SectionTitle({ icon: Icon, title, subtitle }: { icon: any; title: string; subtitle?: string }) {
+  return (
+    <div className="text-center mb-12">
+      <div className="inline-flex items-center justify-center p-2 bg-[rgba(184,115,51,0.1)] rounded-2xl mb-4">
+        <Icon className="w-6 h-6 text-[#b87333]" />
+      </div>
+      <h2 className="text-3xl md:text-4xl font-extrabold text-[#f5f0e8] mb-2">{title}</h2>
+      {subtitle && <p className="text-[#9a8f82] max-w-2xl mx-auto">{subtitle}</p>}
+    </div>
+  );
+}
+
+// ─── Home page (redesigned) ───────────────────────────────────────────────────
 
 export default function Home() {
-  const [slide,          setSlide]          = useState(0);
+  const [slide, setSlide] = useState(0);
   const [featuredEvents, setFeaturedEvents] = useState<EventItem[]>([]);
   const [upcomingEvents, setUpcomingEvents] = useState<EventItem[]>([]);
   const [loadingFeatured, setLoadingFeatured] = useState(true);
@@ -229,7 +280,7 @@ export default function Home() {
     <div className="min-h-screen bg-[#1a1a1a]">
       <Navbar />
 
-      {/* ── Hero Carousel ─────────────────────────────────────────────────── */}
+      {/* ── Hero Carousel (unchanged) ─────────────────────────────────────── */}
       <div className="relative h-screen overflow-hidden">
         {SLIDES.map((s, i) => (
           <div key={i} className={`absolute inset-0 transition-opacity duration-1000 ${i === slide ? 'opacity-100' : 'opacity-0'}`}>
@@ -237,171 +288,196 @@ export default function Home() {
             <div className="absolute inset-0 bg-black/60" />
           </div>
         ))}
-
         <div className="relative z-10 h-full flex items-center justify-center text-center px-4">
-          <div className="max-w-3xl">
-            <h1 className="text-4xl sm:text-6xl font-extrabold text-white mb-6 leading-tight">
-              {SLIDES[slide].heading}
-            </h1>
-            <p className="text-lg sm:text-xl text-white/80 mb-10">{SLIDES[slide].sub}</p>
-            <div className="flex flex-wrap gap-4 justify-center">
-              <Link to={SLIDES[slide].cta1.to} className="px-8 py-3.5 font-semibold text-white rounded-2xl hover:opacity-90 transition-opacity" style={{ background: 'linear-gradient(135deg,#b87333,#d4956a)' }}>
-                {SLIDES[slide].cta1.label}
-              </Link>
-              <Link to={SLIDES[slide].cta2.to} className="px-8 py-3.5 font-semibold text-white rounded-2xl border-2 border-white hover:bg-white/10 transition-colors">
-                {SLIDES[slide].cta2.label}
-              </Link>
-            </div>
-          </div>
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={slide}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.5 }}
+              className="max-w-3xl"
+            >
+              <h1 className="text-4xl sm:text-6xl font-extrabold text-white mb-6 leading-tight">
+                {SLIDES[slide].heading}
+              </h1>
+              <p className="text-lg sm:text-xl text-white/80 mb-10">{SLIDES[slide].sub}</p>
+              <div className="flex flex-wrap gap-4 justify-center">
+                <Link to={SLIDES[slide].cta1.to} className="px-8 py-3.5 font-semibold text-white rounded-2xl hover:opacity-90 transition-opacity" style={{ background: 'linear-gradient(135deg,#b87333,#d4956a)' }}>
+                  {SLIDES[slide].cta1.label}
+                </Link>
+                <Link to={SLIDES[slide].cta2.to} className="px-8 py-3.5 font-semibold text-white rounded-2xl border-2 border-white hover:bg-white/10 transition-colors">
+                  {SLIDES[slide].cta2.label}
+                </Link>
+              </div>
+            </motion.div>
+          </AnimatePresence>
         </div>
-
-        {/* Arrows */}
-        <button onClick={() => setSlide((s) => (s - 1 + SLIDES.length) % SLIDES.length)} className="absolute left-4 top-1/2 -translate-y-1/2 z-20 w-12 h-12 rounded-full bg-black/40 hover:bg-black/60 flex items-center justify-center text-white transition-colors">
+        <button onClick={() => setSlide((s) => (s - 1 + SLIDES.length) % SLIDES.length)} className="absolute left-4 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full bg-black/40 hover:bg-black/60 flex items-center justify-center text-white">
           <ChevronLeft className="w-6 h-6" />
         </button>
-        <button onClick={() => setSlide((s) => (s + 1) % SLIDES.length)} className="absolute right-4 top-1/2 -translate-y-1/2 z-20 w-12 h-12 rounded-full bg-black/40 hover:bg-black/60 flex items-center justify-center text-white transition-colors">
+        <button onClick={() => setSlide((s) => (s + 1) % SLIDES.length)} className="absolute right-4 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full bg-black/40 hover:bg-black/60 flex items-center justify-center text-white">
           <ChevronRight className="w-6 h-6" />
         </button>
-
-        {/* Dots */}
-        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-20 flex gap-2">
+        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex gap-2">
           {SLIDES.map((_, i) => (
-            <button key={i} onClick={() => setSlide(i)} className={`h-2.5 rounded-full transition-all ${i === slide ? 'bg-[#b87333] w-6' : 'bg-white/50 hover:bg-white/80 w-2.5'}`} />
+            <button key={i} onClick={() => setSlide(i)} className={`h-2.5 rounded-full transition-all ${i === slide ? 'bg-[#b87333] w-6' : 'bg-white/50 w-2.5'}`} />
           ))}
         </div>
       </div>
 
-      {/* ── Stats Bar ─────────────────────────────────────────────────────── */}
-      <div className="py-14" style={{ background: 'linear-gradient(135deg,#b87333,#d4956a)' }}>
+      {/* ── Stats Bar (unchanged) ──────────────────────────────────────────── */}
+      <motion.div
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, amount: 0.3 }}
+        variants={staggerContainer}
+        style={{ background: 'linear-gradient(135deg,#b87333,#d4956a)' }}
+        className="py-14"
+      >
         <div className="max-w-5xl mx-auto px-4 grid grid-cols-2 lg:grid-cols-4 gap-8 text-center">
           {STATS.map(({ icon: Icon, label, end }) => (
-            <div key={label}>
+            <motion.div key={label} variants={fadeInUp}>
               <Icon className="w-8 h-8 text-white/80 mx-auto mb-2" />
               <div className="text-3xl font-extrabold text-white"><AnimatedCounter end={end} /></div>
               <p className="text-white/80 text-sm mt-1">{label}</p>
-            </div>
+            </motion.div>
           ))}
         </div>
-      </div>
+      </motion.div>
 
-      {/* ── Featured Events ────────────────────────────────────────────────── */}
-      <section className="py-20 bg-[#111111]">
+      {/* ── Featured Events (new design) ───────────────────────────────────── */}
+      <section className="py-24 bg-[#111111]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6">
-          <div className="flex items-center justify-between mb-10">
-            <div className="flex items-center gap-3">
-              <Calendar className="w-7 h-7 text-[#b87333]" />
-              <h2 className="text-3xl font-extrabold text-[#f5f0e8]">Featured Events</h2>
-            </div>
-            <Link to="/events?featured=true" className="text-sm text-[#b87333] hover:underline">View all →</Link>
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          <SectionTitle icon={Sparkles} title="Featured Events" subtitle="Handpicked experiences you don't want to miss" />
+          <motion.div
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
+            variants={staggerContainer}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true }}
+          >
             {loadingFeatured
               ? Array.from({ length: 3 }).map((_, i) => <SkeletonCard key={i} />)
-              : featuredEvents.length > 0
-                ? featuredEvents.slice(0, 3).map((e) => <EventCard key={e.id} event={e} />)
-                : <p className="text-[#9a8f82] col-span-3 text-center py-10">No featured events yet.</p>
+              : featuredEvents.slice(0, 3).map((e) => <EventCard key={e.id} event={e} />)
             }
-          </div>
-          <div className="text-center mt-10">
-            <Link to="/events" className="inline-flex items-center gap-2 px-8 py-3.5 text-white font-semibold rounded-2xl hover:opacity-90 transition-opacity" style={{ background: 'linear-gradient(135deg,#b87333,#d4956a)' }}>
-              View All Events
+          </motion.div>
+          <div className="text-center mt-12">
+            <Link to="/events" className="inline-flex items-center gap-2 px-8 py-3 text-white font-semibold rounded-full border border-[#b87333] hover:bg-[#b87333] transition-colors">
+              Explore All Events <TrendingUp className="w-4 h-4" />
             </Link>
           </div>
         </div>
       </section>
 
-      {/* ── Upcoming Events ────────────────────────────────────────────────── */}
-      <section className="py-20 bg-[#1a1a1a]">
+      {/* ── Upcoming Events (new layout with countdown feel) ────────────────── */}
+      <section className="py-24 bg-[#1a1a1a]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6">
-          <div className="flex items-center justify-between mb-10">
-            <h2 className="text-3xl font-extrabold text-[#f5f0e8]">⏰ Upcoming Events</h2>
-            <Link to="/events" className="text-sm text-[#b87333] hover:underline">See all →</Link>
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          <SectionTitle icon={Clock} title="Happening Soon" subtitle="Events starting in the next few days" />
+          <motion.div
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
+            variants={staggerContainer}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true }}
+          >
             {loadingUpcoming
               ? Array.from({ length: 3 }).map((_, i) => <SkeletonCard key={i} />)
-              : upcomingEvents.length > 0
-                ? upcomingEvents.map((e) => <EventCard key={e.id} event={e} />)
-                : <p className="text-[#9a8f82] col-span-3 text-center py-10">No upcoming events yet.</p>
+              : upcomingEvents.map((e) => <EventCard key={e.id} event={e} />)
             }
-          </div>
+          </motion.div>
         </div>
       </section>
 
-      {/* ── Categories ─────────────────────────────────────────────────────── */}
-      <section className="py-20 bg-[#111111]">
+      {/* ── Categories (new pill-shaped design) ────────────────────────────── */}
+      <section className="py-24 bg-[#111111]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6">
-          <h2 className="text-3xl font-extrabold text-[#f5f0e8] mb-10 text-center">Browse by Category</h2>
-          <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-4">
+          <SectionTitle icon={Award} title="Browse by Category" subtitle="Find events that match your interests" />
+          <motion.div
+            className="flex flex-wrap justify-center gap-4"
+            variants={staggerContainer}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true }}
+          >
             {CATEGORIES.map(({ icon: Icon, label }) => (
-              <Link key={label} to={`/events?category=${label}`}
-                className="bg-[#242424] border border-[rgba(184,115,51,0.2)] rounded-2xl p-4 flex flex-col items-center gap-2 hover:border-[rgba(184,115,51,0.5)] hover:shadow-[0_0_20px_rgba(184,115,51,0.15)] hover:-translate-y-0.5 transition-all group"
-              >
-                <Icon className="w-7 h-7 text-[#b87333] group-hover:scale-110 transition-transform" />
-                <span className="text-xs font-medium text-[#f5f0e8] text-center capitalize">{label}</span>
-              </Link>
+              <motion.div key={label} variants={fadeInUp}>
+                <Link
+                  to={`/events?category=${label}`}
+                  className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-[#242424] border border-[rgba(184,115,51,0.3)] hover:border-[#b87333] hover:shadow-md transition-all group"
+                >
+                  <Icon className="w-4 h-4 text-[#b87333] group-hover:scale-110 transition-transform" />
+                  <span className="text-sm font-medium text-[#f5f0e8] capitalize">{label}</span>
+                </Link>
+              </motion.div>
             ))}
-          </div>
+          </motion.div>
         </div>
       </section>
 
-      {/* ── How It Works ───────────────────────────────────────────────────── */}
-      <section className="py-20 bg-[#1a1a1a]">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6">
-          <h2 className="text-3xl font-extrabold text-[#f5f0e8] text-center mb-16">How It Works</h2>
-          <div className="relative flex flex-col md:flex-row items-center gap-8 md:gap-0">
-            {HOW_IT_WORKS.map((step, i) => (
-              <div key={i} className="flex-1 flex flex-col items-center text-center relative px-6">
-                {i < 2 && (
-                  <div className="hidden md:block absolute top-8 h-0.5 bg-gradient-to-r from-[#b87333] to-transparent z-0" style={{ left: '60%', width: '40%' }} />
-                )}
-                <div className="w-16 h-16 rounded-full flex items-center justify-center text-white mb-4 z-10 relative shadow-lg" style={{ background: 'linear-gradient(135deg,#b87333,#d4956a)' }}>
-                  <step.icon className="w-6 h-6" />
-                </div>
-                <h3 className="font-bold text-[#f5f0e8] mb-2">{step.title}</h3>
-                <p className="text-sm text-[#9a8f82] leading-relaxed">{step.desc}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ── Testimonials ───────────────────────────────────────────────────── */}
-      <section className="py-20 bg-[#111111]">
+      {/* ── How It Works (new horizontal timeline style) ────────────────────── */}
+      <section className="py-24 bg-[#1a1a1a]">
         <div className="max-w-6xl mx-auto px-4 sm:px-6">
-          <h2 className="text-3xl font-extrabold text-[#f5f0e8] text-center mb-12">What People Say</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {TESTIMONIALS.map((t, i) => (
-              <div key={i} className="bg-[#242424] rounded-2xl p-6 border-l-4 border-[#b87333] border border-[rgba(184,115,51,0.15)]">
-                <div className="flex gap-0.5 mb-4">
-                  {Array.from({ length: 5 }).map((_, j) => <Star key={j} className="w-4 h-4 fill-yellow-400 text-yellow-400" />)}
+          <SectionTitle icon={Search} title="How It Works" subtitle="Three simple steps to your next great experience" />
+          <div className="relative">
+            <div className="hidden md:block absolute top-1/2 left-0 w-full h-0.5 bg-gradient-to-r from-transparent via-[#b87333]/30 to-transparent -translate-y-1/2" />
+            <div className="relative flex flex-col md:flex-row justify-between gap-8">
+              {HOW_IT_WORKS.map((step, idx) => (
+                <motion.div
+                  key={idx}
+                  variants={fadeInUp}
+                  initial="hidden"
+                  whileInView="visible"
+                  viewport={{ once: true }}
+                  className="flex-1 text-center relative z-10 bg-[#242424] rounded-2xl p-6 border border-[rgba(184,115,51,0.2)] shadow-lg"
+                >
+                  <div className="w-16 h-16 mx-auto rounded-full bg-gradient-to-br from-[#b87333] to-[#d4956a] flex items-center justify-center text-white text-2xl font-bold mb-4">
+                    {idx + 1}
+                  </div>
+                  <step.icon className="w-8 h-8 text-[#b87333] mx-auto mb-3" />
+                  <h3 className="text-xl font-bold text-[#f5f0e8] mb-2">{step.title}</h3>
+                  <p className="text-sm text-[#9a8f82]">{step.desc}</p>
+                </motion.div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── Testimonials (new card design with gradient border) ─────────────── */}
+      <section className="py-24 bg-[#111111]">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6">
+          <SectionTitle icon={Star} title="Loved by Users" subtitle="Real stories from our community" />
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {TESTIMONIALS.map((t, idx) => (
+              <motion.div
+                key={idx}
+                variants={fadeInUp}
+                initial="hidden"
+                whileInView="visible"
+                viewport={{ once: true }}
+                className="relative bg-[#242424] rounded-2xl p-6 border border-[rgba(184,115,51,0.2)] hover:border-[rgba(184,115,51,0.5)] transition-all group"
+              >
+                <div className="absolute -top-3 left-6 w-8 h-8 rounded-full bg-[#b87333] flex items-center justify-center text-white font-bold">
+                  “
                 </div>
-                <p className="text-sm text-[#9a8f82] leading-relaxed mb-5 italic">"{t.quote}"</p>
-                <div className="flex items-center gap-3">
-                  <img src={t.img} alt={t.name} className="w-10 h-10 rounded-full object-cover" />
-                  <div>
-                    <p className="text-sm font-semibold text-[#f5f0e8]">{t.name}</p>
-                    <p className="text-xs text-[#b87333]">{t.role}</p>
+                <div className="pt-4">
+                  <div className="flex gap-1 mb-4">
+                    {[...Array(5)].map((_, i) => (
+                      <Star key={i} className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+                    ))}
+                  </div>
+                  <p className="text-[#9a8f82] text-sm leading-relaxed mb-5 italic">"{t.quote}"</p>
+                  <div className="flex items-center gap-3">
+                    <img src={t.img} alt={t.name} className="w-10 h-10 rounded-full object-cover ring-2 ring-[#b87333]/30" />
+                    <div>
+                      <p className="text-sm font-semibold text-[#f5f0e8]">{t.name}</p>
+                      <p className="text-xs text-[#b87333]">{t.role}</p>
+                    </div>
                   </div>
                 </div>
-              </div>
+              </motion.div>
             ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ── CTA Banner ─────────────────────────────────────────────────────── */}
-      <section className="py-20 bg-[#1a1a1a] text-center">
-        <div className="max-w-xl mx-auto px-4">
-          <h2 className="text-3xl font-extrabold text-[#f5f0e8] mb-4">Ready to Create Something Amazing?</h2>
-          <p className="text-[#9a8f82] mb-8 leading-relaxed">Join thousands of organizers and attendees already using SmartEvent.</p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link to="/register" className="px-8 py-3.5 text-white font-semibold rounded-2xl hover:opacity-90 transition-opacity" style={{ background: 'linear-gradient(135deg,#b87333,#d4956a)' }}>
-              Get Started Free
-            </Link>
-            <Link to="/events" className="px-8 py-3.5 text-[#f5f0e8] font-semibold rounded-2xl border border-[rgba(184,115,51,0.3)] hover:bg-[rgba(184,115,51,0.08)] transition-colors">
-              Browse Events
-            </Link>
           </div>
         </div>
       </section>

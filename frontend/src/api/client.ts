@@ -1,5 +1,5 @@
 import axios from 'axios';
-import type { AxiosInstance, AxiosResponse, InternalAxiosRequestConfig } from 'axios';
+import type { AxiosInstance, InternalAxiosRequestConfig } from 'axios';
 
 const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1';
 
@@ -23,9 +23,11 @@ apiClient.interceptors.request.use(
 
 // ── Response interceptor: handle 401 globally ────────────────────────────────
 apiClient.interceptors.response.use(
-  (response: AxiosResponse) => response,
+  (response) => response,
   (error) => {
-    if (error.response?.status === 401) {
+    // Do NOT redirect on 401 for login requests
+    const isLoginRequest = error.config?.url?.includes('/auth/login/');
+    if (error.response?.status === 401 && !isLoginRequest) {
       localStorage.removeItem('access_token');
       localStorage.removeItem('refresh_token');
       localStorage.removeItem('user');
