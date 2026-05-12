@@ -1,4 +1,3 @@
-// src/components/DashboardLayout.tsx
 import { useState, useEffect } from 'react';
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import {
@@ -6,8 +5,8 @@ import {
   TrendingUp, Bell, Settings, Users, LogOut, Menu,
   ChevronLeft, QrCode, X,
 } from 'lucide-react';
-import { useAuth } from '@/context/AuthContext';
-import { notificationsApi } from '@/api/client';
+import { useAuth } from '../context/AuthContext';
+import { notificationsApi } from '../api/client';
 
 // ─── Nav item definition ──────────────────────────────────────────────────────
 interface NavItem {

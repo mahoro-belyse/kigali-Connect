@@ -1,4 +1,3 @@
-// src/components/Navbar.tsx
 import { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import {
@@ -6,7 +5,7 @@ import {
   Menu, X, LayoutDashboard, LogOut, List, Eye,
   LogIn, UserPlus,
 } from 'lucide-react';
-import { useAuth } from '@/context/AuthContext';
+import { useAuth } from '../context/AuthContext';
 
 // ─── Mega dropdown items (matches prompt spec exactly) ────────────────────────
 const megaItems = [
