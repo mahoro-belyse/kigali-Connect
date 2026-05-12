@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import {
   Calendar, MapPin, Users, Star, ArrowLeft,
-  Minus, Plus, CheckCircle, Clock, Tag,
+  Minus, Plus, Clock, Tag,
 } from 'lucide-react';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';

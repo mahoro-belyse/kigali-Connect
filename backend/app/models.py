@@ -170,7 +170,7 @@ class Booking(Base):
     final_amount        = Column(Float, nullable=False)
     status              = Column(Enum(BookingStatus), default=BookingStatus.PENDING, nullable=False)
     payment_status      = Column(Enum(PaymentStatus), default=PaymentStatus.UNPAID, nullable=False)
-    qr_code             = Column(String(500))
+    qr_code             = Column(Text)
     special_requests    = Column(Text)
     cancellation_reason = Column(Text)
     cancelled_at        = Column(DateTime(timezone=True))

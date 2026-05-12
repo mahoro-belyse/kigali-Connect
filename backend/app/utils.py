@@ -3,7 +3,7 @@
 # ═══════════════════════════════════════════════════════════════════
 import os, uuid, random, string, qrcode, json, base64, logging
 from io import BytesIO
-from datetime import datetime
+from datetime import datetime,timezone
 from pathlib import Path
 from app.core import settings
 
@@ -17,13 +17,13 @@ MAX_FILE_SIZE = settings.MAX_FILE_SIZE_MB * 1024 * 1024
 
 def gen_booking_ref() -> str:
     chars = string.ascii_uppercase + string.digits
-    return f"EVT-{datetime.utcnow().year}-{''.join(random.choices(chars, k=8))}"
+    return f"EVT-{datetime.now(timezone.utc).year}-{''.join(random.choices(chars, k=8))}"
 
 def gen_transaction_id() -> str:
     return f"TXN-{uuid.uuid4().hex[:12].upper()}"
 
 def gen_receipt_number() -> str:
-    return f"RCP-{datetime.utcnow().strftime('%Y%m%d')}-{uuid.uuid4().hex[:6].upper()}"
+    return f"RCP-{datetime.now(timezone.utc).strftime('%Y%m%d')}-{uuid.uuid4().hex[:6].upper()}"
 
 
 # ─── QR Code ─────────────────────────────────────────────────────────────────

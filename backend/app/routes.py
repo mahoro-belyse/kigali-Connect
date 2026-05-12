@@ -5,7 +5,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File, Query
 from sqlalchemy.orm import Session, joinedload
 from sqlalchemy import func, extract, or_, and_
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta,timezone
 from typing import Optional, List
 
 from app.core import (
@@ -86,7 +86,7 @@ def login(data: UserLogin, db: Session = Depends(get_db)):
         raise HTTPException(403, "Account disabled. Contact support.")
 
     reset_attempts(email)
-    user.last_login = datetime.utcnow()
+    user.last_login = datetime.now(timezone.utc)
     db.commit(); db.refresh(user)
 
     td = {"sub": str(user.id), "role": user.role, "email": user.email}
@@ -247,7 +247,7 @@ def list_events(page: int = Query(1, ge=1), per_page: int = Query(12, ge=1, le=1
 @events.get("/upcoming", response_model=EventList)
 def upcoming(limit: int = Query(6, ge=1, le=20), db: Session = Depends(get_db)):
     q = db.query(Event).filter(Event.status == EventStatus.PUBLISHED,
-                                Event.start_datetime > datetime.utcnow()).order_by(Event.start_datetime)
+                                Event.start_datetime > datetime.now(timezone.utc)).order_by(Event.start_datetime)
     items, total = paginate(q, 1, limit)
     return EventList(events=[_enrich(e, db) for e in items], total=total,
                      page=1, per_page=limit, total_pages=total_pages(total, limit))
@@ -379,14 +379,14 @@ def create_booking(data: BookingIn, current=Depends(get_current_user), db: Sessi
     e = db.query(Event).filter(Event.id == data.event_id).first()
     if not e: raise HTTPException(404, "Event not found")
     if e.status != EventStatus.PUBLISHED: raise HTTPException(400, "Event not available for booking")
-    if e.start_datetime <= datetime.utcnow(): raise HTTPException(400, "Cannot book past events")
+    if e.start_datetime <= datetime.now(timezone.utc): raise HTTPException(400, "Cannot book past events")
 
     tt = db.query(TicketTier).filter(TicketTier.id == data.ticket_type_id,
                                       TicketTier.event_id == data.event_id,
                                       TicketTier.is_active == True).first()
     if not tt: raise HTTPException(404, "Ticket tier not found")
 
-    now = datetime.utcnow()
+    now = datetime.now(timezone.utc)
     if tt.sale_start and now < tt.sale_start: raise HTTPException(400, "Ticket sales not started")
     if tt.sale_end and now > tt.sale_end: raise HTTPException(400, "Ticket sales ended")
     if tt.available < data.quantity: raise HTTPException(409, f"Only {tt.available} ticket(s) available")
@@ -489,7 +489,7 @@ def cancel_booking(booking_id: int, data: BookingCancelIn, current=Depends(get_c
 
     b.status = BookingStatus.CANCELLED
     b.cancellation_reason = data.reason
-    b.cancelled_at = datetime.utcnow()
+    b.cancelled_at = datetime.now(timezone.utc)
     push_notification(db, b.user_id, NotificationType.BOOKING_CANCELLED,
                       "Booking Cancelled", f"Booking {b.booking_reference} has been cancelled.",
                       {"booking_ref": b.booking_reference})
@@ -509,7 +509,7 @@ def check_in(data: CheckInIn, current=Depends(require_manager), db: Session = De
     e = db.query(Event).filter(Event.id == b.event_id).first()
     if b.payment_status == PaymentStatus.UNPAID and e and not e.is_free:
         raise HTTPException(400, "Payment required before check-in")
-    b.checked_in = True; b.checked_in_at = datetime.utcnow(); b.status = BookingStatus.ATTENDED
+    b.checked_in = True; b.checked_in_at = datetime.now(timezone.utc); b.status = BookingStatus.ATTENDED
     db.commit(); return _load_booking(b.id, db)
 
 
@@ -533,7 +533,7 @@ def pay(data: PaymentIn, current=Depends(get_current_user), db: Session = Depend
     p = Payment(booking_id=data.booking_id, transaction_id=txn, amount=b.final_amount,
                 currency="RWF", method=data.method, status=PaymentStatus.PAID,
                 simulated=True, receipt_number=gen_receipt_number(),
-                paid_at=datetime.utcnow(), gateway_response='{"status":"success","simulated":true}')
+                paid_at=datetime.now(timezone.utc), gateway_response='{"status":"success","simulated":true}')
     db.add(p)
     b.payment_status = PaymentStatus.PAID; b.status = BookingStatus.CONFIRMED
     push_notification(db, b.user_id, NotificationType.PAYMENT_RECEIVED,
@@ -584,7 +584,7 @@ def refund(payment_id: int, data: RefundIn, current=Depends(require_admin), db: 
     if amt > p.amount: raise HTTPException(400, "Refund exceeds payment amount")
     full = amt >= p.amount
     p.status = PaymentStatus.REFUNDED if full else PaymentStatus.PARTIALLY_REFUNDED
-    p.refunded_at = datetime.utcnow(); p.refund_amount = amt; p.refund_reason = data.reason
+    p.refunded_at = datetime.now(timezone.utc); p.refund_amount = amt; p.refund_reason = data.reason
     p.booking.payment_status = PaymentStatus.REFUNDED if full else PaymentStatus.PARTIALLY_REFUNDED
     push_notification(db, p.booking.user_id, NotificationType.PAYMENT_RECEIVED,
                       "Refund Processed 💸", f"Refund of {amt:,.0f} RWF processed for {p.booking.booking_reference}.",
@@ -609,7 +609,7 @@ def dashboard(current=Depends(require_manager), db: Session = Depends(get_db)):
     ids = _manager_event_ids(current, db)
     bf = Booking.event_id.in_(ids) if ids else True
     ef = Event.created_by == current.id if ids else True
-    now = datetime.utcnow()
+    now = datetime.now(timezone.utc)
     rev = db.query(func.sum(Payment.amount)).join(Booking).filter(
         Booking.event_id.in_(ids) if ids else True, Payment.status == PaymentStatus.PAID).scalar() or 0.0
     return DashboardStats(
@@ -626,7 +626,7 @@ def dashboard(current=Depends(require_manager), db: Session = Depends(get_db)):
 
 @analytics.get("/revenue/monthly", response_model=List[RevenueMonth])
 def monthly_revenue(year: int = None, current=Depends(require_manager), db: Session = Depends(get_db)):
-    year = year or datetime.utcnow().year
+    year = year or datetime.now(timezone.utc).year
     ids = _manager_event_ids(current, db)
     months, names = [], ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"]
     for m in range(1, 13):
@@ -679,7 +679,7 @@ def user_stats(db: Session = Depends(get_db)):
     return {
         "total_users": db.query(func.count(User.id)).scalar() or 0,
         "active_users": db.query(func.count(User.id)).filter(User.is_active == True).scalar() or 0,
-        "new_users_30d": db.query(func.count(User.id)).filter(User.created_at >= datetime.utcnow() - timedelta(days=30)).scalar() or 0,
+        "new_users_30d": db.query(func.count(User.id)).filter(User.created_at >= datetime.now(timezone.utc) - timedelta(days=30)).scalar() or 0,
         "by_role": [{"role": r.role, "count": r.count} for r in db.query(User.role, func.count(User.id).label("count")).group_by(User.role).all()],
     }
 

@@ -200,10 +200,11 @@ export default function Events() {
         per_page: PER_PAGE,
         ...(search             && { search }),
         ...(selectedCategories.length === 1 && { category: selectedCategories[0] }),
-        ...(isFree !== null    && { is_free: isFree }),
+        ...(isFree !== null && { is_free: Boolean(isFree) }),
         ...(dateFrom           && { date_from: dateFrom }),
         ...(dateTo             && { date_to: dateTo }),
       };
+      console.log('params →', params);
       const res  = await eventsApi.list(params);
       const data = res.data;
       setEvents(Array.isArray(data) ? data : data?.events ?? []);

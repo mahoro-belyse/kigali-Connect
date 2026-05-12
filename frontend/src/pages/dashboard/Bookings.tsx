@@ -105,7 +105,7 @@ export default function Bookings() {
         ...(statusFilter  && { status:         statusFilter  }),
         ...(paymentFilter && { payment_status: paymentFilter }),
         ...(eventFilter   && { event_id:        eventFilter   }),
-        per_page: 100, // fetch all, we paginate client-side after search filter
+        per_page: 50, // fetch all, we paginate client-side after search filter
       };
 
       const res = isClient

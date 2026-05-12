@@ -1,7 +1,7 @@
 import { Suspense, lazy } from 'react';
 import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
 import { QueryClientProvider, QueryClient } from '@tanstack/react-query';
-import type { Toaster } from './components/ui/use-toast';
+import { Toaster } from './components/ui/toaster';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
 
@@ -24,28 +24,28 @@ const PageSpinner = () => (
 );
 
 // ─── Lazy-loaded Public Pages ─────────────────────────────────────────────────
-const Home       = lazy(() => import('@/pages/Home'));
-const Events     = lazy(() => import('@/pages/Events'));
-const EventDetail = lazy(() => import('@/pages/EventDetail'));
-const Auth       = lazy(() => import('@/pages/Auth'));
-const About      = lazy(() => import('@/pages/About'));
-const Contact    = lazy(() => import('@/pages/Contact'));
-const Pricing    = lazy(() => import('@/pages/Pricing'));
-const FAQ        = lazy(() => import('@/pages/FAQ'));
-const Terms      = lazy(() => import('@/pages/Terms'));
-const Privacy    = lazy(() => import('@/pages/Privacy'));
+const Home       = lazy(() => import('./pages/Home'));
+const Events     = lazy(() => import('./pages/Events'));
+const EventDetail = lazy(() => import('./pages/EventDetail'));
+const Auth       = lazy(() => import('./pages/Auth'));
+const About      = lazy(() => import('./pages/About'));
+const Contact    = lazy(() => import('./pages/Contact'));
+const Pricing    = lazy(() => import('./pages/Pricing'));
+const FAQ        = lazy(() => import('./pages/FAQ'));
+const Terms      = lazy(() => import('./pages/Terms'));
+const Privacy    = lazy(() => import('./pages/Privacy'));
 
 // ─── Lazy-loaded Dashboard Pages ──────────────────────────────────────────────
-const DashboardLayout  = lazy(() => import('@/components/DashboardLayout'));
-const DashboardHome    = lazy(() => import('@/pages/dashboard/DashboardHome'));
-const ManageEvents     = lazy(() => import('@/pages/dashboard/ManageEvents'));
-const Bookings         = lazy(() => import('@/pages/dashboard/Bookings'));
-const Payments         = lazy(() => import('@/pages/dashboard/Payments'));
-const Reports          = lazy(() => import('@/pages/dashboard/Reports'));
-const Notifications    = lazy(() => import('@/pages/dashboard/Notifications'));
-const Profile          = lazy(() => import('@/pages/dashboard/Profile'));
-const UsersPage        = lazy(() => import('@/pages/dashboard/Users'));
-const CheckIn          = lazy(() => import('@/pages/dashboard/CheckIn'));
+const DashboardLayout  = lazy(() => import('./components/DashboardLayout'));
+const DashboardHome    = lazy(() => import('./pages/dashboard/DashboardHome'));
+const ManageEvents     = lazy(() => import('./pages/dashboard/ManageEvents'));
+const Bookings         = lazy(() => import('./pages/dashboard/Bookings'));
+const Payments         = lazy(() => import('./pages/dashboard/Payments'));
+const Reports          = lazy(() => import('./pages/dashboard/Reports'));
+const Notifications    = lazy(() => import('./pages/dashboard/Notifications'));
+const Profile          = lazy(() => import('./pages/dashboard/Profile'));
+const UsersPage        = lazy(() => import('./pages/dashboard/Users'));
+const CheckIn          = lazy(() => import('./pages/dashboard/CheckIn'));
 
 // ─── 404 Page ─────────────────────────────────────────────────────────────────
 const NotFound = () => (

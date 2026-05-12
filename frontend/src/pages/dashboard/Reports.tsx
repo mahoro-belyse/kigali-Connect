@@ -6,7 +6,7 @@ import {
 import {
   LineChart, Line, BarChart, Bar, PieChart, Pie, Cell,
   AreaChart, Area, XAxis, YAxis, CartesianGrid,
-  Tooltip, ResponsiveContainer, Legend,
+  Tooltip, ResponsiveContainer,
 } from 'recharts';
 import { analyticsApi } from '../../api/client';
 import { useAuth } from '../../context/AuthContext';
@@ -14,7 +14,7 @@ import { useToast } from '../../components/ui/use-toast';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-interface RevenueMonth  { month: string; revenue: number; bookings?: number }
+interface RevenueMonth  { month: string; revenue?: number; bookings?: number; users?: number; }
 interface CategoryData  { name: string; value: number; bookings?: number }
 interface TopEvent      { event_title?: string; title?: string; total_bookings?: number; bookings?: number; total_revenue?: number; attendance_rate?: number }
 interface DashStats     { total_events?: number; total_bookings?: number; total_revenue?: number; total_users?: number; new_users_30d?: number; upcoming_events?: number; cancelled_bookings?: number }
@@ -43,11 +43,12 @@ function Spinner() {
   return <div className="w-6 h-6 border-2 border-[rgba(184,115,51,0.3)] border-t-[#b87333] rounded-full animate-spin" />;
 }
 
-function ChartCard({ title, icon: Icon, children, loading }: {
-  title: string; icon: React.ElementType; children: React.ReactNode; loading?: boolean;
+
+function ChartCard({ title, icon: Icon, children, loading, className }: {
+  title: string; icon: React.ElementType; children: React.ReactNode; loading?: boolean; className?: string;
 }) {
   return (
-    <div className="bg-[#242424] rounded-2xl border border-[rgba(184,115,51,0.2)] p-6">
+    <div className={`bg-[#242424] rounded-2xl border border-[rgba(184,115,51,0.2)] p-6 ${className ?? ''}`}>
       <h2 className="text-sm font-semibold text-[#f5f0e8] flex items-center gap-2 mb-4">
         <Icon className="w-4 h-4 text-[#b87333]" /> {title}
       </h2>
@@ -69,8 +70,6 @@ export default function Reports() {
   // Date range — default last 6 months
   const sixMonthsAgo = new Date();
   sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
-  const [dateFrom, setDateFrom] = useState(sixMonthsAgo.toISOString().split('T')[0]);
-  const [dateTo,   setDateTo]   = useState(new Date().toISOString().split('T')[0]);
   const [year,     setYear]     = useState(new Date().getFullYear());
 
   // Data state

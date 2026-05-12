@@ -2,7 +2,7 @@
 #  core.py  —  config · database · security · auth dependencies
 # ═══════════════════════════════════════════════════════════════════
 import secrets, logging
-from datetime import datetime, timedelta
+from datetime import datetime,  timezone, timedelta
 from typing import Optional
 from pathlib import Path
 
@@ -107,11 +107,11 @@ def verify_password(plain: str, hashed: str) -> bool:
     return pwd_context.verify(plain, hashed)
 
 def create_access_token(data: dict, expires: timedelta = None) -> str:
-    payload = {**data, "exp": datetime.utcnow() + (expires or timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)), "type": "access"}
+    payload = {**data, "exp": datetime.now(timezone.utc) + (expires or timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)), "type": "access"}
     return jwt.encode(payload, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
 
 def create_refresh_token(data: dict) -> str:
-    payload = {**data, "exp": datetime.utcnow() + timedelta(days=settings.REFRESH_TOKEN_EXPIRE_DAYS), "type": "refresh"}
+    payload = {**data, "exp": datetime.now(timezone.utc) + timedelta(days=settings.REFRESH_TOKEN_EXPIRE_DAYS), "type": "refresh"}
     return jwt.encode(payload, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
 
 def decode_token(token: str) -> Optional[dict]:
@@ -132,8 +132,8 @@ def check_lockout(email: str) -> tuple[bool, Optional[int]]:
     if not rec:
         return False, None
     lu = rec.get("locked_until")
-    if lu and datetime.utcnow() < lu:
-        return True, int((lu - datetime.utcnow()).total_seconds())
+    if lu and datetime.now(timezone.utc) < lu:
+        return True, int((lu - datetime.now(timezone.utc)).total_seconds())
     if lu:
         _attempts[email.lower()] = {"attempts": 0, "locked_until": None}
     return False, None
@@ -145,7 +145,7 @@ def record_failure(email: str) -> dict:
     n = _attempts[email]["attempts"]
     remaining = settings.MAX_LOGIN_ATTEMPTS - n
     if n >= settings.MAX_LOGIN_ATTEMPTS:
-        lock_until = datetime.utcnow() + timedelta(minutes=settings.LOCKOUT_DURATION_MINUTES)
+        lock_until = datetime.now(timezone.utc) + timedelta(minutes=settings.LOCKOUT_DURATION_MINUTES)
         _attempts[email]["locked_until"] = lock_until
         return {"locked": True, "message": f"Too many failed attempts. Account locked for {settings.LOCKOUT_DURATION_MINUTES} minute(s)."}
     return {"locked": False, "message": f"Invalid credentials. {remaining} attempt(s) remaining before lockout."}

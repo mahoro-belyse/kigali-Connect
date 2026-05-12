@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import {
-  Home, BarChart3, Calendar, ClipboardList, CreditCard,
+  Home, Calendar, ClipboardList, CreditCard,
   TrendingUp, Bell, Settings, Users, LogOut, Menu,
   ChevronLeft, QrCode, X,
 } from 'lucide-react';

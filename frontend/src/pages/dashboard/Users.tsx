@@ -71,9 +71,7 @@ function Avatar({ user, size = 'md' }: { user: AppUser; size?: 'sm' | 'md' | 'lg
   );
 }
 
-function Spinner() {
-  return <div className="w-8 h-8 border-2 border-[rgba(184,115,51,0.3)] border-t-[#b87333] rounded-full animate-spin" />;
-}
+
 
 function formatJoined(d?: string) {
   if (!d) return '—';

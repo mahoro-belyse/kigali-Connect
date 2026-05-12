@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import {
   Mail, Lock, Eye, EyeOff, User,
   AtSign, Phone, Shield, ArrowLeft,
@@ -104,7 +104,7 @@ function FieldInput({
 
 function LockoutTimer({ seconds, onExpire }: { seconds: number; onExpire: () => void }) {
   const [remaining, setRemaining] = useState(seconds);
-  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+const timerRef = useRef<ReturnType<typeof setInterval> | undefined>(undefined);
 
   useEffect(() => {
     setRemaining(seconds);

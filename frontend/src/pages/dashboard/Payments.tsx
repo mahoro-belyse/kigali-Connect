@@ -93,7 +93,7 @@ export default function Payments() {
     setLoading(true);
     try {
       const params: Record<string, unknown> = {
-        per_page: 100,
+        per_page: 50,
         ...(statusFilter && { status: statusFilter }),
       };
       const res  = await paymentsApi.list(params);

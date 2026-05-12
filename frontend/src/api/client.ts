@@ -39,92 +39,92 @@ export default apiClient;
 
 // ─── Typed API helpers ────────────────────────────────────────────────────────
 
-// AUTH
-export const authApi = {
-  register: (data: RegisterPayload) => apiClient.post('/auth/register', data),
-  login: (data: LoginPayload) => apiClient.post('/auth/login', data),
-  logout: () => apiClient.post('/auth/logout'),
-  me: () => apiClient.get('/auth/me'),
-  refresh: (refreshToken: string) => apiClient.post('/auth/refresh', { refresh_token: refreshToken }),
-  changePassword: (data: ChangePasswordPayload) => apiClient.post('/auth/change-password', data),
-};
-
-// USERS
-export const usersApi = {
-  list: (params?: Record<string, unknown>) => apiClient.get('/users', { params }),
-  getProfile: () => apiClient.get('/users/profile'),
-  updateProfile: (data: Partial<UserUpdatePayload>) => apiClient.put('/users/profile', data),
-  uploadAvatar: (formData: FormData) => apiClient.post('/users/profile/avatar', formData, {
-    headers: { 'Content-Type': 'multipart/form-data' },
-  }),
-  getById: (id: number) => apiClient.get(`/users/${id}`),
-  adminUpdate: (id: number, data: AdminUserUpdate) => apiClient.put(`/users/${id}`, data),
-  deactivate: (id: number) => apiClient.delete(`/users/${id}`),
-};
-
 // EVENTS
 export const eventsApi = {
-  list: (params?: Record<string, unknown>) => apiClient.get('/events', { params }),
-  upcoming: (limit = 6) => apiClient.get('/events/upcoming', { params: { limit } }),
-  featured: () => apiClient.get('/events/featured'),
-  getById: (id: number) => apiClient.get(`/events/${id}`),
-  create: (data: EventPayload) => apiClient.post('/events', data),
-  update: (id: number, data: Partial<EventPayload>) => apiClient.put(`/events/${id}`, data),
-  publish: (id: number) => apiClient.post(`/events/${id}/publish`),
-  cancel: (id: number) => apiClient.post(`/events/${id}/cancel`),
-  delete: (id: number) => apiClient.delete(`/events/${id}`),
-  uploadCover: (id: number, formData: FormData) => apiClient.post(`/events/${id}/cover-image`, formData, {
+  list: (params?: Record<string, unknown>) => apiClient.get('/events/', { params }),
+  upcoming: (limit = 6) => apiClient.get('/events/upcoming/', { params: { limit } }),
+  featured: () => apiClient.get('/events/featured/'),
+  getById: (id: number) => apiClient.get(`/events/${id}/`),
+  create: (data: EventPayload) => apiClient.post('/events/', data),
+  update: (id: number, data: Partial<EventPayload>) => apiClient.put(`/events/${id}/`, data),
+  publish: (id: number) => apiClient.post(`/events/${id}/publish/`),
+  cancel: (id: number) => apiClient.post(`/events/${id}/cancel/`),
+  delete: (id: number) => apiClient.delete(`/events/${id}/`),
+  uploadCover: (id: number, formData: FormData) => apiClient.post(`/events/${id}/cover-image/`, formData, {
     headers: { 'Content-Type': 'multipart/form-data' },
   }),
-  addTicketTier: (eventId: number, data: TicketTierPayload) => apiClient.post(`/events/${eventId}/tickets`, data),
+  addTicketTier: (eventId: number, data: TicketTierPayload) => apiClient.post(`/events/${eventId}/tickets/`, data),
   updateTicketTier: (eventId: number, tierId: number, data: TicketTierPayload) =>
-    apiClient.put(`/events/${eventId}/tickets/${tierId}`, data),
+    apiClient.put(`/events/${eventId}/tickets/${tierId}/`, data),
 };
 
 // BOOKINGS
 export const bookingsApi = {
-  create: (data: BookingPayload) => apiClient.post('/bookings', data),
-  list: (params?: Record<string, unknown>) => apiClient.get('/bookings', { params }),
-  myBookings: (params?: Record<string, unknown>) => apiClient.get('/bookings/my', { params }),
-  getById: (id: number) => apiClient.get(`/bookings/${id}`),
-  getByRef: (ref: string) => apiClient.get(`/bookings/ref/${ref}`),
-  cancel: (id: number, reason?: string) => apiClient.post(`/bookings/${id}/cancel`, { reason }),
-  checkIn: (reference: string) => apiClient.post('/bookings/check-in', { booking_reference: reference }),
+  create: (data: BookingPayload) => apiClient.post('/bookings/', data),
+  list: (params?: Record<string, unknown>) => apiClient.get('/bookings/', { params }),
+  myBookings: (params?: Record<string, unknown>) => apiClient.get('/bookings/my/', { params }),
+  getById: (id: number) => apiClient.get(`/bookings/${id}/`),
+  getByRef: (ref: string) => apiClient.get(`/bookings/ref/${ref}/`),
+  cancel: (id: number, reason?: string) => apiClient.post(`/bookings/${id}/cancel/`, { reason }),
+  checkIn: (reference: string) => apiClient.post('/bookings/check-in/', { booking_reference: reference }),
 };
 
 // PAYMENTS
 export const paymentsApi = {
-  pay: (bookingId: number, method = 'simulated') => apiClient.post('/payments', { booking_id: bookingId, method }),
-  list: (params?: Record<string, unknown>) => apiClient.get('/payments', { params }),
-  getById: (id: number) => apiClient.get(`/payments/${id}`),
-  getByBooking: (bookingId: number) => apiClient.get(`/payments/booking/${bookingId}`),
-  refund: (id: number, data: { reason: string; amount?: number }) => apiClient.post(`/payments/${id}/refund`, data),
+  pay: (bookingId: number, method = 'simulated') => apiClient.post('/payments/', { booking_id: bookingId, method }),
+  list: (params?: Record<string, unknown>) => apiClient.get('/payments/', { params }),
+  getById: (id: number) => apiClient.get(`/payments/${id}/`),
+  getByBooking: (bookingId: number) => apiClient.get(`/payments/booking/${bookingId}/`),
+  refund: (id: number, data: { reason: string; amount?: number }) => apiClient.post(`/payments/${id}/refund/`, data),
+};
+
+// USERS
+export const usersApi = {
+  list: (params?: Record<string, unknown>) => apiClient.get('/users/', { params }),
+  getProfile: () => apiClient.get('/users/profile/'),
+  updateProfile: (data: Partial<UserUpdatePayload>) => apiClient.put('/users/profile/', data),
+  uploadAvatar: (formData: FormData) => apiClient.post('/users/profile/avatar/', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  }),
+  getById: (id: number) => apiClient.get(`/users/${id}/`),
+  adminUpdate: (id: number, data: AdminUserUpdate) => apiClient.put(`/users/${id}/`, data),
+  deactivate: (id: number) => apiClient.delete(`/users/${id}/`),
 };
 
 // ANALYTICS
 export const analyticsApi = {
-  dashboard: () => apiClient.get('/analytics/dashboard'),
-  monthlyRevenue: (year?: number) => apiClient.get('/analytics/revenue/monthly', { params: { year } }),
-  topEvents: (limit = 10) => apiClient.get('/analytics/events/top', { params: { limit } }),
-  byCategory: () => apiClient.get('/analytics/bookings/by-category'),
-  summary: () => apiClient.get('/analytics/summary'),
-  userStats: () => apiClient.get('/analytics/users/stats'),
+  dashboard: () => apiClient.get('/analytics/dashboard/'),
+  monthlyRevenue: (year?: number) => apiClient.get('/analytics/revenue/monthly/', { params: { year } }),
+  topEvents: (limit = 10) => apiClient.get('/analytics/events/top/', { params: { limit } }),
+  byCategory: () => apiClient.get('/analytics/bookings/by-category/'),
+  summary: () => apiClient.get('/analytics/summary/'),
+  userStats: () => apiClient.get('/analytics/users/stats/'),
+};
+
+// AUTH
+export const authApi = {
+  register: (data: RegisterPayload) => apiClient.post('/auth/register/', data),
+  login: (data: LoginPayload) => apiClient.post('/auth/login/', data),
+  logout: () => apiClient.post('/auth/logout/'),
+  me: () => apiClient.get('/auth/me/'),
+  refresh: (refreshToken: string) => apiClient.post('/auth/refresh/', { refresh_token: refreshToken }),
+  changePassword: (data: ChangePasswordPayload) => apiClient.post('/auth/change-password/', data),
 };
 
 // REVIEWS
 export const reviewsApi = {
-  create: (data: ReviewPayload) => apiClient.post('/reviews', data),
+  create: (data: ReviewPayload) => apiClient.post('/reviews/', data),
   getByEvent: (eventId: number, params?: Record<string, unknown>) =>
-    apiClient.get(`/reviews/event/${eventId}`, { params }),
-  delete: (id: number) => apiClient.delete(`/reviews/${id}`),
+    apiClient.get(`/reviews/event/${eventId}/`, { params }),
+  delete: (id: number) => apiClient.delete(`/reviews/${id}/`),
 };
 
 // NOTIFICATIONS
 export const notificationsApi = {
-  list: (params?: Record<string, unknown>) => apiClient.get('/notifications', { params }),
-  markRead: (id: number) => apiClient.post(`/notifications/${id}/read`),
-  markAllRead: () => apiClient.post('/notifications/read-all'),
-  delete: (id: number) => apiClient.delete(`/notifications/${id}`),
+  list: (params?: Record<string, unknown>) => apiClient.get('/notifications/', { params }),
+  markRead: (id: number) => apiClient.post(`/notifications/${id}/read/`),
+  markAllRead: () => apiClient.post('/notifications/read-all/'),
+  delete: (id: number) => apiClient.delete(`/notifications/${id}/`),
 };
 
 // ─── Type definitions ─────────────────────────────────────────────────────────
