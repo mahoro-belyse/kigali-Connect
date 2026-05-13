@@ -52,14 +52,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [isLoadingAuth, setIsLoadingAuth] = useState<boolean>(true);
 
   // ── On mount: verify stored token is still valid ──────────────────────────
-  useEffect(() => {
-    const token = localStorage.getItem('access_token');
-    if (token) {
-      verifyToken();
-    } else {
-      setIsLoadingAuth(false);
-    }
-  }, []);
+
+  const clearAuth = () => {
+    setUser(null);
+    setIsAuthenticated(false);
+    localStorage.removeItem('access_token');
+    localStorage.removeItem('refresh_token');
+    localStorage.removeItem('user');
+  };
 
   const verifyToken = async () => {
     try {
@@ -76,13 +76,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  const clearAuth = () => {
-    setUser(null);
-    setIsAuthenticated(false);
-    localStorage.removeItem('access_token');
-    localStorage.removeItem('refresh_token');
-    localStorage.removeItem('user');
-  };
+  useEffect(() => {
+    const token = localStorage.getItem('access_token');
+    if (token) {
+      verifyToken();
+    } else {
+      setIsLoadingAuth(false);
+    }
+  }, []);
+
+  
+  
 
   // ── Login ─────────────────────────────────────────────────────────────────
   const login = async (email: string, password: string): Promise<LoginResult> => {

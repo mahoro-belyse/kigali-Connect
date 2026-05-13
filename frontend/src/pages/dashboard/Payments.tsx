@@ -45,7 +45,7 @@ function Badge({ status }: { status: string }) {
 
 function Spinner({ small = false }: { small?: boolean }) {
   return (
-    <div className={`${small ? 'w-4 h-4 border-2' : 'w-8 h-8 border-2'} border-[rgba(184,115,51,0.3)] border-t-[#b87333] rounded-full animate-spin`} />
+    <div className={`${small ? 'w-4 h-4 border-2' : 'w-8 h-8 border-2'} border-copper/30 border-t-copper rounded-full animate-spin`} />
   );
 }
 
@@ -59,9 +59,9 @@ const getEventTitle  = (p: Payment) => p.booking?.event?.title ?? p.event_title 
 const getAmount      = (p: Payment) => Number(p.amount ?? 0).toLocaleString();
 const getTxnId       = (p: Payment) => p.transaction_id ?? `#${p.id}`;
 
-const INPUT_CLS = `px-3 py-2.5 border border-[rgba(184,115,51,0.2)] rounded-xl
-  focus:border-[#b87333] focus:outline-none focus:ring-1 focus:ring-[rgba(184,115,51,0.3)]
-  text-sm bg-[#2a2a2a] text-[#f5f0e8] placeholder-[#9a8f82] transition-colors`;
+const INPUT_CLS = `px-3 py-2.5 border border-copper/20 rounded-xl
+  focus:border-copper focus:outline-none focus:ring-1 focus:ring-copper/30
+  text-sm bg-dark-input text-ivory-light placeholder-muted-text transition-colors`;
 
 const PAY_METHODS = [
   { value: 'card',         label: '💳 Card'         },
@@ -184,10 +184,10 @@ export default function Payments() {
     <div>
       {/* Header */}
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-[#f5f0e8] flex items-center gap-2">
-          <DollarSign className="w-6 h-6 text-[#b87333]" /> Payments
+        <h1 className="text-2xl font-bold text-ivory-light flex items-center gap-2">
+          <DollarSign className="w-6 h-6 text-copper" /> Payments
         </h1>
-        <p className="text-sm text-[#9a8f82] mt-1">
+        <p className="text-sm text-muted-text mt-1">
           {isClient ? 'Your payment history' : 'Track all transactions and revenue'}
         </p>
       </div>
@@ -195,17 +195,17 @@ export default function Payments() {
       {/* Summary cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
         {[
-          { label: 'Total Revenue (RWF)',  value: `${totalRevenue.toLocaleString()} RWF`,  icon: DollarSign,  color: 'bg-[rgba(184,115,51,0.2)] text-[#b87333]' },
+          { label: 'Total Revenue (RWF)',  value: `${totalRevenue.toLocaleString()} RWF`,  icon: DollarSign,  color: 'bg-copper/20 text-copper' },
           { label: 'Total Paid (RWF)',     value: `${totalPaid.toLocaleString()} RWF`,     icon: TrendingUp,  color: 'bg-green-500/20 text-green-400'           },
           { label: 'Total Refunded (RWF)', value: `${totalRefunded.toLocaleString()} RWF`, icon: RefreshCw,   color: 'bg-purple-500/20 text-purple-400'         },
         ].map(({ label, value, icon: Icon, color }) => (
-          <div key={label} className="bg-[#242424] rounded-2xl border border-[rgba(184,115,51,0.2)] p-5 flex items-center gap-4">
+          <div key={label} className="bg-dark-card rounded-2xl border border-copper/20 p-5 flex items-center gap-4">
             <div className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 ${color}`}>
               <Icon className="w-5 h-5" />
             </div>
             <div>
-              <p className="text-xs text-[#9a8f82]">{label}</p>
-              <p className="text-lg font-bold text-[#f5f0e8] mt-0.5">{value}</p>
+              <p className="text-xs text-muted-text">{label}</p>
+              <p className="text-lg font-bold text-ivory-light mt-0.5">{value}</p>
             </div>
           </div>
         ))}
@@ -230,59 +230,57 @@ export default function Payments() {
         </select>
         <button
           onClick={fetchPayments}
-          className="px-4 py-2.5 text-white text-sm rounded-xl font-medium flex items-center gap-2 hover:opacity-90 transition-opacity"
-          style={{ background: 'linear-gradient(135deg,#b87333,#d4956a)' }}
+          className="px-4 py-2.5 text-white text-sm rounded-xl font-medium flex items-center gap-2 hover:opacity-90 transition-opacity bg-gradient-to-br from-copper to-copper-light"
         >
           <Filter className="w-4 h-4" /> Refresh
         </button>
       </div>
 
       {/* Table */}
-      <div className="bg-[#242424] rounded-2xl border border-[rgba(184,115,51,0.2)] overflow-hidden">
+      <div className="bg-dark-card rounded-2xl border border-copper/20 overflow-hidden">
         {loading ? (
           <div className="py-20 flex justify-center"><Spinner /></div>
         ) : filtered.length === 0 ? (
           <div className="py-20 flex flex-col items-center gap-3">
-            <DollarSign className="w-12 h-12 text-[#b87333]/30" />
-            <p className="text-base font-medium text-[#f5f0e8]">No payments found</p>
+            <DollarSign className="w-12 h-12 text-copper/30" />
+            <p className="text-base font-medium text-ivory-light">No payments found</p>
           </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-[rgba(184,115,51,0.15)] bg-black/20">
+                <tr className="border-b border-copper/15 bg-black/20">
                   {['Transaction ID','Booking Ref','Event','Amount (RWF)','Method','Status','Receipt','Date','Actions'].map((h) => (
-                    <th key={h} className="text-left py-3 px-3 text-xs font-medium text-[#9a8f82] whitespace-nowrap">{h}</th>
+                    <th key={h} className="text-left py-3 px-3 text-xs font-medium text-muted-text whitespace-nowrap">{h}</th>
                   ))}
                 </tr>
               </thead>
               <tbody>
                 {filtered.map((p) => (
-                  <tr key={p.id} className="border-b border-[rgba(184,115,51,0.08)] hover:bg-[rgba(184,115,51,0.04)] transition-colors">
-                    <td className="py-3 px-3 font-mono text-xs text-[#b87333] whitespace-nowrap">{getTxnId(p)}</td>
-                    <td className="py-3 px-3 font-mono text-xs text-[#9a8f82]">{getBookingRef(p)}</td>
-                    <td className="py-3 px-3 text-[#f5f0e8] text-xs max-w-[120px] truncate">{getEventTitle(p)}</td>
-                    <td className="py-3 px-3 text-[#f5f0e8] font-semibold text-xs whitespace-nowrap">{getAmount(p)} RWF</td>
-                    <td className="py-3 px-3 text-[#9a8f82] text-xs capitalize">{(p.method ?? 'simulated').replace('_', ' ')}</td>
+                  <tr key={p.id} className="border-b border-copper/8 hover:bg-copper/4 transition-colors">
+                    <td className="py-3 px-3 font-mono text-xs text-copper whitespace-nowrap">{getTxnId(p)}</td>
+                    <td className="py-3 px-3 font-mono text-xs text-muted-text">{getBookingRef(p)}</td>
+                    <td className="py-3 px-3 text-ivory-light text-xs max-w-[120px] truncate">{getEventTitle(p)}</td>
+                    <td className="py-3 px-3 text-ivory-light font-semibold text-xs whitespace-nowrap">{getAmount(p)} RWF</td>
+                    <td className="py-3 px-3 text-muted-text text-xs capitalize">{(p.method ?? 'simulated').replace('_', ' ')}</td>
                     <td className="py-3 px-3"><Badge status={p.status ?? 'unpaid'} /></td>
                     <td className="py-3 px-3">
                       {p.receipt_number ? (
-                        <span className="text-xs text-[#9a8f82] font-mono">{p.receipt_number}</span>
+                        <span className="text-xs text-muted-text font-mono">{p.receipt_number}</span>
                       ) : p.receipt_url ? (
                         <a href={p.receipt_url} target="_blank" rel="noreferrer" className="text-xs text-blue-400 hover:underline flex items-center gap-1">
                           <Receipt className="w-3.5 h-3.5" /> View
                         </a>
                       ) : (
-                        <span className="text-xs text-[#9a8f82]">—</span>
+                        <span className="text-xs text-muted-text">—</span>
                       )}
                     </td>
-                    <td className="py-3 px-3 text-[#9a8f82] text-xs whitespace-nowrap">{formatDate(p.created_at)}</td>
+                    <td className="py-3 px-3 text-muted-text text-xs whitespace-nowrap">{formatDate(p.created_at)}</td>
                     <td className="py-3 px-3">
                       {isClient && p.status === 'unpaid' && (
                         <button
                           onClick={() => setPayTarget(p)}
-                          className="px-2.5 py-1 text-xs text-white rounded-lg font-medium hover:opacity-90 transition-opacity"
-                          style={{ background: 'linear-gradient(135deg,#b87333,#d4956a)' }}
+                          className="px-2.5 py-1 text-xs text-white rounded-lg font-medium hover:opacity-90 transition-opacity bg-gradient-to-br from-copper to-copper-light"
                         >
                           Pay Now
                         </button>
@@ -307,25 +305,25 @@ export default function Payments() {
       {/* ── Pay Modal ───────────────────────────────────────────────────────── */}
       {payTarget && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
-          <div className="relative bg-[#242424] rounded-2xl border border-[rgba(184,115,51,0.2)] w-full max-w-sm p-6 shadow-2xl">
+          <div className="relative bg-dark-card rounded-2xl border border-copper/20 w-full max-w-sm p-6 shadow-2xl">
             <div className="flex items-center justify-between mb-5">
-              <h3 className="font-bold text-[#f5f0e8] flex items-center gap-2">
-                <CreditCard className="w-4 h-4 text-[#b87333]" /> Pay Now
+              <h3 className="font-bold text-ivory-light flex items-center gap-2">
+                <CreditCard className="w-4 h-4 text-copper" /> Pay Now
               </h3>
-              <button onClick={() => setPayTarget(null)} className="text-gray-400 hover:text-[#f5f0e8] transition-colors">
+              <button onClick={() => setPayTarget(null)} className="text-gray-400 hover:text-ivory-light transition-colors">
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            <div className="bg-[#1a1a1a] rounded-xl p-4 mb-5 border border-[rgba(184,115,51,0.15)]">
-              <p className="text-xs text-[#9a8f82] mb-1">Amount due</p>
-              <p className="text-2xl font-extrabold text-[#b87333]">
+            <div className="bg-dark-elevation rounded-xl p-4 mb-5 border border-copper/15">
+              <p className="text-xs text-muted-text mb-1">Amount due</p>
+              <p className="text-2xl font-extrabold text-copper">
                 {getAmount(payTarget)} RWF
               </p>
-              <p className="text-xs text-[#9a8f82] mt-1">Booking: {getBookingRef(payTarget)}</p>
+              <p className="text-xs text-muted-text mt-1">Booking: {getBookingRef(payTarget)}</p>
             </div>
 
-            <p className="text-xs font-medium text-[#9a8f82] mb-3">Select payment method:</p>
+            <p className="text-xs font-medium text-muted-text mb-3">Select payment method:</p>
             <div className="grid grid-cols-2 gap-2 mb-5">
               {PAY_METHODS.map(({ value, label }) => (
                 <button
@@ -333,8 +331,8 @@ export default function Payments() {
                   onClick={() => setPayMethod(value)}
                   className={`py-2.5 text-sm rounded-xl border transition-colors ${
                     payMethod === value
-                      ? 'border-[#b87333] text-[#b87333] bg-[rgba(184,115,51,0.1)]'
-                      : 'border-[rgba(184,115,51,0.2)] text-[#9a8f82] hover:border-[rgba(184,115,51,0.4)]'
+                      ? 'border-copper text-copper bg-copper/10'
+                      : 'border-copper/20 text-muted-text hover:border-copper/40'
                   }`}
                 >
                   {label}
@@ -345,15 +343,14 @@ export default function Payments() {
             <div className="flex gap-3">
               <button
                 onClick={() => setPayTarget(null)}
-                className="flex-1 py-2.5 text-sm border border-[rgba(184,115,51,0.2)] text-[#f5f0e8] rounded-xl hover:bg-[rgba(184,115,51,0.05)] transition-colors"
+                className="flex-1 py-2.5 text-sm border border-copper/20 text-ivory-light rounded-xl hover:bg-copper/5 transition-colors"
               >
                 Cancel
               </button>
               <button
                 onClick={handlePay}
                 disabled={actionLoading}
-                className="flex-1 py-2.5 text-sm text-white rounded-xl font-medium hover:opacity-90 disabled:opacity-60 transition-opacity flex items-center justify-center gap-2"
-                style={{ background: 'linear-gradient(135deg,#b87333,#d4956a)' }}
+                className="flex-1 py-2.5 text-sm text-white rounded-xl font-medium hover:opacity-90 disabled:opacity-60 transition-opacity flex items-center justify-center gap-2 bg-gradient-to-br from-copper to-copper-light"
               >
                 {actionLoading ? <><Spinner small /> Processing…</> : 'Confirm Payment'}
               </button>
@@ -365,25 +362,25 @@ export default function Payments() {
       {/* ── Refund Modal ─────────────────────────────────────────────────────── */}
       {refundTarget && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
-          <div className="relative bg-[#242424] rounded-2xl border border-[rgba(184,115,51,0.2)] w-full max-w-sm p-6 shadow-2xl">
+          <div className="relative bg-dark-card rounded-2xl border border-copper/20 w-full max-w-sm p-6 shadow-2xl">
             <div className="flex items-center justify-between mb-5">
-              <h3 className="font-bold text-[#f5f0e8] flex items-center gap-2">
+              <h3 className="font-bold text-ivory-light flex items-center gap-2">
                 <AlertTriangle className="w-4 h-4 text-yellow-400" /> Process Refund
               </h3>
-              <button onClick={() => setRefundTarget(null)} className="text-gray-400 hover:text-[#f5f0e8] transition-colors">
+              <button onClick={() => setRefundTarget(null)} className="text-gray-400 hover:text-ivory-light transition-colors">
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            <div className="bg-[#1a1a1a] rounded-xl p-4 mb-5 border border-[rgba(184,115,51,0.15)]">
-              <p className="text-xs text-[#9a8f82]">Payment amount</p>
-              <p className="text-xl font-bold text-[#b87333]">{getAmount(refundTarget)} RWF</p>
-              <p className="text-xs text-[#9a8f82] mt-1">TXN: {getTxnId(refundTarget)}</p>
+            <div className="bg-dark-elevation rounded-xl p-4 mb-5 border border-copper/15">
+              <p className="text-xs text-muted-text">Payment amount</p>
+              <p className="text-xl font-bold text-copper">{getAmount(refundTarget)} RWF</p>
+              <p className="text-xs text-muted-text mt-1">TXN: {getTxnId(refundTarget)}</p>
             </div>
 
             <div className="space-y-4 mb-5">
               <div>
-                <label className="text-xs font-medium text-[#9a8f82] mb-1.5 block">
+                <label className="text-xs font-medium text-muted-text mb-1.5 block">
                   Reason <span className="text-red-400">*</span>
                 </label>
                 <textarea
@@ -391,13 +388,13 @@ export default function Payments() {
                   onChange={(e) => setRefundForm((f) => ({ ...f, reason: e.target.value }))}
                   rows={3}
                   placeholder="Reason for refund…"
-                  className={`w-full px-3 py-2.5 border border-[rgba(184,115,51,0.2)] rounded-xl
-                    focus:border-[#b87333] focus:outline-none text-sm bg-[#2a2a2a]
-                    text-[#f5f0e8] placeholder-[#9a8f82] resize-none`}
+                  className={`w-full px-3 py-2.5 border border-copper/20 rounded-xl
+                    focus:border-copper focus:outline-none text-sm bg-dark-input
+                    text-ivory-light placeholder-muted-text resize-none`}
                 />
               </div>
               <div>
-                <label className="text-xs font-medium text-[#9a8f82] mb-1.5 block">
+                <label className="text-xs font-medium text-muted-text mb-1.5 block">
                   Partial amount (RWF) — leave blank for full refund
                 </label>
                 <input
@@ -415,7 +412,7 @@ export default function Payments() {
             <div className="flex gap-3">
               <button
                 onClick={() => setRefundTarget(null)}
-                className="flex-1 py-2.5 text-sm border border-[rgba(184,115,51,0.2)] text-[#f5f0e8] rounded-xl hover:bg-[rgba(184,115,51,0.05)] transition-colors"
+                className="flex-1 py-2.5 text-sm border border-copper/20 text-ivory-light rounded-xl hover:bg-copper/5 transition-colors"
               >
                 Cancel
               </button>

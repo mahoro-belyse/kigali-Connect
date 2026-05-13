@@ -79,31 +79,25 @@ export default function Navbar() {
 
   const linkClass = (path: string) =>
     `text-sm font-medium flex items-center gap-1.5 transition-colors ${
-      isActive(path) ? 'text-[#b87333]' : 'text-[#f5f0e8] hover:text-[#b87333]'
+      isActive(path) ? 'text-copper' : 'text-ivory-light hover:text-copper'
     }`;
 
   return (
     <nav
-      className={`sticky top-0 z-50 border-b border-[rgba(184,115,51,0.15)] transition-all duration-300 ${
+      className={`sticky top-0 z-50 border-b border-copper/15 transition-all duration-300 ${
         scrolled
-          ? 'bg-[#1a1a1a]/95 backdrop-blur-xl shadow-lg shadow-black/30'
-          : 'bg-[#1a1a1a]/85 backdrop-blur-md'
+          ? 'bg-dark-elevation/95 backdrop-blur-xl shadow-lg shadow-black/30'
+          : 'bg-dark-elevation/85 backdrop-blur-md'
       }`}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 flex items-center justify-between h-16">
 
         {/* ── Logo ───────────────────────────────────────────────────────── */}
         <Link to="/" className="text-xl font-extrabold shrink-0">
-          <span
-            style={{
-              background: 'linear-gradient(135deg,#b87333,#d4956a)',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
-            }}
-          >
+          <span className="bg-gradient-to-br from-copper to-copper-light bg-clip-text text-transparent">
             Smart
           </span>
-          <span className="text-[#f5f0e8]">Event</span>
+          <span className="text-ivory-light">Event</span>
         </Link>
 
         {/* ── Desktop nav ─────────────────────────────────────────────────── */}
@@ -121,8 +115,8 @@ export default function Navbar() {
               onMouseLeave={handleMouseLeave}
               className={`text-sm font-medium flex items-center gap-1 transition-colors ${
                 location.pathname.startsWith('/events')
-                  ? 'text-[#b87333]'
-                  : 'text-[#f5f0e8] hover:text-[#b87333]'
+                  ? 'text-copper'
+                  : 'text-ivory-light hover:text-copper'
               }`}
             >
               <Calendar className="w-3.5 h-3.5" />
@@ -139,7 +133,7 @@ export default function Navbar() {
               onMouseEnter={handleMouseEnter}
               onMouseLeave={handleMouseLeave}
               className={`absolute top-full left-1/2 -translate-x-1/2 mt-3 w-72
-                bg-[#1e1e1e] rounded-2xl border border-[rgba(184,115,51,0.2)]
+                bg-dark-surface rounded-2xl border border-copper/20
                 shadow-2xl shadow-black/50 p-2
                 transition-all duration-200 origin-top
                 ${megaOpen
@@ -151,14 +145,14 @@ export default function Navbar() {
                 <Link
                   key={item.to + item.label}
                   to={item.to}
-                  className="flex items-start gap-3 p-3 rounded-xl hover:bg-[rgba(184,115,51,0.08)] transition-colors group"
+                  className="flex items-start gap-3 p-3 rounded-xl hover:bg-copper/8 transition-colors group"
                   onClick={() => setMegaOpen(false)}
                 >
-                  <div className="w-8 h-8 rounded-lg bg-[rgba(184,115,51,0.12)] flex items-center justify-center shrink-0 mt-0.5 group-hover:bg-[rgba(184,115,51,0.2)] transition-colors">
-                    <item.icon className="w-4 h-4 text-[#b87333]" />
+                  <div className="w-8 h-8 rounded-lg bg-copper/12 flex items-center justify-center shrink-0 mt-0.5 group-hover:bg-copper/20 transition-colors">
+                    <item.icon className="w-4 h-4 text-copper" />
                   </div>
                   <div>
-                    <p className="text-sm font-semibold text-[#f5f0e8]">{item.label}</p>
+                    <p className="text-sm font-semibold text-ivory-light">{item.label}</p>
                     <p className="text-xs text-gray-400 mt-0.5 leading-relaxed">{item.desc}</p>
                   </div>
                 </Link>
@@ -182,29 +176,29 @@ export default function Navbar() {
               <Link
                 to="/dashboard"
                 className="flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-medium
-                  border border-[rgba(184,115,51,0.2)] text-[#f5f0e8]
-                  hover:bg-[rgba(184,115,51,0.08)] transition-colors"
+                  border border-copper/20 text-ivory-light
+                  hover:bg-copper/8 transition-colors"
               >
                 {/* Avatar circle */}
                 {user.avatar ? (
                   <img
                     src={user.avatar}
                     alt={user.full_name}
-                    className="w-6 h-6 rounded-full object-cover border border-[#b87333]"
+                    className="w-6 h-6 rounded-full object-cover border border-copper"
                   />
                 ) : (
-                  <div className="w-6 h-6 rounded-full bg-[#b87333] flex items-center justify-center text-white text-xs font-bold">
+                  <div className="w-6 h-6 rounded-full bg-copper flex items-center justify-center text-white text-xs font-bold">
                     {user.full_name?.charAt(0).toUpperCase() ?? 'U'}
                   </div>
                 )}
-                <LayoutDashboard className="w-4 h-4 text-[#b87333]" />
+                <LayoutDashboard className="w-4 h-4 text-copper" />
                 <span className="hidden lg:inline max-w-[120px] truncate">
                   {user.full_name}
                 </span>
                 {/* Role badge */}
                 <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-semibold hidden xl:inline ${
                   user.role === 'admin'
-                    ? 'bg-[rgba(184,115,51,0.2)] text-[#b87333]'
+                    ? 'bg-copper/20 text-copper'
                     : user.role === 'event_manager'
                     ? 'bg-blue-500/20 text-blue-400'
                     : 'bg-gray-500/20 text-gray-400'
@@ -227,16 +221,15 @@ export default function Navbar() {
             <>
               <Link
                 to="/login"
-                className="px-4 py-2 rounded-xl text-sm font-medium text-[#f5f0e8]
-                  border border-[rgba(184,115,51,0.2)] hover:bg-[rgba(184,115,51,0.08)] transition-colors"
+                className="px-4 py-2 rounded-xl text-sm font-medium text-ivory-light
+                  border border-copper/20 hover:bg-copper/8 transition-colors"
               >
                 Sign In
               </Link>
               <Link
                 to="/register"
                 className="px-4 py-2 rounded-xl text-sm font-semibold text-white
-                  hover:opacity-90 hover:scale-[1.02] transition-all"
-                style={{ background: 'linear-gradient(135deg,#b87333,#d4956a)' }}
+                  hover:opacity-90 hover:scale-[1.02] transition-all bg-gradient-to-br from-copper to-copper-light"
               >
                 Get Started
               </Link>
@@ -246,7 +239,7 @@ export default function Navbar() {
 
         {/* ── Mobile hamburger ─────────────────────────────────────────────── */}
         <button
-          className="md:hidden text-[#f5f0e8] p-1"
+          className="md:hidden text-ivory-light p-1"
           onClick={() => setMobileOpen((v) => !v)}
           aria-label="Toggle menu"
         >
@@ -258,7 +251,7 @@ export default function Navbar() {
       <div
         className={`md:hidden overflow-hidden transition-all duration-300 ${
           mobileOpen ? 'max-h-screen opacity-100' : 'max-h-0 opacity-0'
-        } bg-[#1a1a1a] border-t border-[rgba(184,115,51,0.15)]`}
+        } bg-dark-elevation border-t border-copper/15`}
       >
         <div className="px-4 py-4 space-y-1">
           {[
@@ -274,20 +267,20 @@ export default function Navbar() {
               to={to}
               className={`block py-3 px-3 text-sm font-medium rounded-xl transition-colors ${
                 isActive(to)
-                  ? 'text-[#b87333] bg-[rgba(184,115,51,0.08)]'
-                  : 'text-[#f5f0e8] hover:text-[#b87333] hover:bg-[rgba(184,115,51,0.05)]'
+                  ? 'text-copper bg-copper/8'
+                  : 'text-ivory-light hover:text-copper hover:bg-copper/5'
               }`}
             >
               {label}
             </Link>
           ))}
 
-          <div className="pt-3 border-t border-[rgba(184,115,51,0.1)]">
+          <div className="pt-3 border-t border-copper/10">
             {isAuthenticated && user ? (
               <div className="space-y-2">
                 <Link
                   to="/dashboard"
-                  className="flex items-center gap-2 py-3 px-3 rounded-xl text-sm font-semibold text-[#b87333] bg-[rgba(184,115,51,0.08)]"
+                  className="flex items-center gap-2 py-3 px-3 rounded-xl text-sm font-semibold text-copper bg-copper/8"
                 >
                   <LayoutDashboard className="w-4 h-4" />
                   Dashboard ({user.full_name})
@@ -303,14 +296,13 @@ export default function Navbar() {
               <div className="flex gap-3">
                 <Link
                   to="/login"
-                  className="flex-1 py-2.5 text-center text-sm border border-[rgba(184,115,51,0.2)] rounded-xl text-[#f5f0e8]"
+                  className="flex-1 py-2.5 text-center text-sm border border-copper/20 rounded-xl text-ivory-light"
                 >
                   Sign In
                 </Link>
                 <Link
                   to="/register"
-                  className="flex-1 py-2.5 text-center text-sm text-white rounded-xl font-semibold"
-                  style={{ background: 'linear-gradient(135deg,#b87333,#d4956a)' }}
+                  className="flex-1 py-2.5 text-center text-sm text-white rounded-xl font-semibold bg-gradient-to-br from-copper to-copper-light"
                 >
                   Get Started
                 </Link>

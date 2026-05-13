@@ -72,14 +72,14 @@ function timeAgo(d?: string): string {
 }
 
 const ROLE_BADGE: Record<string, string> = {
-  admin:         'bg-[rgba(184,115,51,0.2)] text-[#b87333]',
+  admin:         'bg-copper/20 text-copper',
   event_manager: 'bg-blue-500/20 text-blue-400',
   client:        'bg-gray-500/20 text-gray-400',
 };
 
-const INPUT_CLS = `w-full px-3 py-2.5 border border-[rgba(184,115,51,0.2)] rounded-xl
-  focus:border-[#b87333] focus:ring-1 focus:ring-[rgba(184,115,51,0.3)] focus:outline-none
-  text-sm bg-[#2a2a2a] text-[#f5f0e8] placeholder-[#9a8f82] transition-colors`;
+const INPUT_CLS = `w-full px-3 py-2.5 border border-copper/20 rounded-xl
+  focus:border-copper focus:ring-1 focus:ring-copper/30 focus:outline-none
+  text-sm bg-dark-input text-ivory-light placeholder-muted-text transition-colors`;
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
@@ -219,7 +219,7 @@ export default function Profile() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="w-8 h-8 border-4 border-[rgba(184,115,51,0.2)] border-t-[#b87333] rounded-full animate-spin" />
+        <div className="w-8 h-8 border-4 border-copper/20 border-t-copper rounded-full animate-spin" />
       </div>
     );
   }
@@ -233,10 +233,7 @@ export default function Profile() {
       {/* ── Profile header with cover + avatar ──────────────────────────── */}
       <div className="relative mb-16">
         {/* Cover banner */}
-        <div
-          className="h-44 rounded-2xl overflow-hidden"
-          style={{ background: 'linear-gradient(135deg,#1a1a1a,#242424,#b87333/20)' }}
-        >
+        <div className="h-44 rounded-2xl overflow-hidden bg-gradient-to-br from-dark-elevation via-dark-card to-copper/20">
           <div className="w-full h-full" style={{
             backgroundImage: 'radial-gradient(circle at 20% 50%, rgba(184,115,51,0.15) 0%, transparent 60%), radial-gradient(circle at 80% 20%, rgba(212,149,106,0.1) 0%, transparent 50%)',
           }} />
@@ -245,11 +242,11 @@ export default function Profile() {
         {/* Avatar */}
         <div className="absolute -bottom-12 left-6">
           <div className="relative">
-            <div className="w-24 h-24 rounded-full ring-4 ring-[#b87333] overflow-hidden bg-[rgba(184,115,51,0.2)] flex items-center justify-center">
+            <div className="w-24 h-24 rounded-full ring-4 ring-copper overflow-hidden bg-copper/20 flex items-center justify-center">
               {profileData.avatar ? (
                 <img src={profileData.avatar} alt={profileData.full_name} className="w-full h-full object-cover" />
               ) : (
-                <span className="text-3xl font-bold text-[#b87333]">
+                <span className="text-3xl font-bold text-copper">
                   {profileData.full_name.charAt(0).toUpperCase()}
                 </span>
               )}
@@ -264,8 +261,7 @@ export default function Profile() {
               onClick={() => fileRef.current?.click()}
               disabled={uploading}
               title="Change avatar"
-              className="absolute bottom-0 right-0 w-8 h-8 rounded-full flex items-center justify-center hover:opacity-90 disabled:opacity-50 transition-opacity shadow-lg"
-              style={{ background: 'linear-gradient(135deg,#b87333,#d4956a)' }}
+              className="absolute bottom-0 right-0 w-8 h-8 rounded-full flex items-center justify-center hover:opacity-90 disabled:opacity-50 transition-opacity shadow-lg bg-gradient-to-br from-copper to-copper-light"
             >
               <Camera className="w-3.5 h-3.5 text-white" />
             </button>
@@ -275,7 +271,7 @@ export default function Profile() {
 
         {/* Name + role below avatar */}
         <div className="absolute -bottom-10 left-36 sm:left-40">
-          <p className="text-lg font-bold text-[#f5f0e8]">{profileData.full_name}</p>
+          <p className="text-lg font-bold text-ivory-light">{profileData.full_name}</p>
           <div className="flex items-center gap-2 mt-0.5">
             <span className={`text-xs px-2 py-0.5 rounded-full font-medium capitalize ${ROLE_BADGE[profileData.role] ?? 'bg-gray-500/20 text-gray-400'}`}>
               {profileData.role.replace('_', ' ')}
@@ -292,15 +288,15 @@ export default function Profile() {
       <div className="space-y-6">
 
         {/* ── Profile info card ──────────────────────────────────────────── */}
-        <div className="bg-[#242424] rounded-2xl border border-[rgba(184,115,51,0.2)] p-6">
+        <div className="bg-dark-card rounded-2xl border border-copper/20 p-6">
           <div className="flex items-center justify-between mb-5">
-            <h2 className="font-bold text-[#f5f0e8] flex items-center gap-2">
-              <User className="w-4 h-4 text-[#b87333]" /> Profile Information
+            <h2 className="font-bold text-ivory-light flex items-center gap-2">
+              <User className="w-4 h-4 text-copper" /> Profile Information
             </h2>
             {!editing ? (
               <button
                 onClick={() => setEditing(true)}
-                className="flex items-center gap-2 text-sm text-[#b87333] hover:underline transition-colors"
+                className="flex items-center gap-2 text-sm text-copper hover:underline transition-colors"
               >
                 <Edit3 className="w-4 h-4" /> Edit
               </button>
@@ -308,15 +304,14 @@ export default function Profile() {
               <div className="flex gap-2">
                 <button
                   onClick={() => { setEditing(false); setForm({ full_name: profileData.full_name, phone: profileData.phone ?? '', bio: profileData.bio ?? '' }); }}
-                  className="flex items-center gap-1.5 text-sm text-[#9a8f82] hover:text-[#f5f0e8] transition-colors"
+                  className="flex items-center gap-1.5 text-sm text-muted-text hover:text-ivory-light transition-colors"
                 >
                   <X className="w-4 h-4" /> Cancel
                 </button>
                 <button
                   onClick={handleSave}
                   disabled={saving}
-                  className="flex items-center gap-1.5 text-sm text-white px-3 py-1.5 rounded-lg font-medium hover:opacity-90 disabled:opacity-60 transition-opacity"
-                  style={{ background: 'linear-gradient(135deg,#b87333,#d4956a)' }}
+                  className="flex items-center gap-1.5 text-sm text-white px-3 py-1.5 rounded-lg font-medium hover:opacity-90 disabled:opacity-60 transition-opacity bg-gradient-to-br from-copper to-copper-light"
                 >
                   <Save className="w-3.5 h-3.5" />
                   {saving ? 'Saving…' : 'Save'}
@@ -328,15 +323,15 @@ export default function Profile() {
           {editing ? (
             <div className="space-y-4">
               <div>
-                <label className="text-xs font-medium text-[#9a8f82] mb-1.5 block">Full Name *</label>
+                <label className="text-xs font-medium text-muted-text mb-1.5 block">Full Name *</label>
                 <input value={form.full_name} onChange={(e) => setForm((f) => ({ ...f, full_name: e.target.value }))} className={INPUT_CLS} />
               </div>
               <div>
-                <label className="text-xs font-medium text-[#9a8f82] mb-1.5 block">Phone</label>
+                <label className="text-xs font-medium text-muted-text mb-1.5 block">Phone</label>
                 <input value={form.phone} onChange={(e) => setForm((f) => ({ ...f, phone: e.target.value }))} className={INPUT_CLS} placeholder="+250 7XX XXX XXX" />
               </div>
               <div>
-                <label className="text-xs font-medium text-[#9a8f82] mb-1.5 block">Bio</label>
+                <label className="text-xs font-medium text-muted-text mb-1.5 block">Bio</label>
                 <textarea value={form.bio} onChange={(e) => setForm((f) => ({ ...f, bio: e.target.value }))} rows={3} className={`${INPUT_CLS} resize-none`} placeholder="Tell us a bit about yourself…" />
               </div>
             </div>
@@ -349,10 +344,10 @@ export default function Profile() {
                 ['Bio',       profileData.bio   || '—',  Edit3 ],
               ] as [string, string, React.ElementType][]).map(([label, value, Icon]) => (
                 <div key={label} className="flex items-start gap-3">
-                  <Icon className="w-4 h-4 text-[#b87333] mt-0.5 shrink-0" />
+                  <Icon className="w-4 h-4 text-copper mt-0.5 shrink-0" />
                   <div>
-                    <p className="text-xs text-[#9a8f82]">{label}</p>
-                    <p className="text-sm text-[#f5f0e8] mt-0.5">{value}</p>
+                    <p className="text-xs text-muted-text">{label}</p>
+                    <p className="text-sm text-ivory-light mt-0.5">{value}</p>
                   </div>
                 </div>
               ))}
@@ -361,9 +356,9 @@ export default function Profile() {
         </div>
 
         {/* ── Change password card ───────────────────────────────────────── */}
-        <div className="bg-[#242424] rounded-2xl border border-[rgba(184,115,51,0.2)] p-6">
-          <h2 className="font-bold text-[#f5f0e8] flex items-center gap-2 mb-5">
-            <Lock className="w-4 h-4 text-[#b87333]" /> Change Password
+        <div className="bg-dark-card rounded-2xl border border-copper/20 p-6">
+          <h2 className="font-bold text-ivory-light flex items-center gap-2 mb-5">
+            <Lock className="w-4 h-4 text-copper" /> Change Password
           </h2>
 
           <form onSubmit={handleChangePassword} className="space-y-4">
@@ -373,7 +368,7 @@ export default function Profile() {
               { key: 'confirm_password', label: 'Confirm Password', showKey: 'confirm' as const },
             ]).map(({ key, label, showKey }) => (
               <div key={key}>
-                <label className="text-xs font-medium text-[#9a8f82] mb-1.5 block">{label}</label>
+                <label className="text-xs font-medium text-muted-text mb-1.5 block">{label}</label>
                 <div className="relative">
                   <input
                     type={showPw[showKey] ? 'text' : 'password'}
@@ -386,7 +381,7 @@ export default function Profile() {
                   <button
                     type="button"
                     onClick={() => setShowPw((p) => ({ ...p, [showKey]: !p[showKey] }))}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-[#f5f0e8] transition-colors"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-ivory-light transition-colors"
                   >
                     {showPw[showKey] ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>
@@ -401,8 +396,7 @@ export default function Profile() {
             <button
               type="submit"
               disabled={pwSaving || (!!pwForm.confirm_password && pwForm.new_password !== pwForm.confirm_password)}
-              className="w-full py-2.5 text-white text-sm rounded-xl font-medium hover:opacity-90 disabled:opacity-60 transition-opacity"
-              style={{ background: 'linear-gradient(135deg,#b87333,#d4956a)' }}
+              className="w-full py-2.5 text-white text-sm rounded-xl font-medium hover:opacity-90 disabled:opacity-60 transition-opacity bg-gradient-to-br from-copper to-copper-light"
             >
               {pwSaving ? 'Changing…' : 'Change Password'}
             </button>
@@ -410,14 +404,14 @@ export default function Profile() {
         </div>
 
         {/* ── Account info card ──────────────────────────────────────────── */}
-        <div className="bg-[#242424] rounded-2xl border border-[rgba(184,115,51,0.2)] p-6">
-          <h2 className="font-bold text-[#f5f0e8] flex items-center gap-2 mb-5">
-            <Shield className="w-4 h-4 text-[#b87333]" /> Account Information
+        <div className="bg-dark-card rounded-2xl border border-copper/20 p-6">
+          <h2 className="font-bold text-ivory-light flex items-center gap-2 mb-5">
+            <Shield className="w-4 h-4 text-copper" /> Account Information
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {([
               ['Email',        profileData.email,                                    Mail         ],
-              ['Username',     `@${profileData.username}` || '—',                   User         ],
+              ['Username',     `@${profileData.username || '-'}`,                    User         ],
               ['Role',         profileData.role.replace('_', ' '),                  Shield       ],
               ['Member Since', formatJoinDate(profileData.created_at),              Calendar     ],
               ['Last Login',   timeAgo(profileData.last_login),                     CheckCircle  ],
@@ -425,12 +419,12 @@ export default function Profile() {
             ] as [string, string, React.ElementType][]).map(([label, value, Icon]) => (
               <div
                 key={label}
-                className="flex items-center gap-3 p-3 rounded-xl border border-[rgba(184,115,51,0.15)] bg-[#1a1a1a]"
+                className="flex items-center gap-3 p-3 rounded-xl border border-copper/15 bg-dark-elevation"
               >
-                <Icon className="w-4 h-4 text-[#b87333] shrink-0" />
+                <Icon className="w-4 h-4 text-copper shrink-0" />
                 <div className="min-w-0">
-                  <p className="text-xs text-[#9a8f82]">{label}</p>
-                  <p className="text-sm text-[#f5f0e8] font-medium capitalize truncate">{value}</p>
+                  <p className="text-xs text-muted-text">{label}</p>
+                  <p className="text-sm text-ivory-light font-medium capitalize truncate">{value}</p>
                 </div>
               </div>
             ))}

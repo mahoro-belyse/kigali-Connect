@@ -96,7 +96,7 @@ interface UserStats {
 
 function Spinner() {
   return (
-    <div className="w-6 h-6 border-2 border-[rgba(184,115,51,0.3)] border-t-[#b87333] rounded-full animate-spin" />
+    <div className="w-6 h-6 border-2 border-copper/30 border-t-copper rounded-full animate-spin" />
   );
 }
 
@@ -110,16 +110,16 @@ interface StatCardProps {
 
 function StatCard({ icon: Icon, label, value, color, loading }: StatCardProps) {
   return (
-    <div className="bg-[#242424] rounded-2xl border border-[rgba(184,115,51,0.2)] p-5">
+    <div className="bg-dark-card rounded-2xl border border-copper/20 p-5">
       <div className={`w-10 h-10 rounded-xl flex items-center justify-center mb-3 ${color}`}>
         <Icon className="w-5 h-5" />
       </div>
       {loading ? (
         <div className="h-7 bg-gray-400/10 rounded animate-pulse w-24 mb-1" />
       ) : (
-        <p className="text-2xl font-bold text-[#f5f0e8]">{value}</p>
+        <p className="text-2xl font-bold text-ivory-light">{value}</p>
       )}
-      <p className="text-xs text-[#9a8f82] mt-0.5">{label}</p>
+      <p className="text-xs text-muted-text mt-0.5">{label}</p>
     </div>
   );
 }
@@ -182,10 +182,7 @@ function ClientDashboard() {
   return (
     <div>
       {/* Welcome banner - now dynamic */}
-      <div
-        className="rounded-2xl p-6 mb-6 text-white"
-        style={{ background: 'linear-gradient(135deg,#b87333,#d4956a)' }}
-      >
+      <div className="rounded-2xl p-6 mb-6 text-white bg-gradient-to-br from-copper to-copper-light">
         <h1 className="text-2xl font-extrabold mb-1">
           {welcomeMessage}
         </h1>
@@ -194,18 +191,18 @@ function ClientDashboard() {
 
       {/* Quick stats */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
-        <StatCard icon={Ticket}      label="Total Bookings"     value={bookings.length}                                color="bg-[rgba(184,115,51,0.2)] text-[#b87333]" loading={loading} />
+        <StatCard icon={Ticket}      label="Total Bookings"     value={bookings.length}                                color="bg-copper/20 text-copper" loading={loading} />
         <StatCard icon={Calendar}    label="Upcoming Events"    value={upcoming.length}                                color="bg-green-500/20 text-green-400"           loading={loading} />
         <StatCard icon={DollarSign}  label="Total Spent (RWF)"  value={`${totalSpent.toLocaleString()} RWF`}          color="bg-purple-500/20 text-purple-400"         loading={loading} />
       </div>
 
       {/* Upcoming bookings */}
-      <div className="bg-[#242424] rounded-2xl border border-[rgba(184,115,51,0.2)] mb-8">
-        <div className="flex items-center justify-between p-5 border-b border-[rgba(184,115,51,0.15)]">
-          <h2 className="font-bold text-[#f5f0e8]">My Upcoming Events</h2>
+      <div className="bg-dark-card rounded-2xl border border-copper/20 mb-8">
+        <div className="flex items-center justify-between p-5 border-b border-copper/15">
+          <h2 className="font-bold text-ivory-light">My Upcoming Events</h2>
           <Link
             to="/dashboard/bookings"
-            className="text-sm text-[#b87333] hover:underline flex items-center gap-1"
+            className="text-sm text-copper hover:underline flex items-center gap-1"
           >
             View All <ArrowRight className="w-3.5 h-3.5" />
           </Link>
@@ -215,9 +212,9 @@ function ClientDashboard() {
           <div className="p-8 flex justify-center"><Spinner /></div>
         ) : upcoming.length === 0 ? (
           <div className="p-10 text-center">
-            <Calendar className="w-12 h-12 text-[#b87333]/30 mx-auto mb-3" />
-            <p className="font-medium text-[#f5f0e8] mb-1">No upcoming events</p>
-            <Link to="/events" className="text-[#b87333] text-sm hover:underline">
+            <Calendar className="w-12 h-12 text-copper/30 mx-auto mb-3" />
+            <p className="font-medium text-ivory-light mb-1">No upcoming events</p>
+            <Link to="/events" className="text-copper text-sm hover:underline">
               Browse Events →
             </Link>
           </div>
@@ -225,24 +222,24 @@ function ClientDashboard() {
           upcoming.map((b) => (
             <div
               key={b.id}
-              className="flex items-center gap-4 p-4 border-b border-[rgba(184,115,51,0.1)] last:border-0 hover:bg-[rgba(184,115,51,0.04)] transition-colors"
+              className="flex items-center gap-4 p-4 border-b border-copper/10 last:border-0 hover:bg-copper/4 transition-colors"
             >
-              <div className="w-10 h-10 rounded-xl bg-[rgba(184,115,51,0.2)] flex items-center justify-center shrink-0">
-                <Calendar className="w-5 h-5 text-[#b87333]" />
+              <div className="w-10 h-10 rounded-xl bg-copper/20 flex items-center justify-center shrink-0">
+                <Calendar className="w-5 h-5 text-copper" />
               </div>
               <div className="flex-1 min-w-0">
-                <p className="font-semibold text-[#f5f0e8] text-sm truncate">{eventTitle(b)}</p>
-                <p className="text-xs text-[#9a8f82]">
+                <p className="font-semibold text-ivory-light text-sm truncate">{eventTitle(b)}</p>
+                <p className="text-xs text-muted-text">
                   {eventDate(b) ? new Date(eventDate(b)!).toLocaleDateString() : ''}
                   {eventVenue(b) ? ` • ${eventVenue(b)}` : ''}
                 </p>
                 {ticketName(b) && (
-                  <p className="text-xs text-[#9a8f82] capitalize">{ticketName(b)}</p>
+                  <p className="text-xs text-muted-text capitalize">{ticketName(b)}</p>
                 )}
               </div>
               <button
                 onClick={() => setQrBooking(b)}
-                className="p-2 rounded-lg hover:bg-[rgba(184,115,51,0.1)] text-[#b87333] transition-colors"
+                className="p-2 rounded-lg hover:bg-copper/10 text-copper transition-colors"
                 title="View QR Ticket"
               >
                 <QrCode className="w-4 h-4" />
@@ -255,37 +252,36 @@ function ClientDashboard() {
       {/* AI Recommendations */}
       {!loading && recommended.length > 0 && (
         <div className="mb-8">
-          <h2 className="font-bold text-[#f5f0e8] mb-4 flex items-center gap-2">
+          <h2 className="font-bold text-ivory-light mb-4 flex items-center gap-2">
             <span>✨</span> Recommended For You
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             {recommended.map((e) => (
               <div
                 key={e.id}
-                className="bg-[#242424] border border-[rgba(184,115,51,0.2)] rounded-2xl overflow-hidden hover:-translate-y-1 transition-all duration-200"
+                className="bg-dark-card border border-copper/20 rounded-2xl overflow-hidden hover:-translate-y-1 transition-all duration-200"
               >
                 {e.cover_image ? (
                   <img src={e.cover_image} alt={e.title} className="w-full h-36 object-cover" />
                 ) : (
-                  <div className="w-full h-36 bg-[rgba(184,115,51,0.08)] flex items-center justify-center">
-                    <Calendar className="w-8 h-8 text-[#b87333]/40" />
+                  <div className="w-full h-36 bg-copper/8 flex items-center justify-center">
+                    <Calendar className="w-8 h-8 text-copper/40" />
                   </div>
                 )}
                 <div className="p-4">
-                  <p className="font-semibold text-[#f5f0e8] text-sm mb-2 line-clamp-2">{e.title}</p>
-                  <p className="text-xs text-[#9a8f82] mb-3 flex items-center gap-1">
+                  <p className="font-semibold text-ivory-light text-sm mb-2 line-clamp-2">{e.title}</p>
+                  <p className="text-xs text-muted-text mb-3 flex items-center gap-1">
                     <MapPin className="w-3 h-3" />
                     {e.city ?? e.venue_name ?? ''}
                   </p>
-                  <p className="text-xs text-[#b87333] font-semibold mb-3">
+                  <p className="text-xs text-copper font-semibold mb-3">
                     {e.is_free ? 'FREE' : e.ticket_types?.[0]?.price
                       ? `${e.ticket_types[0].price.toLocaleString()} RWF`
                       : ''}
                   </p>
                   <Link
                     to={`/events/${e.id}`}
-                    className="block text-center py-2 text-sm text-white font-semibold rounded-xl hover:opacity-90 transition-opacity"
-                    style={{ background: 'linear-gradient(135deg,#b87333,#d4956a)' }}
+                    className="block text-center py-2 text-sm text-white font-semibold rounded-xl hover:opacity-90 transition-opacity bg-gradient-to-br from-copper to-copper-light"
                   >
                     Book Now
                   </Link>
@@ -300,14 +296,13 @@ function ClientDashboard() {
       <div className="flex flex-wrap gap-3">
         <Link
           to="/events"
-          className="px-5 py-2.5 text-sm font-semibold text-white rounded-xl hover:opacity-90 transition-opacity"
-          style={{ background: 'linear-gradient(135deg,#b87333,#d4956a)' }}
+          className="px-5 py-2.5 text-sm font-semibold text-white rounded-xl hover:opacity-90 transition-opacity bg-gradient-to-br from-copper to-copper-light"
         >
           Browse Events
         </Link>
         <Link
           to="/dashboard/bookings"
-          className="px-5 py-2.5 text-sm font-semibold border border-[rgba(184,115,51,0.2)] text-[#f5f0e8] rounded-xl hover:bg-[rgba(184,115,51,0.05)] transition-colors"
+          className="px-5 py-2.5 text-sm font-semibold border border-copper/20 text-ivory-light rounded-xl hover:bg-copper/5 transition-colors"
         >
           View All Bookings
         </Link>
@@ -375,13 +370,13 @@ function AdminManagerDashboard() {
   // Stat cards differ per role
   const statCards: StatCardProps[] = role === 'admin'
     ? [
-        { icon: Calendar,   label: 'Total Events',        value: stats?.total_events    ?? '—', color: 'bg-[rgba(184,115,51,0.2)] text-[#b87333]' },
+        { icon: Calendar,   label: 'Total Events',        value: stats?.total_events    ?? '—', color: 'bg-copper/20 text-copper' },
         { icon: Ticket,     label: 'Total Bookings',      value: stats?.total_bookings  ?? '—', color: 'bg-blue-500/20 text-blue-400' },
         { icon: DollarSign, label: 'Total Revenue (RWF)', value: stats?.total_revenue != null ? `${Number(stats.total_revenue).toLocaleString()}` : '—', color: 'bg-green-500/20 text-green-400' },
         { icon: Users,      label: 'Total Users',         value: stats?.total_users     ?? '—', color: 'bg-purple-500/20 text-purple-400' },
       ]
     : [
-        { icon: Calendar,   label: 'My Events',          value: stats?.my_events       ?? stats?.total_events    ?? '—', color: 'bg-[rgba(184,115,51,0.2)] text-[#b87333]' },
+        { icon: Calendar,   label: 'My Events',          value: stats?.my_events       ?? stats?.total_events    ?? '—', color: 'bg-copper/20 text-copper' },
         { icon: Ticket,     label: 'My Bookings',        value: stats?.my_bookings     ?? stats?.total_bookings  ?? '—', color: 'bg-blue-500/20 text-blue-400' },
         { icon: DollarSign, label: 'My Revenue (RWF)',   value: (stats?.my_revenue ?? stats?.total_revenue) != null ? `${Number(stats?.my_revenue ?? stats?.total_revenue).toLocaleString()}` : '—', color: 'bg-green-500/20 text-green-400' },
         { icon: Clock,      label: 'Upcoming Events',    value: stats?.upcoming_events ?? '—', color: 'bg-purple-500/20 text-purple-400' },
@@ -406,8 +401,8 @@ function AdminManagerDashboard() {
     <div>
       {/* Page header - now dynamic */}
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-[#f5f0e8]">Dashboard Overview</h1>
-        <p className="text-sm text-[#9a8f82] mt-1">{welcomeSubtitle}</p>
+        <h1 className="text-2xl font-bold text-ivory-light">Dashboard Overview</h1>
+        <p className="text-sm text-muted-text mt-1">{welcomeSubtitle}</p>
       </div>
 
       {/* Stat cards */}
@@ -418,9 +413,9 @@ function AdminManagerDashboard() {
       </div>
 
       {/* Revenue chart */}
-      <div className="bg-[#242424] rounded-2xl border border-[rgba(184,115,51,0.2)] p-6 mb-6">
-        <h2 className="font-bold text-[#f5f0e8] mb-4 flex items-center gap-2">
-          <TrendingUp className="w-4 h-4 text-[#b87333]" /> Monthly Revenue (RWF)
+      <div className="bg-dark-card rounded-2xl border border-copper/20 p-6 mb-6">
+        <h2 className="font-bold text-ivory-light mb-4 flex items-center gap-2">
+          <TrendingUp className="w-4 h-4 text-copper" /> Monthly Revenue (RWF)
         </h2>
         <div className="h-56">
           {loading ? (
@@ -444,35 +439,35 @@ function AdminManagerDashboard() {
       {/* Top events + Recent bookings */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Top events */}
-        <div className="bg-[#242424] rounded-2xl border border-[rgba(184,115,51,0.2)] overflow-hidden">
-          <div className="p-4 border-b border-[rgba(184,115,51,0.15)] flex items-center justify-between">
-            <h2 className="font-bold text-[#f5f0e8] text-sm">Top 5 Events</h2>
-            <Link to="/dashboard/events" className="text-xs text-[#b87333] hover:underline">
+        <div className="bg-dark-card rounded-2xl border border-copper/20 overflow-hidden">
+          <div className="p-4 border-b border-copper/15 flex items-center justify-between">
+            <h2 className="font-bold text-ivory-light text-sm">Top 5 Events</h2>
+            <Link to="/dashboard/events" className="text-xs text-copper hover:underline">
               View All
             </Link>
           </div>
           {loading ? (
             <div className="p-8 flex justify-center"><Spinner /></div>
           ) : topEvents.length === 0 ? (
-            <div className="p-8 text-center text-[#9a8f82] text-sm">No events yet</div>
+            <div className="p-8 text-center text-muted-text text-sm">No events yet</div>
           ) : (
             <table className="w-full text-xs">
               <thead>
-                <tr className="border-b border-[rgba(184,115,51,0.15)] bg-black/20">
+                <tr className="border-b border-copper/15 bg-black/20">
                   {['Event', 'Bookings', 'Revenue', 'Fill %'].map((h) => (
-                    <th key={h} className="text-left py-2.5 px-4 font-medium text-[#9a8f82]">{h}</th>
+                    <th key={h} className="text-left py-2.5 px-4 font-medium text-muted-text">{h}</th>
                   ))}
-                 </tr>
+                </tr>
               </thead>
               <tbody>
                 {topEvents.map((e, i) => (
-                  <tr key={e.id ?? e.event_id ?? i} className="border-b border-[rgba(184,115,51,0.08)] hover:bg-[rgba(184,115,51,0.04)] transition-colors">
-                    <td className="py-2.5 px-4 text-[#f5f0e8] font-medium max-w-[130px] truncate">{evTitle(e)}</td>
-                    <td className="py-2.5 px-4 text-[#9a8f82]">{evBkgs(e)}</td>
-                    <td className="py-2.5 px-4 text-[#b87333]">
+                  <tr key={e.id ?? e.event_id ?? i} className="border-b border-copper/8 hover:bg-copper/4 transition-colors">
+                    <td className="py-2.5 px-4 text-ivory-light font-medium max-w-[130px] truncate">{evTitle(e)}</td>
+                    <td className="py-2.5 px-4 text-muted-text">{evBkgs(e)}</td>
+                    <td className="py-2.5 px-4 text-copper">
                       {evRev(e) ? `${Number(evRev(e)).toLocaleString()} RWF` : '—'}
                     </td>
-                    <td className="py-2.5 px-4 text-[#9a8f82]">
+                    <td className="py-2.5 px-4 text-muted-text">
                       {e.attendance_rate != null ? `${e.attendance_rate}%` : '—'}
                     </td>
                   </tr>
@@ -483,33 +478,33 @@ function AdminManagerDashboard() {
         </div>
 
         {/* Recent bookings */}
-        <div className="bg-[#242424] rounded-2xl border border-[rgba(184,115,51,0.2)] overflow-hidden">
-          <div className="p-4 border-b border-[rgba(184,115,51,0.15)] flex items-center justify-between">
-            <h2 className="font-bold text-[#f5f0e8] text-sm">Recent Bookings</h2>
-            <Link to="/dashboard/bookings" className="text-xs text-[#b87333] hover:underline">
+        <div className="bg-dark-card rounded-2xl border border-copper/20 overflow-hidden">
+          <div className="p-4 border-b border-copper/15 flex items-center justify-between">
+            <h2 className="font-bold text-ivory-light text-sm">Recent Bookings</h2>
+            <Link to="/dashboard/bookings" className="text-xs text-copper hover:underline">
               View All
             </Link>
           </div>
           {loading ? (
             <div className="p-8 flex justify-center"><Spinner /></div>
           ) : recentBookings.length === 0 ? (
-            <div className="p-8 text-center text-[#9a8f82] text-sm">No bookings yet</div>
+            <div className="p-8 text-center text-muted-text text-sm">No bookings yet</div>
           ) : (
             recentBookings.map((b) => (
               <div
                 key={b.id}
-                className="flex items-center gap-3 p-3.5 border-b border-[rgba(184,115,51,0.08)] last:border-0 hover:bg-[rgba(184,115,51,0.04)] transition-colors"
+                className="flex items-center gap-3 p-3.5 border-b border-copper/8 last:border-0 hover:bg-copper/4 transition-colors"
               >
-                <div className="w-7 h-7 rounded-full bg-[rgba(184,115,51,0.2)] flex items-center justify-center text-xs font-bold text-[#b87333] shrink-0">
+                <div className="w-7 h-7 rounded-full bg-copper/20 flex items-center justify-center text-xs font-bold text-copper shrink-0">
                   {bkgName(b).charAt(0).toUpperCase()}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-xs font-medium text-[#f5f0e8] truncate">
+                  <p className="text-xs font-medium text-ivory-light truncate">
                     {bkgName(b)} · {bkgEvent(b)}
                   </p>
-                  <p className="text-xs text-[#9a8f82] font-mono">{b.booking_reference ?? ''}</p>
+                  <p className="text-xs text-muted-text font-mono">{b.booking_reference ?? ''}</p>
                 </div>
-                <span className="text-xs text-[#b87333] font-semibold whitespace-nowrap">
+                <span className="text-xs text-copper font-semibold whitespace-nowrap">
                   {b.total_amount ? `${Number(b.total_amount).toLocaleString()} RWF` : '—'}
                 </span>
               </div>
@@ -520,9 +515,9 @@ function AdminManagerDashboard() {
 
       {/* User stats — admin only */}
       {role === 'admin' && userStats && (
-        <div className="mt-6 bg-[#242424] rounded-2xl border border-[rgba(184,115,51,0.2)] p-6">
-          <h2 className="font-bold text-[#f5f0e8] mb-4 flex items-center gap-2">
-            <Users className="w-4 h-4 text-[#b87333]" /> User Statistics
+        <div className="mt-6 bg-dark-card rounded-2xl border border-copper/20 p-6">
+          <h2 className="font-bold text-ivory-light mb-4 flex items-center gap-2">
+            <Users className="w-4 h-4 text-copper" /> User Statistics
           </h2>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
             {[
@@ -531,9 +526,9 @@ function AdminManagerDashboard() {
               ['New (30d)',     userStats.new_users_30d],
               ['By Role',       userStats.by_role?.map((r) => `${r.role}: ${r.count}`).join(', ')],
             ].map(([label, val]) => (
-              <div key={String(label)} className="p-4 rounded-xl border border-[rgba(184,115,51,0.15)] bg-black/20">
-                <p className="text-xs text-[#9a8f82]">{label}</p>
-                <p className="text-lg font-bold text-[#f5f0e8] mt-1 truncate">{val ?? '—'}</p>
+              <div key={String(label)} className="p-4 rounded-xl border border-copper/15 bg-black/20">
+                <p className="text-xs text-muted-text">{label}</p>
+                <p className="text-lg font-bold text-ivory-light mt-1 truncate">{val ?? '—'}</p>
               </div>
             ))}
           </div>

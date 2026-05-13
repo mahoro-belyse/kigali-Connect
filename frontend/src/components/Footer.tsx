@@ -27,19 +27,13 @@ export default function Footer() {
   const year = new Date().getFullYear();
 
   return (
-    <footer className="bg-[#111111] border-t border-[rgba(184,115,51,0.15)]">
+    <footer className="bg-dark-base border-t border-copper/15">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-14 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10">
 
         {/* ── Brand ──────────────────────────────────────────────────────────── */}
         <div>
           <Link to="/" className="text-xl font-extrabold mb-3 block">
-            <span
-              style={{
-                background: 'linear-gradient(135deg,#b87333,#d4956a)',
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent',
-              }}
-            >
+            <span className="bg-gradient-to-br from-copper to-copper-light bg-clip-text text-transparent">
               Smart
             </span>
             <span className="text-white">Event</span>
@@ -55,7 +49,7 @@ export default function Footer() {
                 href={href}
                 aria-label={label}
                 className="w-9 h-9 rounded-lg bg-white/5 flex items-center justify-center
-                  text-gray-400 hover:text-[#b87333] hover:bg-[rgba(184,115,51,0.1)]
+                  text-gray-400 hover:text-copper hover:bg-copper/10
                   transition-colors"
               >
                 <Icon className="w-4 h-4" />
@@ -70,7 +64,7 @@ export default function Footer() {
           <ul className="space-y-2.5 text-sm text-gray-400">
             {PLATFORM_LINKS.map(([to, label]) => (
               <li key={to}>
-                <Link to={to} className="hover:text-[#b87333] transition-colors">
+                <Link to={to} className="hover:text-copper transition-colors">
                   {label}
                 </Link>
               </li>
@@ -84,7 +78,7 @@ export default function Footer() {
           <ul className="space-y-2.5 text-sm text-gray-400">
             {SUPPORT_LINKS.map(([to, label]) => (
               <li key={to}>
-                <Link to={to} className="hover:text-[#b87333] transition-colors">
+                <Link to={to} className="hover:text-copper transition-colors">
                   {label}
                 </Link>
               </li>
@@ -97,16 +91,16 @@ export default function Footer() {
           <h4 className="text-white font-semibold mb-4">Contact Us</h4>
           <ul className="space-y-3 text-sm text-gray-400">
             <li className="flex items-start gap-2.5">
-              <MapPin className="w-4 h-4 text-[#b87333] mt-0.5 shrink-0" />
+              <MapPin className="w-4 h-4 text-copper mt-0.5 shrink-0" />
               Kigali, Rwanda
             </li>
             <li className="flex items-center gap-2.5">
-              <Phone className="w-4 h-4 text-[#b87333] shrink-0" />
+              <Phone className="w-4 h-4 text-copper shrink-0" />
               +250 700 000 000
             </li>
             <li className="flex items-center gap-2.5">
-              <Mail className="w-4 h-4 text-[#b87333] shrink-0" />
-              <a href="mailto:hello@smartevent.rw" className="hover:text-[#b87333] transition-colors">
+              <Mail className="w-4 h-4 text-copper shrink-0" />
+              <a href="mailto:hello@smartevent.rw" className="hover:text-copper transition-colors">
                 hello@smartevent.rw
               </a>
             </li>
@@ -115,13 +109,13 @@ export default function Footer() {
       </div>
 
       {/* ── Bottom bar ─────────────────────────────────────────────────────────── */}
-      <div className="border-t border-[rgba(184,115,51,0.1)] py-5">
+      <div className="border-t border-copper/10 py-5">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-gray-500">
           <span>&copy; {year} SmartEvent. All rights reserved.</span>
           <div className="flex gap-4">
-            <Link to="/terms"   className="hover:text-[#b87333] transition-colors">Terms</Link>
-            <Link to="/privacy" className="hover:text-[#b87333] transition-colors">Privacy</Link>
-            <Link to="/faq"     className="hover:text-[#b87333] transition-colors">FAQ</Link>
+            <Link to="/terms"   className="hover:text-copper transition-colors">Terms</Link>
+            <Link to="/privacy" className="hover:text-copper transition-colors">Privacy</Link>
+            <Link to="/faq"     className="hover:text-copper transition-colors">FAQ</Link>
           </div>
         </div>
       </div>

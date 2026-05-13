@@ -16,6 +16,20 @@
   --color-copper-light: #d4956a;
 
   --color-ivory: var(--ivory, #f5f0e8);
+   --color-chart-gray:   #6b7280;
+  --color-chart-blue:   #3b82f6;
+  --color-chart-purple: #8b5cf6;
+  --color-chart-green:  #10b981;
+
+  --color-dark-card: #242424;
+  --color-muted-text: #9a8f82;
+  --color-dark-input: #2a2a2a;
+
+  /* New tokens added for dashboardlayout.tsx */
+  --color-dark-elevation: #1a1a1a;
+  --color-dark-base: #111111;
+  --color-dark-surface: #1e1e1e;
+  --color-ivory-light: #f5f0e8;
 
   --color-background: hsl(var(--background));
   --color-foreground: hsl(var(--foreground));

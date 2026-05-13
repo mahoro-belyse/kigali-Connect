@@ -1,4 +1,3 @@
-// src/pages/dashboard/Users.tsx
 import { useState, useEffect, useCallback } from 'react';
 import {
   Users, Search, Edit3, UserX, Shield,
@@ -27,7 +26,7 @@ type ViewMode = 'grid' | 'list';
 // ─── Constants ────────────────────────────────────────────────────────────────
 
 const ROLE_STYLES: Record<string, string> = {
-  admin:         'bg-[rgba(184,115,51,0.2)] text-[#b87333] border-[rgba(184,115,51,0.3)]',
+  admin:         'bg-copper/20 text-copper border-copper/30',
   event_manager: 'bg-blue-500/15 text-blue-400 border-blue-500/30',
   client:        'bg-gray-500/15 text-gray-400 border-gray-500/30',
 };
@@ -38,9 +37,9 @@ const ROLE_LABELS: Record<string, string> = {
   client:        'Client',
 };
 
-const INPUT_CLS = `px-3 py-2.5 border border-[rgba(184,115,51,0.2)] rounded-xl
-  focus:border-[#b87333] focus:outline-none focus:ring-1 focus:ring-[rgba(184,115,51,0.3)]
-  text-sm bg-[#2a2a2a] text-[#f5f0e8] placeholder-[#9a8f82] transition-colors`;
+const INPUT_CLS = `px-3 py-2.5 border border-copper/20 rounded-xl
+  focus:border-copper focus:outline-none focus:ring-1 focus:ring-copper/30
+  text-sm bg-dark-input text-ivory-light placeholder-muted-text transition-colors`;
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -63,15 +62,13 @@ function StatusBadge({ active }: { active: boolean }) {
 function Avatar({ user, size = 'md' }: { user: AppUser; size?: 'sm' | 'md' | 'lg' }) {
   const sz = size === 'lg' ? 'w-14 h-14 text-2xl' : size === 'md' ? 'w-9 h-9 text-sm' : 'w-7 h-7 text-xs';
   return user.avatar ? (
-    <img src={user.avatar} alt={user.full_name} className={`${sz} rounded-full object-cover ring-2 ring-[rgba(184,115,51,0.3)] shrink-0`} />
+    <img src={user.avatar} alt={user.full_name} className={`${sz} rounded-full object-cover ring-2 ring-copper/30 shrink-0`} />
   ) : (
-    <div className={`${sz} rounded-full bg-[rgba(184,115,51,0.2)] flex items-center justify-center font-bold text-[#b87333] shrink-0`}>
+    <div className={`${sz} rounded-full bg-copper/20 flex items-center justify-center font-bold text-copper shrink-0`}>
       {user.full_name.charAt(0).toUpperCase()}
     </div>
   );
 }
-
-
 
 function formatJoined(d?: string) {
   if (!d) return '—';
@@ -135,7 +132,6 @@ export default function UsersPage() {
         role:      editForm.role,
         is_active: editForm.is_active,
       });
-      // Update local state
       setUsers((prev) =>
         prev.map((u) =>
           u.id === editUser.id
@@ -183,7 +179,7 @@ export default function UsersPage() {
     <div className="flex items-center gap-1">
       <button
         onClick={() => { setEditUser(u); setEditForm({ role: u.role, is_active: u.is_active }); }}
-        className="p-1.5 rounded-lg text-gray-400 hover:text-[#b87333] hover:bg-[rgba(184,115,51,0.1)] transition-colors"
+        className="p-1.5 rounded-lg text-gray-400 hover:text-copper hover:bg-copper/10 transition-colors"
         title="Edit role / status"
       >
         <Edit3 className="w-3.5 h-3.5" />
@@ -217,10 +213,10 @@ export default function UsersPage() {
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-[#f5f0e8] flex items-center gap-2">
-            <Users className="w-6 h-6 text-[#b87333]" /> Users
+          <h1 className="text-2xl font-bold text-ivory-light flex items-center gap-2">
+            <Users className="w-6 h-6 text-copper" /> Users
           </h1>
-          <p className="text-sm text-[#9a8f82] mt-1">
+          <p className="text-sm text-muted-text mt-1">
             {loading ? 'Loading…' : `${filtered.length} user${filtered.length !== 1 ? 's' : ''}`}
           </p>
         </div>
@@ -232,8 +228,8 @@ export default function UsersPage() {
               onClick={() => setView(v)}
               className={`p-2 rounded-lg border transition-colors ${
                 view === v
-                  ? 'border-[#b87333] text-[#b87333] bg-[rgba(184,115,51,0.1)]'
-                  : 'border-[rgba(184,115,51,0.2)] text-[#9a8f82] hover:border-[rgba(184,115,51,0.4)]'
+                  ? 'border-copper text-copper bg-copper/10'
+                  : 'border-copper/20 text-muted-text hover:border-copper/40'
               }`}
             >
               {v === 'grid'
@@ -270,8 +266,7 @@ export default function UsersPage() {
         </select>
         <button
           onClick={fetchUsers}
-          className="px-4 py-2.5 text-white text-sm rounded-xl font-medium flex items-center gap-2 hover:opacity-90 transition-opacity"
-          style={{ background: 'linear-gradient(135deg,#b87333,#d4956a)' }}
+          className="px-4 py-2.5 text-white text-sm rounded-xl font-medium flex items-center gap-2 hover:opacity-90 transition-opacity bg-gradient-to-br from-copper to-copper-light"
         >
           <Filter className="w-4 h-4" /> Refresh
         </button>
@@ -282,7 +277,7 @@ export default function UsersPage() {
         loading ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
             {Array.from({ length: 8 }).map((_, i) => (
-              <div key={i} className="bg-[#242424] rounded-2xl border border-[rgba(184,115,51,0.2)] p-5 space-y-3">
+              <div key={i} className="bg-dark-card rounded-2xl border border-copper/20 p-5 space-y-3">
                 <div className="w-14 h-14 rounded-2xl bg-gray-400/10 animate-pulse" />
                 <div className="h-4 bg-gray-400/10 rounded animate-pulse w-2/3" />
                 <div className="h-3 bg-gray-400/10 rounded animate-pulse w-full" />
@@ -291,28 +286,28 @@ export default function UsersPage() {
           </div>
         ) : filtered.length === 0 ? (
           <div className="py-20 flex flex-col items-center gap-3">
-            <Users className="w-12 h-12 text-[#b87333]/30" />
-            <p className="text-base font-medium text-[#f5f0e8]">No users found</p>
+            <Users className="w-12 h-12 text-copper/30" />
+            <p className="text-base font-medium text-ivory-light">No users found</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
             {filtered.map((u) => (
               <div
                 key={u.id}
-                className="bg-[#242424] rounded-2xl border border-[rgba(184,115,51,0.2)] p-5 hover:border-[rgba(184,115,51,0.4)] hover:-translate-y-0.5 transition-all"
+                className="bg-dark-card rounded-2xl border border-copper/20 p-5 hover:border-copper/40 hover:-translate-y-0.5 transition-all"
               >
                 <div className="flex items-start justify-between mb-4">
                   <Avatar user={u} size="lg" />
                   <UserActions u={u} />
                 </div>
-                <p className="font-semibold text-[#f5f0e8] text-sm">{u.full_name}</p>
-                <p className="text-xs text-[#9a8f82] mt-0.5 mb-3 truncate">@{u.username}</p>
-                <p className="text-xs text-[#9a8f82] mb-3 truncate">{u.email}</p>
+                <p className="font-semibold text-ivory-light text-sm">{u.full_name}</p>
+                <p className="text-xs text-muted-text mt-0.5 mb-3 truncate">@{u.username}</p>
+                <p className="text-xs text-muted-text mb-3 truncate">{u.email}</p>
                 <div className="flex items-center gap-2 flex-wrap">
                   <RoleBadge role={u.role} />
                   <StatusBadge active={u.is_active} />
                 </div>
-                <p className="text-xs text-[#9a8f82] mt-3">
+                <p className="text-xs text-muted-text mt-3">
                   Joined {formatJoined(u.created_at)}
                 </p>
               </div>
@@ -323,20 +318,20 @@ export default function UsersPage() {
 
       {/* ── List view ─────────────────────────────────────────────────────── */}
       {view === 'list' && (
-        <div className="bg-[#242424] rounded-2xl border border-[rgba(184,115,51,0.2)] overflow-hidden">
+        <div className="bg-dark-card rounded-2xl border border-copper/20 overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-[rgba(184,115,51,0.15)] bg-black/20">
+                <tr className="border-b border-copper/15 bg-black/20">
                   {['User', 'Email', 'Username', 'Role', 'Status', 'Joined', 'Actions'].map((h) => (
-                    <th key={h} className="text-left py-3 px-4 text-xs font-medium text-[#9a8f82] whitespace-nowrap">{h}</th>
+                    <th key={h} className="text-left py-3 px-4 text-xs font-medium text-muted-text whitespace-nowrap">{h}</th>
                   ))}
                 </tr>
               </thead>
               <tbody>
                 {loading ? (
                   Array.from({ length: 6 }).map((_, i) => (
-                    <tr key={i} className="border-b border-[rgba(184,115,51,0.08)]">
+                    <tr key={i} className="border-b border-copper/8">
                       {Array.from({ length: 7 }).map((_, j) => (
                         <td key={j} className="py-3 px-4">
                           <div className="h-4 bg-gray-400/10 rounded animate-pulse w-20" />
@@ -346,7 +341,7 @@ export default function UsersPage() {
                   ))
                 ) : filtered.length === 0 ? (
                   <tr>
-                    <td colSpan={7} className="py-20 text-center text-[#9a8f82]">
+                    <td colSpan={7} className="py-20 text-center text-muted-text">
                       No users found
                     </td>
                   </tr>
@@ -354,19 +349,19 @@ export default function UsersPage() {
                   filtered.map((u) => (
                     <tr
                       key={u.id}
-                      className="border-b border-[rgba(184,115,51,0.08)] hover:bg-[rgba(184,115,51,0.04)] transition-colors"
+                      className="border-b border-copper/8 hover:bg-copper/4 transition-colors"
                     >
                       <td className="py-3 px-4">
                         <div className="flex items-center gap-2">
                           <Avatar user={u} size="sm" />
-                          <span className="text-[#f5f0e8] font-medium text-xs">{u.full_name}</span>
+                          <span className="text-ivory-light font-medium text-xs">{u.full_name}</span>
                         </div>
                       </td>
-                      <td className="py-3 px-4 text-[#9a8f82] text-xs">{u.email}</td>
-                      <td className="py-3 px-4 text-[#9a8f82] text-xs font-mono">@{u.username}</td>
+                      <td className="py-3 px-4 text-muted-text text-xs">{u.email}</td>
+                      <td className="py-3 px-4 text-muted-text text-xs font-mono">@{u.username}</td>
                       <td className="py-3 px-4"><RoleBadge role={u.role} /></td>
                       <td className="py-3 px-4"><StatusBadge active={u.is_active} /></td>
-                      <td className="py-3 px-4 text-[#9a8f82] text-xs whitespace-nowrap">{formatDate(u.created_at)}</td>
+                      <td className="py-3 px-4 text-muted-text text-xs whitespace-nowrap">{formatDate(u.created_at)}</td>
                       <td className="py-3 px-4"><UserActions u={u} /></td>
                     </tr>
                   ))
@@ -380,33 +375,33 @@ export default function UsersPage() {
       {/* ── Edit modal ────────────────────────────────────────────────────── */}
       {editUser && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
-          <div className="relative bg-[#242424] rounded-2xl border border-[rgba(184,115,51,0.2)] w-full max-w-sm p-6 shadow-2xl">
+          <div className="relative bg-dark-card rounded-2xl border border-copper/20 w-full max-w-sm p-6 shadow-2xl">
             <div className="flex items-center justify-between mb-5">
-              <h3 className="font-bold text-[#f5f0e8] flex items-center gap-2">
-                <Shield className="w-4 h-4 text-[#b87333]" /> Edit User
+              <h3 className="font-bold text-ivory-light flex items-center gap-2">
+                <Shield className="w-4 h-4 text-copper" /> Edit User
               </h3>
-              <button onClick={() => setEditUser(null)} className="text-gray-400 hover:text-[#f5f0e8] transition-colors">
+              <button onClick={() => setEditUser(null)} className="text-gray-400 hover:text-ivory-light transition-colors">
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             {/* User info */}
-            <div className="flex items-center gap-3 mb-5 p-3 rounded-xl bg-[#1a1a1a] border border-[rgba(184,115,51,0.15)]">
+            <div className="flex items-center gap-3 mb-5 p-3 rounded-xl bg-dark-elevation border border-copper/15">
               <Avatar user={editUser} size="md" />
               <div className="min-w-0">
-                <p className="text-sm font-semibold text-[#f5f0e8] truncate">{editUser.full_name}</p>
-                <p className="text-xs text-[#9a8f82] truncate">{editUser.email}</p>
+                <p className="text-sm font-semibold text-ivory-light truncate">{editUser.full_name}</p>
+                <p className="text-xs text-muted-text truncate">{editUser.email}</p>
               </div>
             </div>
 
             <div className="space-y-4">
               <div>
-                <label className="text-xs font-medium text-[#9a8f82] mb-1.5 block">Role</label>
+                <label className="text-xs font-medium text-muted-text mb-1.5 block">Role</label>
                 <select
                   value={editForm.role}
                   onChange={(e) => setEditForm((f) => ({ ...f, role: e.target.value }))}
-                  className={`w-full px-3 py-2.5 border border-[rgba(184,115,51,0.2)] rounded-xl
-                    focus:border-[#b87333] focus:outline-none text-sm bg-[#1a1a1a] text-[#f5f0e8]`}
+                  className={`w-full px-3 py-2.5 border border-copper/20 rounded-xl
+                    focus:border-copper focus:outline-none text-sm bg-dark-elevation text-ivory-light`}
                 >
                   <option value="admin">Admin</option>
                   <option value="event_manager">Event Manager</option>
@@ -414,12 +409,12 @@ export default function UsersPage() {
                 </select>
               </div>
               <div>
-                <label className="text-xs font-medium text-[#9a8f82] mb-1.5 block">Account Status</label>
+                <label className="text-xs font-medium text-muted-text mb-1.5 block">Account Status</label>
                 <select
                   value={editForm.is_active ? 'active' : 'inactive'}
                   onChange={(e) => setEditForm((f) => ({ ...f, is_active: e.target.value === 'active' }))}
-                  className={`w-full px-3 py-2.5 border border-[rgba(184,115,51,0.2)] rounded-xl
-                    focus:border-[#b87333] focus:outline-none text-sm bg-[#1a1a1a] text-[#f5f0e8]`}
+                  className={`w-full px-3 py-2.5 border border-copper/20 rounded-xl
+                    focus:border-copper focus:outline-none text-sm bg-dark-elevation text-ivory-light`}
                 >
                   <option value="active">Active</option>
                   <option value="inactive">Inactive</option>
@@ -430,15 +425,14 @@ export default function UsersPage() {
             <div className="flex gap-3 mt-5">
               <button
                 onClick={() => setEditUser(null)}
-                className="flex-1 py-2.5 text-sm border border-[rgba(184,115,51,0.2)] text-[#f5f0e8] rounded-xl hover:bg-[rgba(184,115,51,0.05)] transition-colors"
+                className="flex-1 py-2.5 text-sm border border-copper/20 text-ivory-light rounded-xl hover:bg-copper/5 transition-colors"
               >
                 Cancel
               </button>
               <button
                 onClick={handleSaveEdit}
                 disabled={saving}
-                className="flex-1 py-2.5 text-sm text-white rounded-xl font-medium hover:opacity-90 disabled:opacity-60 transition-opacity"
-                style={{ background: 'linear-gradient(135deg,#b87333,#d4956a)' }}
+                className="flex-1 py-2.5 text-sm text-white rounded-xl font-medium hover:opacity-90 disabled:opacity-60 transition-opacity bg-gradient-to-br from-copper to-copper-light"
               >
                 {saving ? 'Saving…' : 'Save Changes'}
               </button>
@@ -450,22 +444,22 @@ export default function UsersPage() {
       {/* ── Deactivate confirm ────────────────────────────────────────────── */}
       {deactivateUser && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
-          <div className="relative bg-[#242424] rounded-2xl border border-[rgba(184,115,51,0.2)] w-full max-w-sm p-6 text-center shadow-2xl">
+          <div className="relative bg-dark-card rounded-2xl border border-copper/20 w-full max-w-sm p-6 text-center shadow-2xl">
             <div className="w-14 h-14 rounded-2xl bg-red-500/10 flex items-center justify-center mx-auto mb-4">
               <AlertTriangle className="w-7 h-7 text-red-400" />
             </div>
-            <h3 className="font-bold text-[#f5f0e8] mb-2 text-lg">Deactivate User?</h3>
-            <p className="text-sm text-[#9a8f82] mb-1">
-              <span className="font-semibold text-[#f5f0e8]">{deactivateUser.full_name}</span>
+            <h3 className="font-bold text-ivory-light mb-2 text-lg">Deactivate User?</h3>
+            <p className="text-sm text-muted-text mb-1">
+              <span className="font-semibold text-ivory-light">{deactivateUser.full_name}</span>
             </p>
-            <p className="text-sm text-[#9a8f82] mb-5">
+            <p className="text-sm text-muted-text mb-5">
               They will immediately lose access to the platform. You can re-activate them later.
             </p>
             <div className="flex gap-3">
               <button
                 onClick={() => setDeactivateUser(null)}
                 disabled={deactivating}
-                className="flex-1 py-2.5 text-sm border border-[rgba(184,115,51,0.2)] text-[#f5f0e8] rounded-xl hover:bg-[rgba(184,115,51,0.05)] disabled:opacity-50 transition-colors"
+                className="flex-1 py-2.5 text-sm border border-copper/20 text-ivory-light rounded-xl hover:bg-copper/5 disabled:opacity-50 transition-colors"
               >
                 Keep Active
               </button>

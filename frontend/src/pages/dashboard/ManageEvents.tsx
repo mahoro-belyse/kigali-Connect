@@ -101,9 +101,9 @@ const CONFIRM_META: Record<ConfirmType, { title: string; msg: string; btn: strin
 
 const PER_PAGE = 10;
 
-const INPUT_CLS = `w-full px-3 py-2.5 border border-[rgba(184,115,51,0.2)] rounded-xl
-  focus:border-[#b87333] focus:outline-none focus:ring-1 focus:ring-[rgba(184,115,51,0.3)]
-  text-sm bg-[#2a2a2a] text-[#f5f0e8] placeholder-[#9a8f82] transition-colors`;
+const INPUT_CLS = `w-full px-3 py-2.5 border border-copper/20 rounded-xl
+  focus:border-copper focus:outline-none focus:ring-1 focus:ring-copper/30
+  text-sm bg-dark-input text-ivory-light placeholder-muted-text transition-colors`;
 
 const defaultForm = (): EventForm => ({
   title: '', description: '', category: 'conference', status: 'draft',
@@ -125,7 +125,7 @@ function Badge({ status }: { status: string }) {
 
 function Spinner({ small = false }: { small?: boolean }) {
   return (
-    <div className={`${small ? 'w-4 h-4 border-2' : 'w-8 h-8 border-2'} border-[rgba(184,115,51,0.3)] border-t-[#b87333] rounded-full animate-spin`} />
+    <div className={`${small ? 'w-4 h-4 border-2' : 'w-8 h-8 border-2'} border-copper/30 border-t-copper rounded-full animate-spin`} />
   );
 }
 
@@ -134,7 +134,7 @@ function Toggle({ value, onChange }: { value: boolean; onChange: () => void }) {
     <button
       type="button"
       onClick={onChange}
-      className={`w-12 h-6 rounded-full transition-colors relative shrink-0 ${value ? 'bg-[#b87333]' : 'bg-gray-400/20'}`}
+      className={`w-12 h-6 rounded-full transition-colors relative shrink-0 ${value ? 'bg-copper' : 'bg-gray-400/20'}`}
     >
       <div className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform duration-200 ${value ? 'translate-x-6' : ''}`} />
     </button>
@@ -146,7 +146,6 @@ function formatDate(d?: string) {
   return new Date(d).toLocaleDateString('en-RW', { month: 'short', day: '2-digit', year: 'numeric' });
 }
 
-// Convert tags from any shape (string or array) to display string
 function tagsToString(tags?: string | string[]): string {
   if (!tags) return '';
   if (Array.isArray(tags)) return tags.join(', ');
@@ -338,15 +337,14 @@ export default function ManageEvents() {
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-[#f5f0e8] flex items-center gap-2">
-            <Calendar className="w-6 h-6 text-[#b87333]" /> Events
+          <h1 className="text-2xl font-bold text-ivory-light flex items-center gap-2">
+            <Calendar className="w-6 h-6 text-copper" /> Events
           </h1>
-          <p className="text-sm text-[#9a8f82] mt-1">Create and manage your events</p>
+          <p className="text-sm text-muted-text mt-1">Create and manage your events</p>
         </div>
         <button
           onClick={openCreate}
-          className="px-4 py-2.5 text-white text-sm rounded-xl font-semibold flex items-center gap-2 hover:opacity-90 transition-opacity"
-          style={{ background: 'linear-gradient(135deg,#b87333,#d4956a)' }}
+          className="px-4 py-2.5 text-white text-sm rounded-xl font-semibold flex items-center gap-2 hover:opacity-90 transition-opacity bg-gradient-to-br from-copper to-copper-light"
         >
           <Plus className="w-4 h-4" /> Create Event
         </button>
@@ -366,25 +364,23 @@ export default function ManageEvents() {
         </div>
         <button
           onClick={fetchEvents}
-          className="px-4 py-2.5 text-white text-sm rounded-xl font-medium hover:opacity-90 transition-opacity"
-          style={{ background: 'linear-gradient(135deg,#b87333,#d4956a)' }}
+          className="px-4 py-2.5 text-white text-sm rounded-xl font-medium hover:opacity-90 transition-opacity bg-gradient-to-br from-copper to-copper-light"
         >
           Search
         </button>
       </div>
 
       {/* Table */}
-      <div className="bg-[#242424] rounded-2xl border border-[rgba(184,115,51,0.2)] overflow-hidden">
+      <div className="bg-dark-card rounded-2xl border border-copper/20 overflow-hidden">
         {loading ? (
           <div className="py-20 flex justify-center"><Spinner /></div>
         ) : filtered.length === 0 ? (
           <div className="py-20 flex flex-col items-center gap-3">
-            <Calendar className="w-12 h-12 text-[#b87333]/30" />
-            <p className="text-base font-medium text-[#f5f0e8]">No events found</p>
+            <Calendar className="w-12 h-12 text-copper/30" />
+            <p className="text-base font-medium text-ivory-light">No events found</p>
             <button
               onClick={openCreate}
-              className="px-4 py-2 text-sm text-white rounded-xl hover:opacity-90"
-              style={{ background: 'linear-gradient(135deg,#b87333,#d4956a)' }}
+              className="px-4 py-2 text-sm text-white rounded-xl hover:opacity-90 bg-gradient-to-br from-copper to-copper-light"
             >
               Create Your First Event
             </button>
@@ -393,38 +389,38 @@ export default function ManageEvents() {
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-[rgba(184,115,51,0.15)] bg-black/20">
+                <tr className="border-b border-copper/15 bg-black/20">
                   {['Cover','Title','Category','Status','Start Date','City','Capacity','Available','Featured','Actions'].map((h) => (
-                    <th key={h} className="text-left py-3 px-3 text-xs font-medium text-[#9a8f82] whitespace-nowrap">{h}</th>
+                    <th key={h} className="text-left py-3 px-3 text-xs font-medium text-muted-text whitespace-nowrap">{h}</th>
                   ))}
                 </tr>
               </thead>
               <tbody>
                 {paginated.map((e) => (
-                  <tr key={e.id} className="border-b border-[rgba(184,115,51,0.08)] hover:bg-[rgba(184,115,51,0.04)] transition-colors">
+                  <tr key={e.id} className="border-b border-copper/8 hover:bg-copper/4 transition-colors">
                     {/* Cover */}
                     <td className="py-3 px-3">
                       {e.cover_image ? (
                         <img src={e.cover_image} alt="" className="w-12 h-8 object-cover rounded-lg" />
                       ) : (
-                        <div className="w-12 h-8 bg-[rgba(184,115,51,0.1)] rounded-lg flex items-center justify-center">
-                          <ImageIcon className="w-4 h-4 text-[#b87333]/40" />
+                        <div className="w-12 h-8 bg-copper/10 rounded-lg flex items-center justify-center">
+                          <ImageIcon className="w-4 h-4 text-copper/40" />
                         </div>
                       )}
                     </td>
-                    <td className="py-3 px-3 text-[#f5f0e8] font-medium text-xs max-w-[160px] truncate">{e.title}</td>
-                    <td className="py-3 px-3 text-[#9a8f82] text-xs capitalize">{e.category}</td>
+                    <td className="py-3 px-3 text-ivory-light font-medium text-xs max-w-[160px] truncate">{e.title}</td>
+                    <td className="py-3 px-3 text-muted-text text-xs capitalize">{e.category}</td>
                     <td className="py-3 px-3"><Badge status={e.status ?? 'draft'} /></td>
-                    <td className="py-3 px-3 text-[#9a8f82] text-xs whitespace-nowrap">{formatDate(e.start_datetime)}</td>
-                    <td className="py-3 px-3 text-[#9a8f82] text-xs">{e.city ?? '—'}</td>
-                    <td className="py-3 px-3 text-[#9a8f82] text-xs">{e.total_capacity ?? '—'}</td>
-                    <td className="py-3 px-3 text-[#9a8f82] text-xs">{e.available_seats ?? '—'}</td>
+                    <td className="py-3 px-3 text-muted-text text-xs whitespace-nowrap">{formatDate(e.start_datetime)}</td>
+                    <td className="py-3 px-3 text-muted-text text-xs">{e.city ?? '—'}</td>
+                    <td className="py-3 px-3 text-muted-text text-xs">{e.total_capacity ?? '—'}</td>
+                    <td className="py-3 px-3 text-muted-text text-xs">{e.available_seats ?? '—'}</td>
                     <td className="py-3 px-3 text-center text-xs">{e.featured ? '⭐' : '—'}</td>
 
                     {/* Actions */}
                     <td className="py-3 px-3">
                       <div className="flex items-center gap-1">
-                        <button onClick={() => openEdit(e)} className="p-1.5 rounded-lg text-gray-400 hover:text-[#b87333] hover:bg-[rgba(184,115,51,0.1)] transition-colors" title="Edit">
+                        <button onClick={() => openEdit(e)} className="p-1.5 rounded-lg text-gray-400 hover:text-copper hover:bg-copper/10 transition-colors" title="Edit">
                           <Edit3 className="w-3.5 h-3.5" />
                         </button>
                         <a href={`/events/${e.id}`} target="_blank" rel="noreferrer" className="p-1.5 rounded-lg text-gray-400 hover:text-blue-400 hover:bg-blue-400/10 transition-colors" title="View Public Page">
@@ -463,11 +459,11 @@ export default function ManageEvents() {
       {/* Pagination */}
       {totalPages > 1 && (
         <div className="flex items-center justify-center gap-2 mt-5">
-          <button disabled={page === 1} onClick={() => setPage((p) => p - 1)} className="p-2 rounded-lg border border-[rgba(184,115,51,0.2)] text-[#9a8f82] disabled:opacity-40 hover:border-[#b87333] transition-colors">
+          <button disabled={page === 1} onClick={() => setPage((p) => p - 1)} className="p-2 rounded-lg border border-copper/20 text-muted-text disabled:opacity-40 hover:border-copper transition-colors">
             <ChevronLeft className="w-4 h-4" />
           </button>
-          <span className="text-sm text-[#9a8f82]">Page {page} of {totalPages}</span>
-          <button disabled={page === totalPages} onClick={() => setPage((p) => p + 1)} className="p-2 rounded-lg border border-[rgba(184,115,51,0.2)] text-[#9a8f82] disabled:opacity-40 hover:border-[#b87333] transition-colors">
+          <span className="text-sm text-muted-text">Page {page} of {totalPages}</span>
+          <button disabled={page === totalPages} onClick={() => setPage((p) => p + 1)} className="p-2 rounded-lg border border-copper/20 text-muted-text disabled:opacity-40 hover:border-copper transition-colors">
             <ChevronRight className="w-4 h-4" />
           </button>
         </div>
@@ -479,27 +475,27 @@ export default function ManageEvents() {
       {/* ── Create/Edit Modal ──────────────────────────────────────────────── */}
       {showModal && (
         <div className="fixed inset-0 z-50 flex items-start justify-center p-4 overflow-y-auto bg-black/70 backdrop-blur-sm">
-          <div className="relative bg-[#1e1e1e] rounded-2xl border border-[rgba(184,115,51,0.2)] w-full max-w-2xl shadow-2xl my-8">
+          <div className="relative bg-dark-surface rounded-2xl border border-copper/20 w-full max-w-2xl shadow-2xl my-8">
             {/* Modal header */}
-            <div className="flex items-center justify-between p-5 border-b border-[rgba(184,115,51,0.15)]">
-              <h3 className="font-bold text-[#f5f0e8] text-lg">
+            <div className="flex items-center justify-between p-5 border-b border-copper/15">
+              <h3 className="font-bold text-ivory-light text-lg">
                 {editEvent ? 'Edit Event' : 'Create Event'}
               </h3>
-              <button onClick={() => setShowModal(false)} className="text-gray-400 hover:text-[#f5f0e8] p-1 transition-colors">
+              <button onClick={() => setShowModal(false)} className="text-gray-400 hover:text-ivory-light p-1 transition-colors">
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             {/* Tab bar */}
-            <div className="flex border-b border-[rgba(184,115,51,0.15)]">
+            <div className="flex border-b border-copper/15">
               {['Basic Info', 'Settings', 'Ticket Tiers'].map((t, i) => (
                 <button
                   key={t}
                   onClick={() => setTab(i)}
                   className={`flex-1 py-3 text-sm font-medium transition-colors border-b-2 ${
                     tab === i
-                      ? 'text-[#b87333] border-[#b87333]'
-                      : 'text-[#9a8f82] border-transparent hover:text-[#f5f0e8]'
+                      ? 'text-copper border-copper'
+                      : 'text-muted-text border-transparent hover:text-ivory-light'
                   }`}
                 >
                   {t}
@@ -514,22 +510,22 @@ export default function ManageEvents() {
               {tab === 0 && (
                 <>
                   <div>
-                    <label className="text-xs font-medium text-[#9a8f82] mb-1.5 block">Title *</label>
+                    <label className="text-xs font-medium text-muted-text mb-1.5 block">Title *</label>
                     <input value={form.title} onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))} className={INPUT_CLS} placeholder="Event title" />
                   </div>
                   <div>
-                    <label className="text-xs font-medium text-[#9a8f82] mb-1.5 block">Description</label>
+                    <label className="text-xs font-medium text-muted-text mb-1.5 block">Description</label>
                     <textarea value={form.description} onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))} rows={4} className={`${INPUT_CLS} resize-none`} placeholder="Describe your event…" />
                   </div>
                   <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <label className="text-xs font-medium text-[#9a8f82] mb-1.5 block">Category</label>
+                      <label className="text-xs font-medium text-muted-text mb-1.5 block">Category</label>
                       <select value={form.category} onChange={(e) => setForm((f) => ({ ...f, category: e.target.value }))} className={INPUT_CLS}>
                         {CATEGORIES.map((c) => <option key={c} value={c} className="capitalize">{c}</option>)}
                       </select>
                     </div>
                     <div>
-                      <label className="text-xs font-medium text-[#9a8f82] mb-1.5 block">Status</label>
+                      <label className="text-xs font-medium text-muted-text mb-1.5 block">Status</label>
                       <select value={form.status} onChange={(e) => setForm((f) => ({ ...f, status: e.target.value }))} className={INPUT_CLS}>
                         {['draft','published'].map((s) => <option key={s} value={s} className="capitalize">{s}</option>)}
                       </select>
@@ -537,39 +533,39 @@ export default function ManageEvents() {
                   </div>
                   <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <label className="text-xs font-medium text-[#9a8f82] mb-1.5 block">Start Date &amp; Time *</label>
+                      <label className="text-xs font-medium text-muted-text mb-1.5 block">Start Date &amp; Time *</label>
                       <input type="datetime-local" value={form.start_datetime} onChange={(e) => setForm((f) => ({ ...f, start_datetime: e.target.value }))} className={INPUT_CLS} />
                     </div>
                     <div>
-                      <label className="text-xs font-medium text-[#9a8f82] mb-1.5 block">End Date &amp; Time *</label>
+                      <label className="text-xs font-medium text-muted-text mb-1.5 block">End Date &amp; Time *</label>
                       <input type="datetime-local" value={form.end_datetime} onChange={(e) => setForm((f) => ({ ...f, end_datetime: e.target.value }))} className={INPUT_CLS} />
                     </div>
                   </div>
                   <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <label className="text-xs font-medium text-[#9a8f82] mb-1.5 block">Venue Name</label>
+                      <label className="text-xs font-medium text-muted-text mb-1.5 block">Venue Name</label>
                       <input value={form.venue_name} onChange={(e) => setForm((f) => ({ ...f, venue_name: e.target.value }))} className={INPUT_CLS} placeholder="e.g. Kigali Arena" />
                     </div>
                     <div>
-                      <label className="text-xs font-medium text-[#9a8f82] mb-1.5 block">City</label>
+                      <label className="text-xs font-medium text-muted-text mb-1.5 block">City</label>
                       <input value={form.city} onChange={(e) => setForm((f) => ({ ...f, city: e.target.value }))} className={INPUT_CLS} placeholder="e.g. Kigali" />
                     </div>
                   </div>
                   <div>
-                    <label className="text-xs font-medium text-[#9a8f82] mb-1.5 block">Venue Address</label>
+                    <label className="text-xs font-medium text-muted-text mb-1.5 block">Venue Address</label>
                     <input value={form.venue_address} onChange={(e) => setForm((f) => ({ ...f, venue_address: e.target.value }))} className={INPUT_CLS} placeholder="Full address" />
                   </div>
                   <div className="grid grid-cols-3 gap-3">
                     <div>
-                      <label className="text-xs font-medium text-[#9a8f82] mb-1.5 block">Country</label>
+                      <label className="text-xs font-medium text-muted-text mb-1.5 block">Country</label>
                       <input value={form.country} onChange={(e) => setForm((f) => ({ ...f, country: e.target.value }))} className={INPUT_CLS} />
                     </div>
                     <div>
-                      <label className="text-xs font-medium text-[#9a8f82] mb-1.5 block">Latitude (opt)</label>
+                      <label className="text-xs font-medium text-muted-text mb-1.5 block">Latitude (opt)</label>
                       <input type="number" value={form.latitude} onChange={(e) => setForm((f) => ({ ...f, latitude: e.target.value }))} className={INPUT_CLS} placeholder="-1.9500" />
                     </div>
                     <div>
-                      <label className="text-xs font-medium text-[#9a8f82] mb-1.5 block">Longitude (opt)</label>
+                      <label className="text-xs font-medium text-muted-text mb-1.5 block">Longitude (opt)</label>
                       <input type="number" value={form.longitude} onChange={(e) => setForm((f) => ({ ...f, longitude: e.target.value }))} className={INPUT_CLS} placeholder="30.0588" />
                     </div>
                   </div>
@@ -580,24 +576,24 @@ export default function ManageEvents() {
               {tab === 1 && (
                 <>
                   <div>
-                    <label className="text-xs font-medium text-[#9a8f82] mb-1.5 block">Total Capacity *</label>
+                    <label className="text-xs font-medium text-muted-text mb-1.5 block">Total Capacity *</label>
                     <input type="number" min={1} value={form.total_capacity} onChange={(e) => setForm((f) => ({ ...f, total_capacity: e.target.value }))} className={INPUT_CLS} placeholder="e.g. 500" />
                   </div>
-                  <div className="flex items-center justify-between py-3 px-4 border rounded-xl border-[rgba(184,115,51,0.2)]">
+                  <div className="flex items-center justify-between py-3 px-4 border rounded-xl border-copper/20">
                     <div>
-                      <p className="text-sm font-medium text-[#f5f0e8]">Free Event</p>
-                      <p className="text-xs text-[#9a8f82]">Ticket prices will be set to 0</p>
+                      <p className="text-sm font-medium text-ivory-light">Free Event</p>
+                      <p className="text-xs text-muted-text">Ticket prices will be set to 0</p>
                     </div>
                     <Toggle value={form.is_free} onChange={() => setForm((f) => ({ ...f, is_free: !f.is_free }))} />
                   </div>
                   <div>
-                    <label className="text-xs font-medium text-[#9a8f82] mb-1.5 block">Tags (comma-separated)</label>
+                    <label className="text-xs font-medium text-muted-text mb-1.5 block">Tags (comma-separated)</label>
                     <input value={form.tags} onChange={(e) => setForm((f) => ({ ...f, tags: e.target.value }))} className={INPUT_CLS} placeholder="e.g. tech, kigali, startup" />
                   </div>
-                  <div className="flex items-center justify-between py-3 px-4 border rounded-xl border-[rgba(184,115,51,0.2)]">
+                  <div className="flex items-center justify-between py-3 px-4 border rounded-xl border-copper/20">
                     <div>
-                      <p className="text-sm font-medium text-[#f5f0e8]">Featured Event ⭐</p>
-                      <p className="text-xs text-[#9a8f82]">Show in featured sections on homepage</p>
+                      <p className="text-sm font-medium text-ivory-light">Featured Event ⭐</p>
+                      <p className="text-xs text-muted-text">Show in featured sections on homepage</p>
                     </div>
                     <Toggle value={form.featured} onChange={() => setForm((f) => ({ ...f, featured: !f.featured }))} />
                   </div>
@@ -608,10 +604,10 @@ export default function ManageEvents() {
               {tab === 2 && (
                 <div className="space-y-3">
                   {form.ticket_tiers.map((tier, i) => (
-                    <div key={i} className="p-4 border rounded-xl border-[rgba(184,115,51,0.2)] bg-black/20">
+                    <div key={i} className="p-4 border rounded-xl border-copper/20 bg-black/20">
                       <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-3">
                         <div>
-                          <label className="text-xs text-[#9a8f82] mb-1 block">Type</label>
+                          <label className="text-xs text-muted-text mb-1 block">Type</label>
                           <select value={tier.name} onChange={(e) => updateTier(i, 'name', e.target.value)} className={INPUT_CLS}>
                             {TICKET_NAMES.map((n) => (
                               <option key={n} value={n} className="capitalize">{n.replace('_', ' ')}</option>
@@ -619,7 +615,7 @@ export default function ManageEvents() {
                           </select>
                         </div>
                         <div>
-                          <label className="text-xs text-[#9a8f82] mb-1 block">Price (RWF)</label>
+                          <label className="text-xs text-muted-text mb-1 block">Price (RWF)</label>
                           <input
                             type="number" min={0}
                             value={tier.price}
@@ -630,17 +626,17 @@ export default function ManageEvents() {
                           />
                         </div>
                         <div>
-                          <label className="text-xs text-[#9a8f82] mb-1 block">Quantity</label>
+                          <label className="text-xs text-muted-text mb-1 block">Quantity</label>
                           <input type="number" min={1} value={tier.quantity} onChange={(e) => updateTier(i, 'quantity', e.target.value)} className={INPUT_CLS} placeholder="100" />
                         </div>
                         <div>
-                          <label className="text-xs text-[#9a8f82] mb-1 block">Max/booking</label>
+                          <label className="text-xs text-muted-text mb-1 block">Max/booking</label>
                           <input type="number" min={1} value={tier.max_per_booking} onChange={(e) => updateTier(i, 'max_per_booking', e.target.value)} className={INPUT_CLS} placeholder="10" />
                         </div>
                       </div>
                       <div className="flex gap-2 items-end">
                         <div className="flex-1">
-                          <label className="text-xs text-[#9a8f82] mb-1 block">Description</label>
+                          <label className="text-xs text-muted-text mb-1 block">Description</label>
                           <input value={tier.description} onChange={(e) => updateTier(i, 'description', e.target.value)} className={INPUT_CLS} placeholder="e.g. General admission, lunch included" />
                         </div>
                         {form.ticket_tiers.length > 1 && (
@@ -656,7 +652,7 @@ export default function ManageEvents() {
                   ))}
                   <button
                     onClick={addTier}
-                    className="w-full py-2.5 text-sm border-2 border-dashed border-[rgba(184,115,51,0.3)] text-[#9a8f82] rounded-xl hover:border-[#b87333] hover:text-[#b87333] transition-colors"
+                    className="w-full py-2.5 text-sm border-2 border-dashed border-copper/30 text-muted-text rounded-xl hover:border-copper hover:text-copper transition-colors"
                   >
                     + Add Ticket Tier
                   </button>
@@ -665,18 +661,17 @@ export default function ManageEvents() {
             </div>
 
             {/* Footer buttons */}
-            <div className="flex gap-3 p-5 border-t border-[rgba(184,115,51,0.15)]">
+            <div className="flex gap-3 p-5 border-t border-copper/15">
               <button
                 onClick={() => tab > 0 ? setTab((t) => t - 1) : setShowModal(false)}
-                className="flex-1 py-2.5 text-sm border border-[rgba(184,115,51,0.2)] text-[#f5f0e8] rounded-xl hover:bg-[rgba(184,115,51,0.05)] transition-colors"
+                className="flex-1 py-2.5 text-sm border border-copper/20 text-ivory-light rounded-xl hover:bg-copper/5 transition-colors"
               >
                 {tab > 0 ? '← Back' : 'Cancel'}
               </button>
               {tab < 2 ? (
                 <button
                   onClick={() => setTab((t) => t + 1)}
-                  className="flex-1 py-2.5 text-sm text-white rounded-xl font-medium hover:opacity-90 transition-opacity"
-                  style={{ background: 'linear-gradient(135deg,#b87333,#d4956a)' }}
+                  className="flex-1 py-2.5 text-sm text-white rounded-xl font-medium hover:opacity-90 transition-opacity bg-gradient-to-br from-copper to-copper-light"
                 >
                   Next →
                 </button>
@@ -684,8 +679,7 @@ export default function ManageEvents() {
                 <button
                   onClick={handleSave}
                   disabled={saving}
-                  className="flex-1 py-2.5 text-sm text-white rounded-xl font-medium hover:opacity-90 disabled:opacity-60 transition-opacity flex items-center justify-center gap-2"
-                  style={{ background: 'linear-gradient(135deg,#b87333,#d4956a)' }}
+                  className="flex-1 py-2.5 text-sm text-white rounded-xl font-medium hover:opacity-90 disabled:opacity-60 transition-opacity flex items-center justify-center gap-2 bg-gradient-to-br from-copper to-copper-light"
                 >
                   {saving ? <><Spinner small /> Saving…</> : editEvent ? 'Update Event' : 'Create Event'}
                 </button>
@@ -698,24 +692,24 @@ export default function ManageEvents() {
       {/* ── Confirm Dialog ────────────────────────────────────────────────── */}
       {confirm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
-          <div className="relative bg-[#242424] rounded-2xl border border-[rgba(184,115,51,0.2)] w-full max-w-sm p-6 text-center shadow-2xl">
+          <div className="relative bg-dark-card rounded-2xl border border-copper/20 w-full max-w-sm p-6 text-center shadow-2xl">
             <div className="w-14 h-14 rounded-2xl bg-yellow-500/10 flex items-center justify-center mx-auto mb-4">
               <AlertTriangle className="w-7 h-7 text-yellow-400" />
             </div>
-            <h3 className="font-bold text-[#f5f0e8] mb-2 text-lg">
+            <h3 className="font-bold text-ivory-light mb-2 text-lg">
               {CONFIRM_META[confirmType].title}
             </h3>
-            <p className="text-sm text-[#9a8f82] mb-1">
-              <span className="font-semibold text-[#b87333]">{confirm.title}</span>
+            <p className="text-sm text-muted-text mb-1">
+              <span className="font-semibold text-copper">{confirm.title}</span>
             </p>
-            <p className="text-sm text-[#9a8f82] mb-5">
+            <p className="text-sm text-muted-text mb-5">
               {CONFIRM_META[confirmType].msg}
             </p>
             <div className="flex gap-3">
               <button
                 onClick={() => setConfirm(null)}
                 disabled={acting}
-                className="flex-1 py-2.5 text-sm border border-[rgba(184,115,51,0.2)] text-[#f5f0e8] rounded-xl hover:bg-[rgba(184,115,51,0.05)] disabled:opacity-50 transition-colors"
+                className="flex-1 py-2.5 text-sm border border-copper/20 text-ivory-light rounded-xl hover:bg-copper/5 disabled:opacity-50 transition-colors"
               >
                 Keep
               </button>

@@ -14,41 +14,38 @@ export default function UserNotRegisteredError() {
   };
 
   return (
-    <div className="min-h-screen bg-[#1a1a1a] flex items-center justify-center p-4">
+    <div className="min-h-screen bg-dark-elevation flex items-center justify-center p-4">
       <div className="w-full max-w-md">
 
         {/* Card */}
-        <div className="bg-[#242424] rounded-3xl border border-[rgba(184,115,51,0.2)] shadow-2xl overflow-hidden">
+        <div className="bg-dark-card rounded-3xl border border-copper/20 shadow-2xl overflow-hidden">
 
           {/* Top accent bar */}
-          <div
-            className="h-1.5 w-full"
-            style={{ background: 'linear-gradient(90deg,#b87333,#d4956a)' }}
-          />
+          <div className="h-1.5 w-full bg-gradient-to-r from-copper to-copper-light" />
 
           <div className="p-8">
             {/* Icon */}
             <div className="flex justify-center mb-6">
-              <div className="w-20 h-20 rounded-2xl bg-[rgba(184,115,51,0.1)] border border-[rgba(184,115,51,0.2)] flex items-center justify-center">
-                <ShieldAlert className="w-10 h-10 text-[#b87333]" />
+              <div className="w-20 h-20 rounded-2xl bg-copper/10 border border-copper/20 flex items-center justify-center">
+                <ShieldAlert className="w-10 h-10 text-copper" />
               </div>
             </div>
 
             {/* Heading */}
-            <h1 className="text-2xl font-extrabold text-[#f5f0e8] text-center mb-3">
+            <h1 className="text-2xl font-extrabold text-ivory-light text-center mb-3">
               Access Restricted
             </h1>
-            <p className="text-[#9a8f82] text-sm text-center leading-relaxed mb-6">
+            <p className="text-muted-text text-sm text-center leading-relaxed mb-6">
               Your account is not registered or approved for this application.
               Please contact the administrator to request access.
             </p>
 
             {/* Info box */}
-            <div className="bg-[#1a1a1a] rounded-2xl border border-[rgba(184,115,51,0.15)] p-4 mb-6">
-              <p className="text-xs font-semibold text-[#b87333] uppercase tracking-wide mb-3">
+            <div className="bg-dark-elevation rounded-2xl border border-copper/15 p-4 mb-6">
+              <p className="text-xs font-semibold text-copper uppercase tracking-wide mb-3">
                 What you can do:
               </p>
-              <ul className="space-y-2 text-sm text-[#9a8f82]">
+              <ul className="space-y-2 text-sm text-muted-text">
                 {[
                   'Verify you are logged in with the correct account',
                   'Contact the administrator for access approval',
@@ -56,7 +53,7 @@ export default function UserNotRegisteredError() {
                   'Check your email for an approval notification',
                 ].map((item) => (
                   <li key={item} className="flex items-start gap-2">
-                    <span className="text-[#b87333] mt-0.5">•</span>
+                    <span className="text-copper mt-0.5">•</span>
                     {item}
                   </li>
                 ))}
@@ -68,8 +65,7 @@ export default function UserNotRegisteredError() {
               {/* Contact admin */}
               <a
                 href="mailto:admin@smartevents.com"
-                className="flex items-center justify-center gap-2 w-full py-3 rounded-xl text-sm font-semibold text-white transition-opacity hover:opacity-90"
-                style={{ background: 'linear-gradient(135deg,#b87333,#d4956a)' }}
+                className="flex items-center justify-center gap-2 w-full py-3 rounded-xl text-sm font-semibold text-white transition-opacity hover:opacity-90 bg-gradient-to-br from-copper to-copper-light"
               >
                 <Mail className="w-4 h-4" />
                 Contact Administrator
@@ -79,8 +75,8 @@ export default function UserNotRegisteredError() {
               <button
                 onClick={handleRetry}
                 className="flex items-center justify-center gap-2 w-full py-3 rounded-xl text-sm font-semibold
-                  border border-[rgba(184,115,51,0.2)] text-[#f5f0e8]
-                  hover:bg-[rgba(184,115,51,0.08)] transition-colors"
+                  border border-copper/20 text-ivory-light
+                  hover:bg-copper/8 transition-colors"
               >
                 <RefreshCw className="w-4 h-4" />
                 Retry
@@ -100,9 +96,9 @@ export default function UserNotRegisteredError() {
         </div>
 
         {/* Footer note */}
-        <p className="text-center text-xs text-[#9a8f82] mt-6">
+        <p className="text-center text-xs text-muted-text mt-6">
           SmartEvent &copy; {new Date().getFullYear()} &middot;{' '}
-          <a href="/contact" className="text-[#b87333] hover:underline">
+          <a href="/contact" className="text-copper hover:underline">
             Get Help
           </a>
         </p>

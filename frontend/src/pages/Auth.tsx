@@ -181,9 +181,10 @@ export default function Auth() {
 
     setLoading(true);
     // Clear only the general error on new attempt (but previous error will be replaced)
-    setErrors((prev) => {
-  const { general, ...rest } = prev;
-  return rest;
+   setErrors((prev) => {
+  const next = { ...prev };
+  delete next.general;
+  return next;
 });
 
     const result = await authLogin(loginForm.email, loginForm.password);

@@ -61,7 +61,7 @@ function timeAgo(dateStr?: string): string {
 
 function SkeletonRow() {
   return (
-    <div className="flex items-start gap-4 p-4 rounded-xl border border-[rgba(184,115,51,0.15)] bg-[#242424]">
+    <div className="flex items-start gap-4 p-4 rounded-xl border border-copper/15 bg-dark-card">
       <div className="w-9 h-9 rounded-xl bg-gray-400/10 animate-pulse shrink-0" />
       <div className="flex-1 space-y-2">
         <div className="h-4 bg-gray-400/10 rounded animate-pulse w-2/3" />
@@ -162,19 +162,16 @@ export default function Notifications() {
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-[#f5f0e8] flex items-center gap-2">
-            <Bell className="w-6 h-6 text-[#b87333]" />
+          <h1 className="text-2xl font-bold text-ivory-light flex items-center gap-2">
+            <Bell className="w-6 h-6 text-copper" />
             Notifications
             {unreadCount > 0 && (
-              <span
-                className="ml-1 px-2 py-0.5 text-white text-xs font-bold rounded-full"
-                style={{ background: 'linear-gradient(135deg,#b87333,#d4956a)' }}
-              >
+              <span className="ml-1 px-2 py-0.5 text-white text-xs font-bold rounded-full bg-gradient-to-br from-copper to-copper-light">
                 {unreadCount}
               </span>
             )}
           </h1>
-          <p className="text-sm text-[#9a8f82] mt-1">
+          <p className="text-sm text-muted-text mt-1">
             {unreadCount === 0
               ? "You're all caught up!"
               : `${unreadCount} unread notification${unreadCount !== 1 ? 's' : ''}`}
@@ -185,11 +182,11 @@ export default function Notifications() {
           <button
             onClick={markAllRead}
             disabled={markingAll}
-            className="flex items-center gap-2 px-4 py-2.5 border border-[rgba(184,115,51,0.2)]
-              text-[#f5f0e8] text-sm rounded-xl hover:bg-[rgba(184,115,51,0.06)]
+            className="flex items-center gap-2 px-4 py-2.5 border border-copper/20
+              text-ivory-light text-sm rounded-xl hover:bg-copper/6
               disabled:opacity-50 transition-colors"
           >
-            <CheckCheck className="w-4 h-4 text-[#b87333]" />
+            <CheckCheck className="w-4 h-4 text-copper" />
             {markingAll ? 'Marking…' : 'Mark all read'}
           </button>
         )}
@@ -203,10 +200,9 @@ export default function Notifications() {
             onClick={() => setTab(t)}
             className={`px-4 py-2 text-sm rounded-xl capitalize font-medium transition-colors ${
               tab === t
-                ? 'text-white'
-                : 'border border-[rgba(184,115,51,0.2)] text-[#9a8f82] hover:text-[#f5f0e8] hover:border-[rgba(184,115,51,0.4)]'
+                ? 'text-white bg-gradient-to-br from-copper to-copper-light'
+                : 'border border-copper/20 text-muted-text hover:text-ivory-light hover:border-copper/40'
             }`}
-            style={tab === t ? { background: 'linear-gradient(135deg,#b87333,#d4956a)' } : {}}
           >
             {t}
             {/* Show count on unread tab */}
@@ -223,11 +219,11 @@ export default function Notifications() {
           Array.from({ length: 5 }).map((_, i) => <SkeletonRow key={i} />)
         ) : filtered.length === 0 ? (
           <div className="py-20 flex flex-col items-center gap-3">
-            <Bell className="w-12 h-12 text-[#b87333]/30" />
-            <p className="text-base font-medium text-[#f5f0e8]">
+            <Bell className="w-12 h-12 text-copper/30" />
+            <p className="text-base font-medium text-ivory-light">
               {tab === 'unread' ? 'No unread notifications' : 'No notifications'}
             </p>
-            <p className="text-sm text-[#9a8f82]">
+            <p className="text-sm text-muted-text">
               {tab === 'unread' ? "You're all caught up!" : 'Notifications will appear here'}
             </p>
           </div>
@@ -243,8 +239,8 @@ export default function Notifications() {
                 className={`group flex items-start gap-4 p-4 rounded-xl border
                   cursor-pointer transition-all duration-200 ${
                   n.is_read
-                    ? 'border-[rgba(184,115,51,0.15)] bg-[#242424] hover:bg-[rgba(184,115,51,0.04)]'
-                    : 'border-l-2 border-l-[#b87333] border-[rgba(184,115,51,0.2)] bg-[rgba(184,115,51,0.06)] hover:bg-[rgba(184,115,51,0.1)]'
+                    ? 'border-copper/15 bg-dark-card hover:bg-copper/4'
+                    : 'border-l-2 border-l-copper border-copper/20 bg-copper/6 hover:bg-copper/10'
                 }`}
               >
                 {/* Icon */}
@@ -255,16 +251,16 @@ export default function Notifications() {
                 {/* Content */}
                 <div className="flex-1 min-w-0">
                   <div className="flex items-start justify-between gap-2">
-                    <p className={`text-sm font-medium ${n.is_read ? 'text-[#9a8f82]' : 'text-[#f5f0e8]'}`}>
+                    <p className={`text-sm font-medium ${n.is_read ? 'text-muted-text' : 'text-ivory-light'}`}>
                       {n.title}
                     </p>
                     <div className="flex items-center gap-2 shrink-0">
                       {/* Unread dot */}
                       {!n.is_read && (
-                        <div className="w-2 h-2 rounded-full bg-[#b87333] shrink-0" />
+                        <div className="w-2 h-2 rounded-full bg-copper shrink-0" />
                       )}
                       {/* Timestamp */}
-                      <span className="text-xs text-[#9a8f82] flex items-center gap-1 whitespace-nowrap">
+                      <span className="text-xs text-muted-text flex items-center gap-1 whitespace-nowrap">
                         <Clock className="w-3 h-3" />
                         {timeAgo(n.created_at)}
                       </span>
@@ -279,7 +275,7 @@ export default function Notifications() {
                       </button>
                     </div>
                   </div>
-                  <p className="text-xs text-[#9a8f82] mt-0.5 line-clamp-2 leading-relaxed">
+                  <p className="text-xs text-muted-text mt-0.5 line-clamp-2 leading-relaxed">
                     {n.message}
                   </p>
                 </div>
@@ -291,7 +287,7 @@ export default function Notifications() {
 
       {/* Footer count */}
       {!loading && notifications.length > 0 && (
-        <p className="text-center text-xs text-[#9a8f82] mt-6">
+        <p className="text-center text-xs text-muted-text mt-6">
           Showing {filtered.length} of {notifications.length} notification{notifications.length !== 1 ? 's' : ''}
         </p>
       )}

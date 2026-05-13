@@ -103,10 +103,10 @@ function StarRating({ rating, size = 'sm' }: { rating: number; size?: 'sm' | 'lg
 }
 
 function Spinner() {
-  return <div className="w-8 h-8 border-2 border-[rgba(184,115,51,0.3)] border-t-[#b87333] rounded-full animate-spin mx-auto" />;
+  return <div className="w-8 h-8 border-2 border-copper/30 border-t-copper rounded-full animate-spin mx-auto" />;
 }
 
-const INPUT_CARD = 'bg-[#242424] border border-[rgba(184,115,51,0.2)] rounded-2xl';
+const INPUT_CARD = 'bg-dark-card border border-copper/20 rounded-2xl';
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
@@ -135,7 +135,6 @@ export default function EventDetail() {
     ]).then(([eRes, rRes]) => {
       const ev: EventDetail = eRes.data;
       setEvent(ev);
-      // Set default selected tier
       if (ev.ticket_types?.length) setSelectedTier(ev.ticket_types[0]);
 
       const rd = rRes.data;
@@ -184,7 +183,7 @@ export default function EventDetail() {
   // ── Loading ───────────────────────────────────────────────────────────────
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#1a1a1a]">
+      <div className="min-h-screen bg-dark-elevation">
         <Navbar />
         <div className="flex items-center justify-center min-h-[60vh]"><Spinner /></div>
         <Footer />
@@ -196,7 +195,7 @@ export default function EventDetail() {
 
   // ─── Render ───────────────────────────────────────────────────────────────
   return (
-    <div className="min-h-screen bg-[#1a1a1a]">
+    <div className="min-h-screen bg-dark-elevation">
       <Navbar />
 
       <div className="max-w-6xl mx-auto px-4 sm:px-6 py-10">
@@ -204,7 +203,7 @@ export default function EventDetail() {
         {/* Back link */}
         <Link
           to="/events"
-          className="inline-flex items-center gap-2 mb-6 text-sm font-medium text-[#9a8f82] hover:text-[#b87333] transition-colors"
+          className="inline-flex items-center gap-2 mb-6 text-sm font-medium text-muted-text hover:text-copper transition-colors"
         >
           <ArrowLeft className="w-4 h-4" /> Back to Events
         </Link>
@@ -214,12 +213,12 @@ export default function EventDetail() {
           {event.cover_image ? (
             <img src={event.cover_image} alt={event.title} className="w-full h-full object-cover" />
           ) : (
-            <div className="w-full h-full" style={{ background: 'linear-gradient(135deg,#1e1a16,#3d2210)' }} />
+            <div className="w-full h-full bg-gradient-to-br from-dark-elevation via-dark-card to-copper/30" />
           )}
           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
           <div className="absolute bottom-0 left-0 p-6">
             <div className="flex items-center gap-2 mb-3 flex-wrap">
-              <span className="px-2 py-1 text-xs font-semibold text-white rounded-lg capitalize" style={{ background: 'linear-gradient(135deg,#b87333,#d4956a)' }}>
+              <span className="px-2 py-1 text-xs font-semibold text-white rounded-lg capitalize bg-gradient-to-br from-copper to-copper-light">
                 {event.category}
               </span>
               <span className={`px-2 py-1 text-xs font-semibold rounded-lg capitalize ${
@@ -230,7 +229,7 @@ export default function EventDetail() {
                 {event.status}
               </span>
               {event.is_free && <span className="px-2 py-1 text-xs font-bold bg-green-500 text-white rounded-lg">FREE</span>}
-              {event.featured && <span className="px-2 py-1 text-xs font-bold bg-[#b87333] text-white rounded-lg">⭐ Featured</span>}
+              {event.featured && <span className="px-2 py-1 text-xs font-bold bg-copper text-white rounded-lg">⭐ Featured</span>}
             </div>
             <h1 className="text-2xl sm:text-3xl font-extrabold text-white leading-snug">{event.title}</h1>
             {avgRating && (
@@ -251,9 +250,9 @@ export default function EventDetail() {
             { icon: Users,    label: 'Capacity', val: `${event.available_seats ?? '—'} seats left` },
           ].map(({ icon: Icon, label, val }) => (
             <div key={label} className={`${INPUT_CARD} p-4`}>
-              <Icon className="w-4 h-4 text-[#b87333] mb-1.5" />
-              <p className="text-xs text-[#9a8f82]">{label}</p>
-              <p className="text-sm font-semibold text-[#f5f0e8] mt-0.5 truncate">{val}</p>
+              <Icon className="w-4 h-4 text-copper mb-1.5" />
+              <p className="text-xs text-muted-text">{label}</p>
+              <p className="text-sm font-semibold text-ivory-light mt-0.5 truncate">{val}</p>
             </div>
           ))}
         </div>
@@ -265,12 +264,12 @@ export default function EventDetail() {
 
             {/* Description */}
             <div className={`${INPUT_CARD} p-6`}>
-              <h2 className="text-lg font-bold text-[#f5f0e8] mb-3">About This Event</h2>
-              <p className="text-sm text-[#9a8f82] leading-relaxed whitespace-pre-line">{event.description}</p>
+              <h2 className="text-lg font-bold text-ivory-light mb-3">About This Event</h2>
+              <p className="text-sm text-muted-text leading-relaxed whitespace-pre-line">{event.description}</p>
               {event.tags && (
                 <div className="flex flex-wrap gap-2 mt-4">
                   {event.tags.split(',').map((tag) => tag.trim()).filter(Boolean).map((tag) => (
-                    <span key={tag} className="px-2 py-0.5 text-xs rounded-full bg-[rgba(184,115,51,0.1)] text-[#b87333] border border-[rgba(184,115,51,0.2)] flex items-center gap-1">
+                    <span key={tag} className="px-2 py-0.5 text-xs rounded-full bg-copper/10 text-copper border border-copper/20 flex items-center gap-1">
                       <Tag className="w-2.5 h-2.5" />{tag}
                     </span>
                   ))}
@@ -281,15 +280,15 @@ export default function EventDetail() {
             {/* Ticket types table */}
             {event.ticket_types && event.ticket_types.length > 0 && (
               <div className={`${INPUT_CARD} overflow-hidden`}>
-                <div className="p-4 border-b border-[rgba(184,115,51,0.15)]">
-                  <h2 className="text-lg font-bold text-[#f5f0e8]">Ticket Types</h2>
+                <div className="p-4 border-b border-copper/15">
+                  <h2 className="text-lg font-bold text-ivory-light">Ticket Types</h2>
                 </div>
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm">
                     <thead>
-                      <tr className="border-b border-[rgba(184,115,51,0.15)] bg-black/20">
+                      <tr className="border-b border-copper/15 bg-black/20">
                         {['Type','Price (RWF)','Available','Benefits','Select'].map((h) => (
-                          <th key={h} className="text-left py-3 px-4 text-xs font-medium text-[#9a8f82]">{h}</th>
+                          <th key={h} className="text-left py-3 px-4 text-xs font-medium text-muted-text">{h}</th>
                         ))}
                       </tr>
                     </thead>
@@ -298,23 +297,23 @@ export default function EventDetail() {
                         <tr
                           key={t.id}
                           onClick={() => setSelectedTier(t)}
-                          className={`border-b border-[rgba(184,115,51,0.08)] cursor-pointer transition-colors ${
-                            selectedTier?.id === t.id ? 'bg-[rgba(184,115,51,0.08)]' : 'hover:bg-[rgba(184,115,51,0.04)]'
+                          className={`border-b border-copper/8 cursor-pointer transition-colors ${
+                            selectedTier?.id === t.id ? 'bg-copper/8' : 'hover:bg-copper/4'
                           }`}
                         >
-                          <td className="py-3 px-4 font-medium text-[#f5f0e8] capitalize">{t.name.replace('_',' ')}</td>
-                          <td className="py-3 px-4 text-[#b87333] font-bold">
+                          <td className="py-3 px-4 font-medium text-ivory-light capitalize">{t.name.replace('_',' ')}</td>
+                          <td className="py-3 px-4 text-copper font-bold">
                             {event.is_free || t.price === 0 ? 'Free' : t.price.toLocaleString()}
                           </td>
-                          <td className="py-3 px-4 text-[#9a8f82] text-xs">{t.available ?? '—'}</td>
-                          <td className="py-3 px-4 text-[#9a8f82] text-xs max-w-[200px] truncate">{t.description ?? t.benefits ?? '—'}</td>
+                          <td className="py-3 px-4 text-muted-text text-xs">{t.available ?? '—'}</td>
+                          <td className="py-3 px-4 text-muted-text text-xs max-w-[200px] truncate">{t.description ?? t.benefits ?? '—'}</td>
                           <td className="py-3 px-4">
                             <input
                               type="radio"
                               name="ticket"
                               checked={selectedTier?.id === t.id}
                               onChange={() => setSelectedTier(t)}
-                              className="accent-[#b87333]"
+                              className="accent-copper"
                             />
                           </td>
                         </tr>
@@ -327,38 +326,38 @@ export default function EventDetail() {
 
             {/* Reviews */}
             <div className={`${INPUT_CARD} p-6`}>
-              <h2 className="text-lg font-bold text-[#f5f0e8] mb-4 flex items-center gap-2">
+              <h2 className="text-lg font-bold text-ivory-light mb-4 flex items-center gap-2">
                 Reviews
                 {avgRating && (
-                  <span className="text-sm font-normal text-[#9a8f82]">
+                  <span className="text-sm font-normal text-muted-text">
                     · {avgRating.toFixed(1)} avg
                   </span>
                 )}
               </h2>
               {reviews.length === 0 ? (
                 <div className="text-center py-8">
-                  <Star className="w-10 h-10 text-[#b87333]/30 mx-auto mb-2" />
-                  <p className="text-[#9a8f82] text-sm">No reviews yet — be the first to review!</p>
+                  <Star className="w-10 h-10 text-copper/30 mx-auto mb-2" />
+                  <p className="text-muted-text text-sm">No reviews yet — be the first to review!</p>
                 </div>
               ) : (
                 <div className="space-y-4">
                   {reviews.map((r) => (
-                    <div key={r.id} className="border-b border-[rgba(184,115,51,0.1)] pb-4 last:border-0">
+                    <div key={r.id} className="border-b border-copper/10 pb-4 last:border-0">
                       <div className="flex items-center gap-3 mb-2">
-                        <div className="w-8 h-8 rounded-full bg-[rgba(184,115,51,0.2)] flex items-center justify-center text-[#b87333] font-bold text-sm shrink-0">
+                        <div className="w-8 h-8 rounded-full bg-copper/20 flex items-center justify-center text-copper font-bold text-sm shrink-0">
                           {(r.user?.full_name ?? 'U').charAt(0).toUpperCase()}
                         </div>
                         <div>
-                          <p className="text-sm font-semibold text-[#f5f0e8]">{r.user?.full_name ?? 'User'}</p>
+                          <p className="text-sm font-semibold text-ivory-light">{r.user?.full_name ?? 'User'}</p>
                           <StarRating rating={r.rating} />
                         </div>
                         {r.created_at && (
-                          <span className="text-xs text-[#9a8f82] ml-auto">
+                          <span className="text-xs text-muted-text ml-auto">
                             {new Date(r.created_at).toLocaleDateString('en-RW', { month: 'short', day: 'numeric' })}
                           </span>
                         )}
                       </div>
-                      {r.comment && <p className="text-sm text-[#9a8f82] leading-relaxed">{r.comment}</p>}
+                      {r.comment && <p className="text-sm text-muted-text leading-relaxed">{r.comment}</p>}
                     </div>
                   ))}
                 </div>
@@ -373,27 +372,26 @@ export default function EventDetail() {
               {/* Manager: show manage button instead of booking */}
               {isManager ? (
                 <div className="text-center">
-                  <p className="text-sm text-[#9a8f82] mb-4">You are managing this event.</p>
+                  <p className="text-sm text-muted-text mb-4">You are managing this event.</p>
                   <Link
                     to="/dashboard/events"
-                    className="block w-full py-3 text-center text-white font-bold rounded-xl hover:opacity-90 transition-opacity"
-                    style={{ background: 'linear-gradient(135deg,#b87333,#d4956a)' }}
+                    className="block w-full py-3 text-center text-white font-bold rounded-xl hover:opacity-90 transition-opacity bg-gradient-to-br from-copper to-copper-light"
                   >
                     Manage Event
                   </Link>
                 </div>
               ) : (
                 <>
-                  <h3 className="font-bold text-[#f5f0e8] mb-4">Book Tickets</h3>
+                  <h3 className="font-bold text-ivory-light mb-4">Book Tickets</h3>
 
                   {/* Selected tier summary */}
                   {selectedTier && (
-                    <div className="p-3 rounded-xl border border-[rgba(184,115,51,0.2)] bg-[#1a1a1a] mb-4">
-                      <p className="text-xs text-[#9a8f82]">Selected tier</p>
-                      <p className="font-semibold text-[#f5f0e8] capitalize mt-0.5">
+                    <div className="p-3 rounded-xl border border-copper/20 bg-dark-elevation mb-4">
+                      <p className="text-xs text-muted-text">Selected tier</p>
+                      <p className="font-semibold text-ivory-light capitalize mt-0.5">
                         {selectedTier.name.replace('_',' ')}
                       </p>
-                      <p className="text-[#b87333] font-bold text-lg">
+                      <p className="text-copper font-bold text-lg">
                         {event.is_free || selectedTier.price === 0
                           ? 'Free'
                           : `${selectedTier.price.toLocaleString()} RWF`}
@@ -405,24 +403,24 @@ export default function EventDetail() {
                   <div className="flex items-center gap-3 mb-4">
                     <button
                       onClick={() => setQty((q) => Math.max(1, q - 1))}
-                      className="w-9 h-9 rounded-lg border border-[rgba(184,115,51,0.2)] flex items-center justify-center text-[#9a8f82] hover:border-[#b87333] hover:text-[#b87333] transition-colors"
+                      className="w-9 h-9 rounded-lg border border-copper/20 flex items-center justify-center text-muted-text hover:border-copper hover:text-copper transition-colors"
                     >
                       <Minus className="w-4 h-4" />
                     </button>
-                    <span className="flex-1 text-center font-bold text-xl text-[#f5f0e8]">{qty}</span>
+                    <span className="flex-1 text-center font-bold text-xl text-ivory-light">{qty}</span>
                     <button
                       onClick={() => setQty((q) => Math.min(maxQty, q + 1))}
-                      className="w-9 h-9 rounded-lg border border-[rgba(184,115,51,0.2)] flex items-center justify-center text-[#9a8f82] hover:border-[#b87333] hover:text-[#b87333] transition-colors"
+                      className="w-9 h-9 rounded-lg border border-copper/20 flex items-center justify-center text-muted-text hover:border-copper hover:text-copper transition-colors"
                     >
                       <Plus className="w-4 h-4" />
                     </button>
                   </div>
-                  <p className="text-xs text-[#9a8f82] text-center mb-4">Max {maxQty} per booking</p>
+                  <p className="text-xs text-muted-text text-center mb-4">Max {maxQty} per booking</p>
 
                   {/* Total */}
-                  <div className="flex justify-between items-center border-t border-[rgba(184,115,51,0.15)] pt-3 mb-5">
-                    <span className="text-[#9a8f82]">Total</span>
-                    <span className="text-2xl font-extrabold text-[#b87333]">
+                  <div className="flex justify-between items-center border-t border-copper/15 pt-3 mb-5">
+                    <span className="text-muted-text">Total</span>
+                    <span className="text-2xl font-extrabold text-copper">
                       {event.is_free || (selectedTier?.price ?? 0) === 0
                         ? 'Free'
                         : `${total.toLocaleString()} RWF`}
@@ -432,8 +430,7 @@ export default function EventDetail() {
                   <button
                     onClick={handleBook}
                     disabled={booking || !selectedTier || event.status !== 'published'}
-                    className="w-full py-3 text-white font-bold rounded-xl hover:opacity-90 disabled:opacity-60 transition-opacity flex items-center justify-center gap-2"
-                    style={{ background: 'linear-gradient(135deg,#b87333,#d4956a)' }}
+                    className="w-full py-3 text-white font-bold rounded-xl hover:opacity-90 disabled:opacity-60 transition-opacity flex items-center justify-center gap-2 bg-gradient-to-br from-copper to-copper-light"
                   >
                     {booking ? (
                       <><div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> Booking…</>
@@ -447,9 +444,9 @@ export default function EventDetail() {
                   </button>
 
                   {!isAuthenticated && (
-                    <p className="text-xs text-[#9a8f82] text-center mt-2">
-                      <Link to="/login" className="text-[#b87333] hover:underline">Sign in</Link> or{' '}
-                      <Link to="/register" className="text-[#b87333] hover:underline">register</Link> to book
+                    <p className="text-xs text-muted-text text-center mt-2">
+                      <Link to="/login" className="text-copper hover:underline">Sign in</Link> or{' '}
+                      <Link to="/register" className="text-copper hover:underline">register</Link> to book
                     </p>
                   )}
                 </>
@@ -457,19 +454,19 @@ export default function EventDetail() {
 
               {/* Organizer */}
               {event.creator && (
-                <div className="mt-5 pt-5 border-t border-[rgba(184,115,51,0.15)]">
-                  <p className="text-xs font-semibold text-[#f5f0e8] mb-3">Organizer</p>
+                <div className="mt-5 pt-5 border-t border-copper/15">
+                  <p className="text-xs font-semibold text-ivory-light mb-3">Organizer</p>
                   <div className="flex items-center gap-3">
                     {event.creator.avatar ? (
                       <img src={event.creator.avatar} alt={event.creator.full_name} className="w-10 h-10 rounded-full object-cover" />
                     ) : (
-                      <div className="w-10 h-10 rounded-full bg-[rgba(184,115,51,0.2)] flex items-center justify-center text-[#b87333] font-bold text-sm">
+                      <div className="w-10 h-10 rounded-full bg-copper/20 flex items-center justify-center text-copper font-bold text-sm">
                         {(event.creator.full_name ?? 'O').charAt(0).toUpperCase()}
                       </div>
                     )}
                     <div>
-                      <p className="text-sm font-semibold text-[#f5f0e8]">{event.creator.full_name}</p>
-                      {event.creator.email && <p className="text-xs text-[#9a8f82]">{event.creator.email}</p>}
+                      <p className="text-sm font-semibold text-ivory-light">{event.creator.full_name}</p>
+                      {event.creator.email && <p className="text-xs text-muted-text">{event.creator.email}</p>}
                     </div>
                   </div>
                 </div>

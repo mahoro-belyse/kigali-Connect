@@ -55,7 +55,7 @@ function Badge({ status }: { status: string }) {
 }
 
 function Spinner() {
-  return <div className="w-8 h-8 border-2 border-[rgba(184,115,51,0.3)] border-t-[#b87333] rounded-full animate-spin" />;
+  return <div className="w-8 h-8 border-2 border-copper/30 border-t-copper rounded-full animate-spin" />;
 }
 
 function formatDate(dateStr?: string) {
@@ -74,9 +74,9 @@ const getAmount    = (b: Booking) => Number(b.total_amount ?? 0).toLocaleString(
 
 const PER_PAGE = 10;
 
-const INPUT_CLS = `px-3 py-2.5 border border-[rgba(184,115,51,0.2)] rounded-xl
-  focus:border-[#b87333] focus:outline-none focus:ring-1 focus:ring-[rgba(184,115,51,0.3)]
-  text-sm bg-[#2a2a2a] text-[#f5f0e8] transition-colors`;
+const INPUT_CLS = `px-3 py-2.5 border border-copper/20 rounded-xl
+  focus:border-copper focus:outline-none focus:ring-1 focus:ring-copper/30
+  text-sm bg-dark-input text-ivory-light transition-colors`;
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
@@ -105,7 +105,7 @@ export default function Bookings() {
         ...(statusFilter  && { status:         statusFilter  }),
         ...(paymentFilter && { payment_status: paymentFilter }),
         ...(eventFilter   && { event_id:        eventFilter   }),
-        per_page: 50, // fetch all, we paginate client-side after search filter
+        per_page: 50,
       };
 
       const res = isClient
@@ -205,11 +205,11 @@ export default function Bookings() {
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-[#f5f0e8] flex items-center gap-2">
-            <Ticket className="w-6 h-6 text-[#b87333]" />
+          <h1 className="text-2xl font-bold text-ivory-light flex items-center gap-2">
+            <Ticket className="w-6 h-6 text-copper" />
             {isClient ? 'My Bookings' : 'All Bookings'}
           </h1>
-          <p className="text-sm text-[#9a8f82] mt-1">
+          <p className="text-sm text-muted-text mt-1">
             {isClient ? 'Your event bookings and tickets' : 'Manage all event bookings across the platform'}
           </p>
         </div>
@@ -268,24 +268,23 @@ export default function Bookings() {
 
         <button
           onClick={fetchBookings}
-          className="px-4 py-2.5 text-white text-sm rounded-xl font-medium flex items-center gap-2 hover:opacity-90 transition-opacity"
-          style={{ background: 'linear-gradient(135deg,#b87333,#d4956a)' }}
+          className="px-4 py-2.5 text-white text-sm rounded-xl font-medium flex items-center gap-2 hover:opacity-90 transition-opacity bg-gradient-to-br from-copper to-copper-light"
         >
           <Filter className="w-4 h-4" /> Refresh
         </button>
       </div>
 
       {/* Table card */}
-      <div className="bg-[#242424] rounded-2xl border border-[rgba(184,115,51,0.2)] overflow-hidden">
+      <div className="bg-dark-card rounded-2xl border border-copper/20 overflow-hidden">
         {loading ? (
           <div className="py-20 flex justify-center"><Spinner /></div>
         ) : filtered.length === 0 ? (
           <div className="py-20 flex flex-col items-center gap-3">
-            <Ticket className="w-12 h-12 text-[#b87333]/30" />
-            <p className="text-base font-medium text-[#f5f0e8]">No bookings found</p>
-            <p className="text-sm text-[#9a8f82]">Try adjusting your filters</p>
+            <Ticket className="w-12 h-12 text-copper/30" />
+            <p className="text-base font-medium text-ivory-light">No bookings found</p>
+            <p className="text-sm text-muted-text">Try adjusting your filters</p>
             {isClient && (
-              <a href="/events" className="text-[#b87333] text-sm hover:underline mt-1">
+              <a href="/events" className="text-copper text-sm hover:underline mt-1">
                 Browse Events →
               </a>
             )}
@@ -294,12 +293,12 @@ export default function Bookings() {
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-[rgba(184,115,51,0.15)] bg-black/20">
+                <tr className="border-b border-copper/15 bg-black/20">
                   {[
                     'Reference', 'Attendee', 'Event', 'Ticket', 'Qty',
                     'Amount (RWF)', 'Status', 'Payment', 'Checked In', 'Date', 'Actions',
                   ].map((h) => (
-                    <th key={h} className="text-left py-3 px-3 text-xs font-medium text-[#9a8f82] whitespace-nowrap">
+                    <th key={h} className="text-left py-3 px-3 text-xs font-medium text-muted-text whitespace-nowrap">
                       {h}
                     </th>
                   ))}
@@ -309,42 +308,42 @@ export default function Bookings() {
                 {paginated.map((b) => (
                   <tr
                     key={b.id}
-                    className="border-b border-[rgba(184,115,51,0.08)] hover:bg-[rgba(184,115,51,0.04)] transition-colors"
+                    className="border-b border-copper/8 hover:bg-copper/4 transition-colors"
                   >
                     {/* Reference */}
-                    <td className="py-3 px-3 font-mono text-xs text-[#b87333] whitespace-nowrap">
+                    <td className="py-3 px-3 font-mono text-xs text-copper whitespace-nowrap">
                       {getRef(b)}
                     </td>
 
                     {/* Attendee */}
                     <td className="py-3 px-3">
                       <div className="flex items-center gap-2">
-                        <div className="w-7 h-7 rounded-full bg-[rgba(184,115,51,0.2)] flex items-center justify-center text-xs font-bold text-[#b87333] shrink-0">
+                        <div className="w-7 h-7 rounded-full bg-copper/20 flex items-center justify-center text-xs font-bold text-copper shrink-0">
                           {getAttendeeName(b).charAt(0).toUpperCase()}
                         </div>
-                        <span className="text-[#f5f0e8] text-xs truncate max-w-[100px]">
+                        <span className="text-ivory-light text-xs truncate max-w-[100px]">
                           {getAttendeeName(b)}
                         </span>
                       </div>
                     </td>
 
                     {/* Event */}
-                    <td className="py-3 px-3 text-[#f5f0e8] text-xs max-w-[130px] truncate">
+                    <td className="py-3 px-3 text-ivory-light text-xs max-w-[130px] truncate">
                       {getEventTitle(b)}
                     </td>
 
                     {/* Ticket type */}
-                    <td className="py-3 px-3 text-[#9a8f82] text-xs capitalize">
+                    <td className="py-3 px-3 text-muted-text text-xs capitalize">
                       {getTicketName(b)}
                     </td>
 
                     {/* Quantity */}
-                    <td className="py-3 px-3 text-[#f5f0e8] text-xs text-center">
+                    <td className="py-3 px-3 text-ivory-light text-xs text-center">
                       {b.quantity ?? 1}
                     </td>
 
                     {/* Amount */}
-                    <td className="py-3 px-3 text-[#b87333] font-semibold text-xs whitespace-nowrap">
+                    <td className="py-3 px-3 text-copper font-semibold text-xs whitespace-nowrap">
                       {getAmount(b)} RWF
                     </td>
 
@@ -360,7 +359,7 @@ export default function Bookings() {
                     </td>
 
                     {/* Date */}
-                    <td className="py-3 px-3 text-[#9a8f82] text-xs whitespace-nowrap">
+                    <td className="py-3 px-3 text-muted-text text-xs whitespace-nowrap">
                       {formatDate(b.created_at)}
                     </td>
 
@@ -413,17 +412,17 @@ export default function Bookings() {
           <button
             disabled={page === 1}
             onClick={() => setPage((p) => p - 1)}
-            className="px-3 py-1.5 text-sm border border-[rgba(184,115,51,0.2)] text-[#9a8f82] rounded-lg disabled:opacity-40 hover:border-[#b87333] transition-colors"
+            className="px-3 py-1.5 text-sm border border-copper/20 text-muted-text rounded-lg disabled:opacity-40 hover:border-copper transition-colors"
           >
             Prev
           </button>
-          <span className="text-sm text-[#9a8f82] px-2">
+          <span className="text-sm text-muted-text px-2">
             Page {page} of {totalPages} ({filtered.length} total)
           </span>
           <button
             disabled={page === totalPages}
             onClick={() => setPage((p) => p + 1)}
-            className="px-3 py-1.5 text-sm border border-[rgba(184,115,51,0.2)] text-[#9a8f82] rounded-lg disabled:opacity-40 hover:border-[#b87333] transition-colors"
+            className="px-3 py-1.5 text-sm border border-copper/20 text-muted-text rounded-lg disabled:opacity-40 hover:border-copper transition-colors"
           >
             Next
           </button>
@@ -442,14 +441,14 @@ export default function Bookings() {
             className="absolute inset-0 bg-black/70 backdrop-blur-sm"
             onClick={() => !cancelling && setConfirm(null)}
           />
-          <div className="relative bg-[#242424] rounded-2xl border border-[rgba(184,115,51,0.2)] w-full max-w-sm p-6 text-center shadow-2xl">
+          <div className="relative bg-dark-card rounded-2xl border border-copper/20 w-full max-w-sm p-6 text-center shadow-2xl">
             <div className="w-14 h-14 rounded-2xl bg-red-500/10 flex items-center justify-center mx-auto mb-4">
               <AlertTriangle className="w-7 h-7 text-red-400" />
             </div>
-            <h3 className="font-bold text-[#f5f0e8] mb-2 text-lg">Cancel Booking?</h3>
-            <p className="text-sm text-[#9a8f82] mb-5 leading-relaxed">
+            <h3 className="font-bold text-ivory-light mb-2 text-lg">Cancel Booking?</h3>
+            <p className="text-sm text-muted-text mb-5 leading-relaxed">
               Cancel booking{' '}
-              <span className="text-[#b87333] font-mono font-semibold">
+              <span className="text-copper font-mono font-semibold">
                 {getRef(confirm)}
               </span>
               ? Seats will be released. This cannot be undone.
@@ -458,7 +457,7 @@ export default function Bookings() {
               <button
                 onClick={() => setConfirm(null)}
                 disabled={cancelling}
-                className="flex-1 py-2.5 text-sm border border-[rgba(184,115,51,0.2)] text-[#f5f0e8] rounded-xl hover:bg-[rgba(184,115,51,0.05)] transition-colors disabled:opacity-50"
+                className="flex-1 py-2.5 text-sm border border-copper/20 text-ivory-light rounded-xl hover:bg-copper/5 transition-colors disabled:opacity-50"
               >
                 Keep Booking
               </button>
