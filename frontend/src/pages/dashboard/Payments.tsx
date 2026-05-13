@@ -27,12 +27,12 @@ interface Payment {
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 const STATUS_COLORS: Record<string, string> = {
-  paid:                 'bg-green-500/15 text-green-400 border-green-500/30',
-  unpaid:               'bg-yellow-500/15 text-yellow-400 border-yellow-500/30',
-  pending:              'bg-yellow-500/15 text-yellow-400 border-yellow-500/30',
-  refunded:             'bg-purple-500/15 text-purple-400 border-purple-500/30',
-  partially_refunded:   'bg-blue-500/15 text-blue-400 border-blue-500/30',
-  failed:               'bg-red-500/15 text-red-400 border-red-500/30',
+  paid:               'bg-green-500/15 text-green-400 border-green-500/30',
+  unpaid:             'bg-yellow-500/15 text-yellow-400 border-yellow-500/30',
+  pending:            'bg-yellow-500/15 text-yellow-400 border-yellow-500/30',
+  refunded:           'bg-purple-500/15 text-purple-400 border-purple-500/30',
+  partially_refunded: 'bg-blue-500/15 text-blue-400 border-blue-500/30',
+  failed:             'bg-red-500/15 text-red-400 border-red-500/30',
 };
 
 function Badge({ status }: { status: string }) {
@@ -54,10 +54,10 @@ function formatDate(d?: string) {
   return new Date(d).toLocaleDateString('en-RW', { month: 'short', day: '2-digit', year: 'numeric' });
 }
 
-const getBookingRef  = (p: Payment) => p.booking?.booking_reference ?? p.booking_reference ?? '—';
-const getEventTitle  = (p: Payment) => p.booking?.event?.title ?? p.event_title ?? '—';
-const getAmount      = (p: Payment) => Number(p.amount ?? 0).toLocaleString();
-const getTxnId       = (p: Payment) => p.transaction_id ?? `#${p.id}`;
+const getBookingRef = (p: Payment) => p.booking?.booking_reference ?? p.booking_reference ?? '—';
+const getEventTitle = (p: Payment) => p.booking?.event?.title ?? p.event_title ?? '—';
+const getAmount     = (p: Payment) => Number(p.amount ?? 0).toLocaleString();
+const getTxnId      = (p: Payment) => p.transaction_id ?? `#${p.id}`;
 
 const INPUT_CLS = `px-3 py-2.5 border border-copper/20 rounded-xl
   focus:border-copper focus:outline-none focus:ring-1 focus:ring-copper/30
@@ -69,6 +69,82 @@ const PAY_METHODS = [
   { value: 'mobile_money', label: '📱 Mobile Money' },
   { value: 'simulated',    label: '🧪 Simulated'    },
 ] as const;
+
+// ─── Mobile Payment Card ──────────────────────────────────────────────────────
+
+function PaymentCard({
+  p, isClient, isAdmin,
+  onPay, onRefund,
+}: {
+  p: Payment;
+  isClient: boolean;
+  isAdmin: boolean;
+  onPay: (p: Payment) => void;
+  onRefund: (p: Payment) => void;
+}) {
+  return (
+    <div className="bg-dark-elevation rounded-xl border border-copper/15 p-4 space-y-3">
+      {/* Top row: txn id + status */}
+      <div className="flex items-center justify-between gap-2">
+        <span className="font-mono text-xs text-copper truncate">{getTxnId(p)}</span>
+        <Badge status={p.status ?? 'unpaid'} />
+      </div>
+
+      {/* Event title */}
+      <p className="text-sm font-medium text-ivory-light truncate">{getEventTitle(p)}</p>
+
+      {/* Details grid */}
+      <div className="grid grid-cols-2 gap-x-4 gap-y-1.5 text-xs">
+        <div>
+          <span className="text-muted-text block">Booking Ref</span>
+          <span className="font-mono text-ivory-light">{getBookingRef(p)}</span>
+        </div>
+        <div>
+          <span className="text-muted-text block">Amount</span>
+          <span className="font-semibold text-ivory-light">{getAmount(p)} RWF</span>
+        </div>
+        <div>
+          <span className="text-muted-text block">Method</span>
+          <span className="text-ivory-light capitalize">{(p.method ?? 'simulated').replace('_', ' ')}</span>
+        </div>
+        <div>
+          <span className="text-muted-text block">Date</span>
+          <span className="text-ivory-light">{formatDate(p.created_at)}</span>
+        </div>
+        {(p.receipt_number || p.receipt_url) && (
+          <div className="col-span-2">
+            <span className="text-muted-text block">Receipt</span>
+            {p.receipt_number ? (
+              <span className="font-mono text-ivory-light">{p.receipt_number}</span>
+            ) : (
+              <a href={p.receipt_url} target="_blank" rel="noreferrer" className="text-blue-400 hover:underline flex items-center gap-1">
+                <Receipt className="w-3.5 h-3.5" /> View
+              </a>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* Actions */}
+      {isClient && p.status === 'unpaid' && (
+        <button
+          onClick={() => onPay(p)}
+          className="w-full py-2 text-xs text-white rounded-lg font-medium hover:opacity-90 transition-opacity bg-gradient-to-br from-copper to-copper-light"
+        >
+          Pay Now
+        </button>
+      )}
+      {isAdmin && p.status === 'paid' && (
+        <button
+          onClick={() => onRefund(p)}
+          className="w-full py-2 text-xs bg-purple-500/20 text-purple-400 hover:bg-purple-500/30 rounded-lg font-medium transition-colors"
+        >
+          Refund
+        </button>
+      )}
+    </div>
+  );
+}
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
@@ -88,7 +164,7 @@ export default function Payments() {
   const [payMethod,     setPayMethod]     = useState<string>('simulated');
   const [actionLoading, setActionLoading] = useState(false);
 
-  // ── Fetch payments ────────────────────────────────────────────────────────
+  // ── Fetch ─────────────────────────────────────────────────────────────────
   const fetchPayments = useCallback(async () => {
     setLoading(true);
     try {
@@ -112,13 +188,13 @@ export default function Payments() {
 
   useEffect(() => { fetchPayments(); }, [fetchPayments]);
 
-  // ── Computed summary totals ───────────────────────────────────────────────
+  // ── Totals ────────────────────────────────────────────────────────────────
   const totalRevenue  = payments.reduce((s, p) => s + (Number(p.amount) || 0), 0);
   const totalPaid     = payments.filter((p) => p.status === 'paid').reduce((s, p) => s + (Number(p.amount) || 0), 0);
-  const totalRefunded = payments.filter((p) => ['refunded','partially_refunded'].includes(p.status))
+  const totalRefunded = payments.filter((p) => ['refunded', 'partially_refunded'].includes(p.status))
     .reduce((s, p) => s + (Number(p.amount) || 0), 0);
 
-  // ── Client-side search filter ─────────────────────────────────────────────
+  // ── Search filter ─────────────────────────────────────────────────────────
   const filtered = payments.filter((p) => {
     if (!search) return true;
     const term = search.toLowerCase();
@@ -129,7 +205,7 @@ export default function Payments() {
     );
   });
 
-  // ── Process payment (client) ──────────────────────────────────────────────
+  // ── Pay ───────────────────────────────────────────────────────────────────
   const handlePay = async () => {
     if (!payTarget?.booking_id) {
       toast({ title: 'No booking ID found', variant: 'destructive' });
@@ -142,17 +218,13 @@ export default function Payments() {
       setPayTarget(null);
       fetchPayments();
     } catch (err: any) {
-      toast({
-        title: 'Payment failed',
-        description: err.response?.data?.detail ?? err.message,
-        variant: 'destructive',
-      });
+      toast({ title: 'Payment failed', description: err.response?.data?.detail ?? err.message, variant: 'destructive' });
     } finally {
       setActionLoading(false);
     }
   };
 
-  // ── Process refund (admin) ────────────────────────────────────────────────
+  // ── Refund ────────────────────────────────────────────────────────────────
   const handleRefund = async () => {
     if (!refundForm.reason.trim()) {
       toast({ title: 'Refund reason is required', variant: 'destructive' });
@@ -169,11 +241,7 @@ export default function Payments() {
       setRefundTarget(null);
       fetchPayments();
     } catch (err: any) {
-      toast({
-        title: 'Refund failed',
-        description: err.response?.data?.detail ?? err.message,
-        variant: 'destructive',
-      });
+      toast({ title: 'Refund failed', description: err.response?.data?.detail ?? err.message, variant: 'destructive' });
     } finally {
       setActionLoading(false);
     }
@@ -195,9 +263,9 @@ export default function Payments() {
       {/* Summary cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
         {[
-          { label: 'Total Revenue (RWF)',  value: `${totalRevenue.toLocaleString()} RWF`,  icon: DollarSign,  color: 'bg-copper/20 text-copper' },
-          { label: 'Total Paid (RWF)',     value: `${totalPaid.toLocaleString()} RWF`,     icon: TrendingUp,  color: 'bg-green-500/20 text-green-400'           },
-          { label: 'Total Refunded (RWF)', value: `${totalRefunded.toLocaleString()} RWF`, icon: RefreshCw,   color: 'bg-purple-500/20 text-purple-400'         },
+          { label: 'Total Revenue (RWF)',  value: `${totalRevenue.toLocaleString()} RWF`,  icon: DollarSign, color: 'bg-copper/20 text-copper'             },
+          { label: 'Total Paid (RWF)',     value: `${totalPaid.toLocaleString()} RWF`,     icon: TrendingUp, color: 'bg-green-500/20 text-green-400'        },
+          { label: 'Total Refunded (RWF)', value: `${totalRefunded.toLocaleString()} RWF`, icon: RefreshCw,  color: 'bg-purple-500/20 text-purple-400'      },
         ].map(({ label, value, icon: Icon, color }) => (
           <div key={label} className="bg-dark-card rounded-2xl border border-copper/20 p-5 flex items-center gap-4">
             <div className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 ${color}`}>
@@ -224,7 +292,7 @@ export default function Payments() {
         </div>
         <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className={INPUT_CLS}>
           <option value="">All Statuses</option>
-          {['paid','unpaid','refunded','partially_refunded','failed'].map((s) => (
+          {['paid', 'unpaid', 'refunded', 'partially_refunded', 'failed'].map((s) => (
             <option key={s} value={s}>{s.replace('_', ' ')}</option>
           ))}
         </select>
@@ -236,7 +304,7 @@ export default function Payments() {
         </button>
       </div>
 
-      {/* Table */}
+      {/* ── Table/Cards ───────────────────────────────────────────────────────── */}
       <div className="bg-dark-card rounded-2xl border border-copper/20 overflow-hidden">
         {loading ? (
           <div className="py-20 flex justify-center"><Spinner /></div>
@@ -246,63 +314,90 @@ export default function Payments() {
             <p className="text-base font-medium text-ivory-light">No payments found</p>
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-copper/15 bg-black/20">
-                  {['Transaction ID','Booking Ref','Event','Amount (RWF)','Method','Status','Receipt','Date','Actions'].map((h) => (
-                    <th key={h} className="text-left py-3 px-3 text-xs font-medium text-muted-text whitespace-nowrap">{h}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {filtered.map((p) => (
-                  <tr key={p.id} className="border-b border-copper/8 hover:bg-copper/4 transition-colors">
-                    <td className="py-3 px-3 font-mono text-xs text-copper whitespace-nowrap">{getTxnId(p)}</td>
-                    <td className="py-3 px-3 font-mono text-xs text-muted-text">{getBookingRef(p)}</td>
-                    <td className="py-3 px-3 text-ivory-light text-xs max-w-[120px] truncate">{getEventTitle(p)}</td>
-                    <td className="py-3 px-3 text-ivory-light font-semibold text-xs whitespace-nowrap">{getAmount(p)} RWF</td>
-                    <td className="py-3 px-3 text-muted-text text-xs capitalize">{(p.method ?? 'simulated').replace('_', ' ')}</td>
-                    <td className="py-3 px-3"><Badge status={p.status ?? 'unpaid'} /></td>
-                    <td className="py-3 px-3">
-                      {p.receipt_number ? (
-                        <span className="text-xs text-muted-text font-mono">{p.receipt_number}</span>
-                      ) : p.receipt_url ? (
-                        <a href={p.receipt_url} target="_blank" rel="noreferrer" className="text-xs text-blue-400 hover:underline flex items-center gap-1">
-                          <Receipt className="w-3.5 h-3.5" /> View
-                        </a>
-                      ) : (
-                        <span className="text-xs text-muted-text">—</span>
-                      )}
-                    </td>
-                    <td className="py-3 px-3 text-muted-text text-xs whitespace-nowrap">{formatDate(p.created_at)}</td>
-                    <td className="py-3 px-3">
-                      {isClient && p.status === 'unpaid' && (
-                        <button
-                          onClick={() => setPayTarget(p)}
-                          className="px-2.5 py-1 text-xs text-white rounded-lg font-medium hover:opacity-90 transition-opacity bg-gradient-to-br from-copper to-copper-light"
-                        >
-                          Pay Now
-                        </button>
-                      )}
-                      {isAdmin && p.status === 'paid' && (
-                        <button
-                          onClick={() => { setRefundTarget(p); setRefundForm({ reason: '', amount: '' }); }}
-                          className="px-2.5 py-1 text-xs bg-purple-500/20 text-purple-400 hover:bg-purple-500/30 rounded-lg font-medium transition-colors"
-                        >
-                          Refund
-                        </button>
-                      )}
-                    </td>
+          <>
+            {/* ── Mobile: stacked cards (< md) ── */}
+            <div className="md:hidden divide-y divide-copper/10 p-3 space-y-3">
+              {filtered.map((p) => (
+                <PaymentCard
+                  key={p.id}
+                  p={p}
+                  isClient={isClient}
+                  isAdmin={isAdmin}
+                  onPay={setPayTarget}
+                  onRefund={(p) => { setRefundTarget(p); setRefundForm({ reason: '', amount: '' }); }}
+                />
+              ))}
+            </div>
+
+            {/* ── Tablet / Desktop: scrollable table (≥ md) ── */}
+            <div className="hidden md:block overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-copper/15 bg-black/20">
+                    <th className="text-left py-3 px-3 text-xs font-medium text-muted-text whitespace-nowrap">Transaction ID</th>
+                    {/* Booking ref hidden on md, visible lg+ */}
+                    <th className="text-left py-3 px-3 text-xs font-medium text-muted-text whitespace-nowrap hidden lg:table-cell">Booking Ref</th>
+                    <th className="text-left py-3 px-3 text-xs font-medium text-muted-text whitespace-nowrap">Event</th>
+                    <th className="text-left py-3 px-3 text-xs font-medium text-muted-text whitespace-nowrap">Amount (RWF)</th>
+                    {/* Method hidden on md, visible lg+ */}
+                    <th className="text-left py-3 px-3 text-xs font-medium text-muted-text whitespace-nowrap hidden lg:table-cell">Method</th>
+                    <th className="text-left py-3 px-3 text-xs font-medium text-muted-text whitespace-nowrap">Status</th>
+                    {/* Receipt hidden on md, visible xl+ */}
+                    <th className="text-left py-3 px-3 text-xs font-medium text-muted-text whitespace-nowrap hidden xl:table-cell">Receipt</th>
+                    {/* Date hidden on md, visible lg+ */}
+                    <th className="text-left py-3 px-3 text-xs font-medium text-muted-text whitespace-nowrap hidden lg:table-cell">Date</th>
+                    <th className="text-left py-3 px-3 text-xs font-medium text-muted-text whitespace-nowrap">Actions</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody>
+                  {filtered.map((p) => (
+                    <tr key={p.id} className="border-b border-copper/8 hover:bg-copper/4 transition-colors">
+                      <td className="py-3 px-3 font-mono text-xs text-copper whitespace-nowrap">{getTxnId(p)}</td>
+                      <td className="py-3 px-3 font-mono text-xs text-muted-text hidden lg:table-cell">{getBookingRef(p)}</td>
+                      <td className="py-3 px-3 text-ivory-light text-xs max-w-[140px] truncate">{getEventTitle(p)}</td>
+                      <td className="py-3 px-3 text-ivory-light font-semibold text-xs whitespace-nowrap">{getAmount(p)} RWF</td>
+                      <td className="py-3 px-3 text-muted-text text-xs capitalize hidden lg:table-cell">{(p.method ?? 'simulated').replace('_', ' ')}</td>
+                      <td className="py-3 px-3"><Badge status={p.status ?? 'unpaid'} /></td>
+                      <td className="py-3 px-3 hidden xl:table-cell">
+                        {p.receipt_number ? (
+                          <span className="text-xs text-muted-text font-mono">{p.receipt_number}</span>
+                        ) : p.receipt_url ? (
+                          <a href={p.receipt_url} target="_blank" rel="noreferrer" className="text-xs text-blue-400 hover:underline flex items-center gap-1">
+                            <Receipt className="w-3.5 h-3.5" /> View
+                          </a>
+                        ) : (
+                          <span className="text-xs text-muted-text">—</span>
+                        )}
+                      </td>
+                      <td className="py-3 px-3 text-muted-text text-xs whitespace-nowrap hidden lg:table-cell">{formatDate(p.created_at)}</td>
+                      <td className="py-3 px-3">
+                        {isClient && p.status === 'unpaid' && (
+                          <button
+                            onClick={() => setPayTarget(p)}
+                            className="px-2.5 py-1 text-xs text-white rounded-lg font-medium hover:opacity-90 transition-opacity bg-gradient-to-br from-copper to-copper-light"
+                          >
+                            Pay Now
+                          </button>
+                        )}
+                        {isAdmin && p.status === 'paid' && (
+                          <button
+                            onClick={() => { setRefundTarget(p); setRefundForm({ reason: '', amount: '' }); }}
+                            className="px-2.5 py-1 text-xs bg-purple-500/20 text-purple-400 hover:bg-purple-500/30 rounded-lg font-medium transition-colors"
+                          >
+                            Refund
+                          </button>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </>
         )}
       </div>
 
-      {/* ── Pay Modal ───────────────────────────────────────────────────────── */}
+      {/* ── Pay Modal ─────────────────────────────────────────────────────────── */}
       {payTarget && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
           <div className="relative bg-dark-card rounded-2xl border border-copper/20 w-full max-w-sm p-6 shadow-2xl">
@@ -314,15 +409,11 @@ export default function Payments() {
                 <X className="w-5 h-5" />
               </button>
             </div>
-
             <div className="bg-dark-elevation rounded-xl p-4 mb-5 border border-copper/15">
               <p className="text-xs text-muted-text mb-1">Amount due</p>
-              <p className="text-2xl font-extrabold text-copper">
-                {getAmount(payTarget)} RWF
-              </p>
+              <p className="text-2xl font-extrabold text-copper">{getAmount(payTarget)} RWF</p>
               <p className="text-xs text-muted-text mt-1">Booking: {getBookingRef(payTarget)}</p>
             </div>
-
             <p className="text-xs font-medium text-muted-text mb-3">Select payment method:</p>
             <div className="grid grid-cols-2 gap-2 mb-5">
               {PAY_METHODS.map(({ value, label }) => (
@@ -339,7 +430,6 @@ export default function Payments() {
                 </button>
               ))}
             </div>
-
             <div className="flex gap-3">
               <button
                 onClick={() => setPayTarget(null)}
@@ -359,7 +449,7 @@ export default function Payments() {
         </div>
       )}
 
-      {/* ── Refund Modal ─────────────────────────────────────────────────────── */}
+      {/* ── Refund Modal ──────────────────────────────────────────────────────── */}
       {refundTarget && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
           <div className="relative bg-dark-card rounded-2xl border border-copper/20 w-full max-w-sm p-6 shadow-2xl">
@@ -371,13 +461,11 @@ export default function Payments() {
                 <X className="w-5 h-5" />
               </button>
             </div>
-
             <div className="bg-dark-elevation rounded-xl p-4 mb-5 border border-copper/15">
               <p className="text-xs text-muted-text">Payment amount</p>
               <p className="text-xl font-bold text-copper">{getAmount(refundTarget)} RWF</p>
               <p className="text-xs text-muted-text mt-1">TXN: {getTxnId(refundTarget)}</p>
             </div>
-
             <div className="space-y-4 mb-5">
               <div>
                 <label className="text-xs font-medium text-muted-text mb-1.5 block">
@@ -388,9 +476,7 @@ export default function Payments() {
                   onChange={(e) => setRefundForm((f) => ({ ...f, reason: e.target.value }))}
                   rows={3}
                   placeholder="Reason for refund…"
-                  className={`w-full px-3 py-2.5 border border-copper/20 rounded-xl
-                    focus:border-copper focus:outline-none text-sm bg-dark-input
-                    text-ivory-light placeholder-muted-text resize-none`}
+                  className="w-full px-3 py-2.5 border border-copper/20 rounded-xl focus:border-copper focus:outline-none text-sm bg-dark-input text-ivory-light placeholder-muted-text resize-none"
                 />
               </div>
               <div>
@@ -408,7 +494,6 @@ export default function Payments() {
                 />
               </div>
             </div>
-
             <div className="flex gap-3">
               <button
                 onClick={() => setRefundTarget(null)}
