@@ -1,6 +1,3 @@
-# ═══════════════════════════════════════════════════════════════════
-#  models.py  —  all SQLAlchemy models + enums
-# ═══════════════════════════════════════════════════════════════════
 import enum
 from sqlalchemy import (
     Column, Integer, String, Boolean, Float, DateTime,

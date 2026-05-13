@@ -1,6 +1,3 @@
-# ═══════════════════════════════════════════════════════════════════
-#  utils.py  —  QR codes · file upload · pagination · notifications
-# ═══════════════════════════════════════════════════════════════════
 import os, uuid, random, string, qrcode, json, base64, logging
 from io import BytesIO
 from datetime import datetime,timezone

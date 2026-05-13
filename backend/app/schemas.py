@@ -1,6 +1,3 @@
-# ═══════════════════════════════════════════════════════════════════
-#  schemas.py  —  all Pydantic request/response models
-# ═══════════════════════════════════════════════════════════════════
 import re
 from pydantic import BaseModel, EmailStr, field_validator, model_validator
 from typing import Optional, List

@@ -239,7 +239,7 @@ function SectionTitle({ icon: Icon, title, subtitle }: { icon: any; title: strin
   );
 }
 
-// ─── Home page (redesigned) ───────────────────────────────────────────────────
+// ─── Home page ───────────────────────────────────────────────────
 
 export default function Home() {
   const [slide, setSlide] = useState(0);
@@ -345,7 +345,7 @@ export default function Home() {
         </div>
       </motion.div>
 
-      {/* ── Featured Events (new design) ───────────────────────────────────── */}
+      {/* ── Featured Events ───────────────────────────────────── */}
       <section className="py-24 bg-dark-base">
         <div className="max-w-7xl mx-auto px-4 sm:px-6">
           <SectionTitle icon={Sparkles} title="Featured Events" subtitle="Handpicked experiences you don't want to miss" />

@@ -1,7 +1,3 @@
-# ═══════════════════════════════════════════════════════════════════
-#  routes.py  —  ALL endpoints: auth · users · events · bookings ·
-#                payments · analytics · reviews · notifications
-# ═══════════════════════════════════════════════════════════════════
 from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File, Query
 from sqlalchemy.orm import Session, joinedload
 from sqlalchemy import func, extract, or_, and_

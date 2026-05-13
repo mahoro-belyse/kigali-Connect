@@ -1,6 +1,3 @@
-# ═══════════════════════════════════════════════════════════════════
-#  core.py  —  config · database · security · auth dependencies
-# ═══════════════════════════════════════════════════════════════════
 import secrets, logging
 from datetime import datetime,  timezone, timedelta
 from typing import Optional
