@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import {
   Search, Calendar, MapPin, Users,
-  ChevronLeft, ChevronRight, Filter, X,
+  ChevronLeft, ChevronRight, Filter, X, SlidersHorizontal,
 } from 'lucide-react';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
@@ -35,8 +35,8 @@ interface Event {
 // ─── Constants ────────────────────────────────────────────────────────────────
 
 const CATEGORIES = [
-  'conference','concert','wedding','sports','training',
-  'workshop','seminar','networking','exhibition','other',
+  'conference', 'concert', 'wedding', 'sports', 'training',
+  'workshop', 'seminar', 'networking', 'exhibition', 'other',
 ];
 
 const PER_PAGE = 9;
@@ -80,7 +80,6 @@ function SkeletonCard() {
 function EventCard({ event }: { event: Event }) {
   return (
     <div className="bg-dark-card rounded-2xl border border-copper/20 overflow-hidden hover:-translate-y-1 hover:shadow-xl hover:border-copper/40 transition-all duration-200 group">
-      {/* Image */}
       <div className="relative overflow-hidden">
         {event.cover_image ? (
           <img
@@ -98,18 +97,12 @@ function EventCard({ event }: { event: Event }) {
           {event.category}
         </span>
         {event.is_free && (
-          <span className="absolute top-3 right-3 px-2 py-1 text-xs font-bold bg-green-500 text-white rounded-lg">
-            FREE
-          </span>
+          <span className="absolute top-3 right-3 px-2 py-1 text-xs font-bold bg-green-500 text-white rounded-lg">FREE</span>
         )}
         {event.featured && (
-          <span className="absolute bottom-3 right-3 px-2 py-0.5 text-xs font-bold bg-copper text-white rounded-lg">
-            ⭐ Featured
-          </span>
+          <span className="absolute bottom-3 right-3 px-2 py-0.5 text-xs font-bold bg-copper text-white rounded-lg">⭐ Featured</span>
         )}
       </div>
-
-      {/* Body */}
       <div className="p-5">
         <h3 className="font-bold text-ivory-light mb-3 line-clamp-2 leading-snug">{event.title}</h3>
         <div className="space-y-1.5 text-xs text-muted-text mb-4">
@@ -140,7 +133,7 @@ function EventCard({ event }: { event: Event }) {
   );
 }
 
-// ─── Trending strip (featured events) ────────────────────────────────────────
+// ─── Trending strip ───────────────────────────────────────────────────────────
 
 function TrendingStrip() {
   const [featured, setFeatured] = useState<Event[]>([]);
@@ -162,10 +155,113 @@ function TrendingStrip() {
         🔥 <span>Trending Events</span>
       </h2>
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        {featured.slice(0, 3).map((e) => (
-          <EventCard key={e.id} event={e} />
-        ))}
+        {featured.slice(0, 3).map((e) => <EventCard key={e.id} event={e} />)}
       </div>
+    </div>
+  );
+}
+
+// ─── Filter Panel (shared between drawer + sidebar) ───────────────────────────
+
+function FilterPanel({
+  selectedCategories,
+  isFree,
+  dateFrom,
+  dateTo,
+  hasFilters,
+  onToggleCategory,
+  onSetIsFree,
+  onDateFrom,
+  onDateTo,
+  onClear,
+  onApply,
+}: {
+  selectedCategories: string[];
+  isFree: boolean | null;
+  dateFrom: string;
+  dateTo: string;
+  hasFilters: boolean;
+  onToggleCategory: (cat: string) => void;
+  onSetIsFree: (val: boolean | null) => void;
+  onDateFrom: (v: string) => void;
+  onDateTo: (v: string) => void;
+  onClear: () => void;
+  onApply: () => void;
+}) {
+  return (
+    <div className="space-y-5">
+      {/* Header row */}
+      <div className="flex items-center justify-between">
+        <h3 className="font-bold text-ivory-light flex items-center gap-2">
+          <Filter className="w-4 h-4 text-copper" /> Filters
+        </h3>
+        {hasFilters && (
+          <button
+            onClick={onClear}
+            className="text-xs text-muted-text hover:text-copper flex items-center gap-1 transition-colors"
+          >
+            <X className="w-3 h-3" /> Clear
+          </button>
+        )}
+      </div>
+
+      {/* Category */}
+      <div>
+        <h4 className="text-xs font-semibold text-muted-text uppercase tracking-wider mb-3">Category</h4>
+        <div className="space-y-2">
+          {CATEGORIES.map((cat) => (
+            <label key={cat} className="flex items-center gap-2 cursor-pointer group">
+              <input
+                type="checkbox"
+                checked={selectedCategories.includes(cat)}
+                onChange={() => onToggleCategory(cat)}
+                className="accent-copper w-4 h-4"
+              />
+              <span className="text-sm text-ivory-light group-hover:text-copper transition-colors capitalize">
+                {cat}
+              </span>
+            </label>
+          ))}
+        </div>
+      </div>
+
+      {/* Price */}
+      <div>
+        <h4 className="text-xs font-semibold text-muted-text uppercase tracking-wider mb-3">Price</h4>
+        <div className="flex gap-2">
+          {([['All', null], ['Free', true], ['Paid', false]] as [string, boolean | null][]).map(([label, val]) => (
+            <button
+              key={label}
+              onClick={() => onSetIsFree(val)}
+              className={`flex-1 py-1.5 text-xs rounded-lg border transition-colors ${
+                isFree === val
+                  ? 'border-copper text-copper bg-copper/10'
+                  : 'border-copper/20 text-muted-text hover:border-copper/40'
+              }`}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Date Range */}
+      <div>
+        <h4 className="text-xs font-semibold text-muted-text uppercase tracking-wider mb-3">Date Range</h4>
+        <div className="space-y-2">
+          <input type="date" value={dateFrom} onChange={(e) => onDateFrom(e.target.value)}
+            className={`${INPUT_CLS} w-full text-xs`} />
+          <input type="date" value={dateTo} onChange={(e) => onDateTo(e.target.value)}
+            className={`${INPUT_CLS} w-full text-xs`} />
+        </div>
+      </div>
+
+      <button
+        onClick={onApply}
+        className="w-full py-2.5 text-white text-sm font-semibold rounded-xl hover:opacity-90 transition-opacity bg-gradient-to-br from-copper to-copper-light"
+      >
+        Apply Filters
+      </button>
     </div>
   );
 }
@@ -183,24 +279,24 @@ export default function Events() {
   const [selectedCategories, setSelectedCategories] = useState<string[]>(
     searchParams.get('category') ? [searchParams.get('category')!] : []
   );
-  const [isFree,   setIsFree]   = useState<boolean | null>(null);
-  const [dateFrom, setDateFrom] = useState('');
-  const [dateTo,   setDateTo]   = useState('');
+  const [isFree,       setIsFree]       = useState<boolean | null>(null);
+  const [dateFrom,     setDateFrom]     = useState('');
+  const [dateTo,       setDateTo]       = useState('');
+  const [drawerOpen,   setDrawerOpen]   = useState(false); // mobile filter drawer
 
-  // ── Fetch events ──────────────────────────────────────────────────────────
+  // ── Fetch ─────────────────────────────────────────────────────────────────
   const fetchEvents = useCallback(async (p = 1) => {
     setLoading(true);
     try {
       const params: Record<string, unknown> = {
         page: p,
         per_page: PER_PAGE,
-        ...(search             && { search }),
-        ...(selectedCategories.length === 1 && { category: selectedCategories[0] }),
-        ...(isFree !== null && { is_free: Boolean(isFree) }),
-        ...(dateFrom           && { date_from: dateFrom }),
-        ...(dateTo             && { date_to: dateTo }),
+        ...(search                            && { search }),
+        ...(selectedCategories.length === 1   && { category: selectedCategories[0] }),
+        ...(isFree !== null                   && { is_free: Boolean(isFree) }),
+        ...(dateFrom                          && { date_from: dateFrom }),
+        ...(dateTo                            && { date_to: dateTo }),
       };
-      console.log('params →', params);
       const res  = await eventsApi.list(params);
       const data = res.data;
       setEvents(Array.isArray(data) ? data : data?.events ?? []);
@@ -224,8 +320,24 @@ export default function Events() {
       prev.includes(cat) ? prev.filter((c) => c !== cat) : [...prev, cat]
     );
 
+  const applyAndClose = () => {
+    fetchEvents(1);
+    setPage(1);
+    setDrawerOpen(false);
+  };
+
   const totalPages = Math.max(1, Math.ceil(total / PER_PAGE));
-  const hasFilters = search || selectedCategories.length || isFree !== null || dateFrom || dateTo;
+  const hasFilters = !!(search || selectedCategories.length || isFree !== null || dateFrom || dateTo);
+
+  const filterProps = {
+    selectedCategories, isFree, dateFrom, dateTo, hasFilters,
+    onToggleCategory: toggleCategory,
+    onSetIsFree: setIsFree,
+    onDateFrom: setDateFrom,
+    onDateTo: setDateTo,
+    onClear: clearFilters,
+    onApply: applyAndClose,
+  };
 
   // ─── Render ───────────────────────────────────────────────────────────────
   return (
@@ -237,15 +349,29 @@ export default function Events() {
         <div className="mb-8">
           <h1 className="text-3xl font-extrabold text-ivory-light mb-2">Explore Events</h1>
           <p className="text-muted-text mb-5">Discover and book the best events in your city</p>
-          <div className="relative">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-            <input
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && fetchEvents(1)}
-              placeholder="Search events by name, venue or category…"
-              className={`${INPUT_CLS} w-full pl-12 py-4 text-base rounded-2xl`}
-            />
+
+          <div className="flex gap-3">
+            <div className="relative flex-1">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+              <input
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && fetchEvents(1)}
+                placeholder="Search events by name, venue or category…"
+                className={`${INPUT_CLS} w-full pl-12 py-4 text-base rounded-2xl`}
+              />
+            </div>
+
+            {/* Mobile: Filter button opens drawer */}
+            <button
+              onClick={() => setDrawerOpen(true)}
+              className="lg:hidden flex items-center gap-2 px-4 py-3 rounded-2xl border border-copper/20 text-muted-text hover:border-copper hover:text-copper transition-colors relative"
+            >
+              <SlidersHorizontal className="w-5 h-5" />
+              {hasFilters && (
+                <span className="absolute top-2 right-2 w-2 h-2 rounded-full bg-copper" />
+              )}
+            </button>
           </div>
         </div>
 
@@ -254,86 +380,15 @@ export default function Events() {
 
         <div className="flex flex-col lg:flex-row gap-8">
 
-          {/* ── Sidebar filters ──────────────────────────────────────────── */}
-          <aside className="lg:w-64 shrink-0">
+          {/* ── Desktop sidebar filters (lg+) ──────────────────────────── */}
+          <aside className="hidden lg:block lg:w-64 shrink-0">
             <div className="bg-dark-card border border-copper/20 rounded-2xl p-5 sticky top-24">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="font-bold text-ivory-light flex items-center gap-2">
-                  <Filter className="w-4 h-4 text-copper" /> Filters
-                </h3>
-                {hasFilters && (
-                  <button
-                    onClick={clearFilters}
-                    className="text-xs text-muted-text hover:text-copper flex items-center gap-1 transition-colors"
-                  >
-                    <X className="w-3 h-3" /> Clear
-                  </button>
-                )}
-              </div>
-
-              {/* Category checkboxes */}
-              <div className="mb-5">
-                <h4 className="text-xs font-semibold text-muted-text uppercase tracking-wider mb-3">Category</h4>
-                <div className="space-y-2">
-                  {CATEGORIES.map((cat) => (
-                    <label key={cat} className="flex items-center gap-2 cursor-pointer group">
-                      <input
-                        type="checkbox"
-                        checked={selectedCategories.includes(cat)}
-                        onChange={() => toggleCategory(cat)}
-                        className="accent-copper w-4 h-4"
-                      />
-                      <span className="text-sm text-ivory-light group-hover:text-copper transition-colors capitalize">
-                        {cat}
-                      </span>
-                    </label>
-                  ))}
-                </div>
-              </div>
-
-              {/* Price toggle */}
-              <div className="mb-5">
-                <h4 className="text-xs font-semibold text-muted-text uppercase tracking-wider mb-3">Price</h4>
-                <div className="flex gap-2">
-                  {([['All', null], ['Free', true], ['Paid', false]] as [string, boolean | null][]).map(([label, val]) => (
-                    <button
-                      key={label}
-                      onClick={() => setIsFree(val)}
-                      className={`flex-1 py-1.5 text-xs rounded-lg border transition-colors ${
-                        isFree === val
-                          ? 'border-copper text-copper bg-copper/10'
-                          : 'border-copper/20 text-muted-text hover:border-copper/40'
-                      }`}
-                    >
-                      {label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Date range */}
-              <div className="mb-5">
-                <h4 className="text-xs font-semibold text-muted-text uppercase tracking-wider mb-3">Date Range</h4>
-                <div className="space-y-2">
-                  <input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)}
-                    className={`${INPUT_CLS} w-full text-xs`} />
-                  <input type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)}
-                    className={`${INPUT_CLS} w-full text-xs`} />
-                </div>
-              </div>
-
-              <button
-                onClick={() => { fetchEvents(1); setPage(1); }}
-                className="w-full py-2.5 text-white text-sm font-semibold rounded-xl hover:opacity-90 transition-opacity bg-gradient-to-br from-copper to-copper-light"
-              >
-                Apply Filters
-              </button>
+              <FilterPanel {...filterProps} />
             </div>
           </aside>
 
-          {/* ── Events grid ──────────────────────────────────────────────── */}
+          {/* ── Events grid ──────────────────────────────────────────── */}
           <div className="flex-1">
-            {/* Result count */}
             {!loading && (
               <p className="text-sm text-muted-text mb-4">
                 {total > 0 ? `${total} event${total !== 1 ? 's' : ''} found` : ''}
@@ -404,6 +459,33 @@ export default function Events() {
           </div>
         </div>
       </div>
+
+      {/* ── Mobile filter drawer (< lg) ────────────────────────────────────── */}
+      {drawerOpen && (
+        <div className="lg:hidden fixed inset-0 z-50">
+          {/* Backdrop */}
+          <div
+            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+            onClick={() => setDrawerOpen(false)}
+          />
+          {/* Sheet slides in from right */}
+          <div className="absolute top-0 right-0 bottom-0 w-72 bg-dark-card border-l border-copper/20 overflow-y-auto">
+            {/* Close button */}
+            <div className="flex items-center justify-between p-4 border-b border-copper/15">
+              <span className="font-bold text-ivory-light">Filters</span>
+              <button
+                onClick={() => setDrawerOpen(false)}
+                className="p-1.5 rounded-lg text-gray-400 hover:text-ivory-light hover:bg-copper/10 transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="p-4">
+              <FilterPanel {...filterProps} />
+            </div>
+          </div>
+        </div>
+      )}
 
       <Footer />
     </div>

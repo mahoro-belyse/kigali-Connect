@@ -65,18 +65,107 @@ function formatDate(dateStr?: string) {
   });
 }
 
-// Safe field resolvers — handles both flat and nested API shapes
-const getRef       = (b: Booking) => b.booking_reference ?? `#${b.id}`;
-const getEventTitle = (b: Booking) => b.event?.title ?? b.event_title ?? '—';
-const getTicketName = (b: Booking) => b.ticket_tier?.name ?? b.ticket_type_name ?? '—';
+const getRef          = (b: Booking) => b.booking_reference ?? `#${b.id}`;
+const getEventTitle   = (b: Booking) => b.event?.title ?? b.event_title ?? '—';
+const getTicketName   = (b: Booking) => b.ticket_tier?.name ?? b.ticket_type_name ?? '—';
 const getAttendeeName = (b: Booking) => b.user?.full_name ?? b.attendee_name ?? '—';
-const getAmount    = (b: Booking) => Number(b.total_amount ?? 0).toLocaleString();
+const getAmount       = (b: Booking) => Number(b.total_amount ?? 0).toLocaleString();
 
 const PER_PAGE = 10;
 
 const INPUT_CLS = `px-3 py-2.5 border border-copper/20 rounded-xl
   focus:border-copper focus:outline-none focus:ring-1 focus:ring-copper/30
   text-sm bg-dark-input text-ivory-light transition-colors`;
+
+// ─── Mobile Booking Card ──────────────────────────────────────────────────────
+
+function BookingCard({
+  b, isClient, canCheckIn, canCancel,
+  onView, onCheckIn, onCancel,
+}: {
+  b: Booking;
+  isClient: boolean;
+  canCheckIn: boolean;
+  canCancel: boolean;
+  onView: () => void;
+  onCheckIn: () => void;
+  onCancel: () => void;
+}) {
+  return (
+    <div className="bg-dark-elevation rounded-xl border border-copper/15 p-4 space-y-3">
+      {/* Top: ref + booking status */}
+      <div className="flex items-center justify-between gap-2">
+        <span className="font-mono text-xs text-copper font-semibold">{getRef(b)}</span>
+        <Badge status={b.status ?? 'pending'} />
+      </div>
+
+      {/* Event title */}
+      <p className="text-sm font-medium text-ivory-light truncate">{getEventTitle(b)}</p>
+
+      {/* Attendee */}
+      <div className="flex items-center gap-2">
+        <div className="w-6 h-6 rounded-full bg-copper/20 flex items-center justify-center text-xs font-bold text-copper shrink-0">
+          {getAttendeeName(b).charAt(0).toUpperCase()}
+        </div>
+        <span className="text-xs text-muted-text truncate">{getAttendeeName(b)}</span>
+      </div>
+
+      {/* Details grid */}
+      <div className="grid grid-cols-2 gap-x-4 gap-y-1.5 text-xs">
+        <div>
+          <span className="text-muted-text block">Amount</span>
+          <span className="font-semibold text-copper">{getAmount(b)} RWF</span>
+        </div>
+        <div>
+          <span className="text-muted-text block">Payment</span>
+          <Badge status={b.payment_status ?? 'unpaid'} />
+        </div>
+        <div>
+          <span className="text-muted-text block">Ticket</span>
+          <span className="text-ivory-light capitalize">{getTicketName(b)}</span>
+        </div>
+        <div>
+          <span className="text-muted-text block">Qty</span>
+          <span className="text-ivory-light">{b.quantity ?? 1}</span>
+        </div>
+        <div>
+          <span className="text-muted-text block">Checked In</span>
+          <span>{b.checked_in ? '✅' : '❌'}</span>
+        </div>
+        <div>
+          <span className="text-muted-text block">Date</span>
+          <span className="text-ivory-light">{formatDate(b.created_at)}</span>
+        </div>
+      </div>
+
+      {/* Actions */}
+      <div className="flex items-center gap-2 pt-1 border-t border-copper/10">
+        <button
+          onClick={onView}
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs text-blue-400 bg-blue-400/10 hover:bg-blue-400/20 transition-colors"
+        >
+          <Eye className="w-3.5 h-3.5" /> Ticket
+        </button>
+        {!isClient && canCheckIn && (
+          <button
+            onClick={onCheckIn}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs text-green-400 bg-green-400/10 hover:bg-green-400/20 transition-colors"
+          >
+            <CheckCircle className="w-3.5 h-3.5" /> Check In
+          </button>
+        )}
+        {canCancel && (
+          <button
+            onClick={onCancel}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs text-red-400 bg-red-400/10 hover:bg-red-400/20 transition-colors"
+          >
+            <XCircle className="w-3.5 h-3.5" /> Cancel
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
@@ -97,7 +186,7 @@ export default function Bookings() {
   const [cancelling,    setCancelling]    = useState(false);
   const [qrBooking,     setQrBooking]     = useState<Booking | null>(null);
 
-  // ── Fetch bookings ──────────────────────────────────────────────────────────
+  // ── Fetch ─────────────────────────────────────────────────────────────────
   const fetchBookings = useCallback(async () => {
     setLoading(true);
     try {
@@ -107,11 +196,9 @@ export default function Bookings() {
         ...(eventFilter   && { event_id:        eventFilter   }),
         per_page: 50,
       };
-
       const res = isClient
         ? await bookingsApi.myBookings(params)
         : await bookingsApi.list(params);
-
       const data = res.data;
       const list: Booking[] = Array.isArray(data)
         ? data
@@ -125,7 +212,6 @@ export default function Bookings() {
     }
   }, [isClient, statusFilter, paymentFilter, eventFilter]);
 
-  // ── Fetch events for filter dropdown (admin/manager) ─────────────────────
   useEffect(() => {
     if (!isClient) {
       eventsApi.list({ per_page: 100 })
@@ -139,7 +225,7 @@ export default function Bookings() {
 
   useEffect(() => { fetchBookings(); }, [fetchBookings]);
 
-  // ── Check-in ───────────────────────────────────────────────────────────────
+  // ── Check-in ──────────────────────────────────────────────────────────────
   const handleCheckIn = async (b: Booking) => {
     try {
       await bookingsApi.checkIn(getRef(b));
@@ -154,7 +240,7 @@ export default function Bookings() {
     }
   };
 
-  // ── Cancel booking ─────────────────────────────────────────────────────────
+  // ── Cancel ────────────────────────────────────────────────────────────────
   const handleCancel = async () => {
     if (!confirm) return;
     setCancelling(true);
@@ -174,7 +260,7 @@ export default function Bookings() {
     }
   };
 
-  // ── Client-side search + pagination ───────────────────────────────────────
+  // ── Filter + paginate ─────────────────────────────────────────────────────
   const filtered = bookings.filter((b) => {
     if (!search) return true;
     const term = search.toLowerCase();
@@ -188,16 +274,10 @@ export default function Bookings() {
   const totalPages = Math.max(1, Math.ceil(filtered.length / PER_PAGE));
   const paginated  = filtered.slice((page - 1) * PER_PAGE, page * PER_PAGE);
 
-  // Reset to page 1 when filters/search change
   useEffect(() => { setPage(1); }, [search, statusFilter, paymentFilter, eventFilter]);
 
-  // ── Can cancel? — only if not yet cancelled/attended ──────────────────────
-  const canCancel = (b: Booking) =>
-    !['cancelled', 'attended', 'no_show'].includes(b.status);
-
-  // ── Can check-in? — only for confirmed + paid ─────────────────────────────
-  const canCheckIn = (b: Booking) =>
-    b.status === 'confirmed' && b.payment_status === 'paid' && !b.checked_in;
+  const canCancel  = (b: Booking) => !['cancelled', 'attended', 'no_show'].includes(b.status);
+  const canCheckIn = (b: Booking) => b.status === 'confirmed' && b.payment_status === 'paid' && !b.checked_in;
 
   // ─── Render ───────────────────────────────────────────────────────────────
   return (
@@ -217,7 +297,6 @@ export default function Bookings() {
 
       {/* Filters */}
       <div className="flex flex-wrap gap-3 mb-5">
-        {/* Search */}
         <div className="flex-1 min-w-[180px] relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
           <input
@@ -227,45 +306,26 @@ export default function Bookings() {
             className={`${INPUT_CLS} w-full pl-9`}
           />
         </div>
-
-        {/* Status filter */}
-        <select
-          value={statusFilter}
-          onChange={(e) => setStatusFilter(e.target.value)}
-          className={INPUT_CLS}
-        >
+        <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className={INPUT_CLS}>
           <option value="">All Statuses</option>
           {['confirmed', 'pending', 'cancelled', 'attended', 'no_show'].map((s) => (
             <option key={s} value={s} className="capitalize">{s.replace('_', ' ')}</option>
           ))}
         </select>
-
-        {/* Payment filter */}
-        <select
-          value={paymentFilter}
-          onChange={(e) => setPaymentFilter(e.target.value)}
-          className={INPUT_CLS}
-        >
+        <select value={paymentFilter} onChange={(e) => setPaymentFilter(e.target.value)} className={INPUT_CLS}>
           <option value="">All Payments</option>
           {['paid', 'unpaid', 'refunded', 'partially_refunded'].map((s) => (
             <option key={s} value={s}>{s.replace('_', ' ')}</option>
           ))}
         </select>
-
-        {/* Event filter — admin/manager only */}
         {!isClient && events.length > 0 && (
-          <select
-            value={eventFilter}
-            onChange={(e) => setEventFilter(e.target.value)}
-            className={INPUT_CLS}
-          >
+          <select value={eventFilter} onChange={(e) => setEventFilter(e.target.value)} className={INPUT_CLS}>
             <option value="">All Events</option>
             {events.map((e) => (
               <option key={e.id} value={e.id}>{e.title}</option>
             ))}
           </select>
         )}
-
         <button
           onClick={fetchBookings}
           className="px-4 py-2.5 text-white text-sm rounded-xl font-medium flex items-center gap-2 hover:opacity-90 transition-opacity bg-gradient-to-br from-copper to-copper-light"
@@ -274,165 +334,143 @@ export default function Bookings() {
         </button>
       </div>
 
-      {/* Table card */}
-      <div className="bg-dark-card rounded-2xl border border-copper/20 overflow-hidden">
-        {loading ? (
-          <div className="py-20 flex justify-center"><Spinner /></div>
-        ) : filtered.length === 0 ? (
-          <div className="py-20 flex flex-col items-center gap-3">
-            <Ticket className="w-12 h-12 text-copper/30" />
-            <p className="text-base font-medium text-ivory-light">No bookings found</p>
-            <p className="text-sm text-muted-text">Try adjusting your filters</p>
-            {isClient && (
-              <a href="/events" className="text-copper text-sm hover:underline mt-1">
-                Browse Events →
-              </a>
-            )}
-          </div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-copper/15 bg-black/20">
-                  {[
-                    'Reference', 'Attendee', 'Event', 'Ticket', 'Qty',
-                    'Amount (RWF)', 'Status', 'Payment', 'Checked In', 'Date', 'Actions',
-                  ].map((h) => (
-                    <th key={h} className="text-left py-3 px-3 text-xs font-medium text-muted-text whitespace-nowrap">
-                      {h}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {paginated.map((b) => (
-                  <tr
-                    key={b.id}
-                    className="border-b border-copper/8 hover:bg-copper/4 transition-colors"
-                  >
-                    {/* Reference */}
-                    <td className="py-3 px-3 font-mono text-xs text-copper whitespace-nowrap">
-                      {getRef(b)}
-                    </td>
-
-                    {/* Attendee */}
-                    <td className="py-3 px-3">
-                      <div className="flex items-center gap-2">
-                        <div className="w-7 h-7 rounded-full bg-copper/20 flex items-center justify-center text-xs font-bold text-copper shrink-0">
-                          {getAttendeeName(b).charAt(0).toUpperCase()}
-                        </div>
-                        <span className="text-ivory-light text-xs truncate max-w-[100px]">
-                          {getAttendeeName(b)}
-                        </span>
-                      </div>
-                    </td>
-
-                    {/* Event */}
-                    <td className="py-3 px-3 text-ivory-light text-xs max-w-[130px] truncate">
-                      {getEventTitle(b)}
-                    </td>
-
-                    {/* Ticket type */}
-                    <td className="py-3 px-3 text-muted-text text-xs capitalize">
-                      {getTicketName(b)}
-                    </td>
-
-                    {/* Quantity */}
-                    <td className="py-3 px-3 text-ivory-light text-xs text-center">
-                      {b.quantity ?? 1}
-                    </td>
-
-                    {/* Amount */}
-                    <td className="py-3 px-3 text-copper font-semibold text-xs whitespace-nowrap">
-                      {getAmount(b)} RWF
-                    </td>
-
-                    {/* Status */}
-                    <td className="py-3 px-3"><Badge status={b.status ?? 'pending'} /></td>
-
-                    {/* Payment status */}
-                    <td className="py-3 px-3"><Badge status={b.payment_status ?? 'unpaid'} /></td>
-
-                    {/* Checked in */}
-                    <td className="py-3 px-3 text-center text-base">
-                      {b.checked_in ? '✅' : '❌'}
-                    </td>
-
-                    {/* Date */}
-                    <td className="py-3 px-3 text-muted-text text-xs whitespace-nowrap">
-                      {formatDate(b.created_at)}
-                    </td>
-
-                    {/* Actions */}
-                    <td className="py-3 px-3">
-                      <div className="flex items-center gap-1">
-                        {/* View QR ticket */}
-                        <button
-                          onClick={() => setQrBooking(b)}
-                          className="p-1.5 rounded-lg text-gray-400 hover:text-blue-400 hover:bg-blue-400/10 transition-colors"
-                          title="View Ticket"
-                        >
-                          <Eye className="w-3.5 h-3.5" />
-                        </button>
-
-                        {/* Check-in — admin/manager only */}
-                        {!isClient && canCheckIn(b) && (
-                          <button
-                            onClick={() => handleCheckIn(b)}
-                            className="p-1.5 rounded-lg text-gray-400 hover:text-green-400 hover:bg-green-400/10 transition-colors"
-                            title="Check In"
-                          >
-                            <CheckCircle className="w-3.5 h-3.5" />
-                          </button>
-                        )}
-
-                        {/* Cancel */}
-                        {canCancel(b) && (
-                          <button
-                            onClick={() => setConfirm(b)}
-                            className="p-1.5 rounded-lg text-gray-400 hover:text-red-400 hover:bg-red-400/10 transition-colors"
-                            title="Cancel Booking"
-                          >
-                            <XCircle className="w-3.5 h-3.5" />
-                          </button>
-                        )}
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </div>
-
-      {/* Pagination */}
-      {totalPages > 1 && (
-        <div className="flex items-center justify-center gap-2 mt-5">
-          <button
-            disabled={page === 1}
-            onClick={() => setPage((p) => p - 1)}
-            className="px-3 py-1.5 text-sm border border-copper/20 text-muted-text rounded-lg disabled:opacity-40 hover:border-copper transition-colors"
-          >
-            Prev
-          </button>
-          <span className="text-sm text-muted-text px-2">
-            Page {page} of {totalPages} ({filtered.length} total)
-          </span>
-          <button
-            disabled={page === totalPages}
-            onClick={() => setPage((p) => p + 1)}
-            className="px-3 py-1.5 text-sm border border-copper/20 text-muted-text rounded-lg disabled:opacity-40 hover:border-copper transition-colors"
-          >
-            Next
-          </button>
+      {/* ── Content ───────────────────────────────────────────────────────── */}
+      {loading ? (
+        <div className="py-20 flex justify-center"><Spinner /></div>
+      ) : filtered.length === 0 ? (
+        <div className="py-20 flex flex-col items-center gap-3">
+          <Ticket className="w-12 h-12 text-copper/30" />
+          <p className="text-base font-medium text-ivory-light">No bookings found</p>
+          <p className="text-sm text-muted-text">Try adjusting your filters</p>
+          {isClient && (
+            <a href="/events" className="text-copper text-sm hover:underline mt-1">Browse Events →</a>
+          )}
         </div>
+      ) : (
+        <>
+          {/* ── Mobile: stacked cards (< md) ── */}
+          <div className="md:hidden space-y-3">
+            {paginated.map((b) => (
+              <BookingCard
+                key={b.id}
+                b={b}
+                isClient={isClient}
+                canCheckIn={canCheckIn(b)}
+                canCancel={canCancel(b)}
+                onView={() => setQrBooking(b)}
+                onCheckIn={() => handleCheckIn(b)}
+                onCancel={() => setConfirm(b)}
+              />
+            ))}
+          </div>
+
+          {/* ── Tablet / Desktop: scrollable table (≥ md) ── */}
+          <div className="hidden md:block bg-dark-card rounded-2xl border border-copper/20 overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-copper/15 bg-black/20">
+                    <th className="text-left py-3 px-3 text-xs font-medium text-muted-text whitespace-nowrap">Reference</th>
+                    {/* Attendee hidden on md, shown lg+ */}
+                    <th className="text-left py-3 px-3 text-xs font-medium text-muted-text whitespace-nowrap hidden lg:table-cell">Attendee</th>
+                    <th className="text-left py-3 px-3 text-xs font-medium text-muted-text whitespace-nowrap">Event</th>
+                    {/* Ticket hidden on md, shown xl+ */}
+                    <th className="text-left py-3 px-3 text-xs font-medium text-muted-text whitespace-nowrap hidden xl:table-cell">Ticket</th>
+                    {/* Qty hidden on md, shown lg+ */}
+                    <th className="text-left py-3 px-3 text-xs font-medium text-muted-text whitespace-nowrap hidden lg:table-cell">Qty</th>
+                    <th className="text-left py-3 px-3 text-xs font-medium text-muted-text whitespace-nowrap">Amount</th>
+                    <th className="text-left py-3 px-3 text-xs font-medium text-muted-text whitespace-nowrap">Status</th>
+                    <th className="text-left py-3 px-3 text-xs font-medium text-muted-text whitespace-nowrap">Payment</th>
+                    {/* Checked In hidden on md, shown lg+ */}
+                    <th className="text-left py-3 px-3 text-xs font-medium text-muted-text whitespace-nowrap hidden lg:table-cell">Checked In</th>
+                    {/* Date hidden on md, shown xl+ */}
+                    <th className="text-left py-3 px-3 text-xs font-medium text-muted-text whitespace-nowrap hidden xl:table-cell">Date</th>
+                    <th className="text-left py-3 px-3 text-xs font-medium text-muted-text whitespace-nowrap">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {paginated.map((b) => (
+                    <tr key={b.id} className="border-b border-copper/8 hover:bg-copper/4 transition-colors">
+                      <td className="py-3 px-3 font-mono text-xs text-copper whitespace-nowrap">{getRef(b)}</td>
+                      <td className="py-3 px-3 hidden lg:table-cell">
+                        <div className="flex items-center gap-2">
+                          <div className="w-7 h-7 rounded-full bg-copper/20 flex items-center justify-center text-xs font-bold text-copper shrink-0">
+                            {getAttendeeName(b).charAt(0).toUpperCase()}
+                          </div>
+                          <span className="text-ivory-light text-xs truncate max-w-[100px]">{getAttendeeName(b)}</span>
+                        </div>
+                      </td>
+                      <td className="py-3 px-3 text-ivory-light text-xs max-w-[130px] truncate">{getEventTitle(b)}</td>
+                      <td className="py-3 px-3 text-muted-text text-xs capitalize hidden xl:table-cell">{getTicketName(b)}</td>
+                      <td className="py-3 px-3 text-ivory-light text-xs text-center hidden lg:table-cell">{b.quantity ?? 1}</td>
+                      <td className="py-3 px-3 text-copper font-semibold text-xs whitespace-nowrap">{getAmount(b)} RWF</td>
+                      <td className="py-3 px-3"><Badge status={b.status ?? 'pending'} /></td>
+                      <td className="py-3 px-3"><Badge status={b.payment_status ?? 'unpaid'} /></td>
+                      <td className="py-3 px-3 text-center text-base hidden lg:table-cell">{b.checked_in ? '✅' : '❌'}</td>
+                      <td className="py-3 px-3 text-muted-text text-xs whitespace-nowrap hidden xl:table-cell">{formatDate(b.created_at)}</td>
+                      <td className="py-3 px-3">
+                        <div className="flex items-center gap-1">
+                          <button
+                            onClick={() => setQrBooking(b)}
+                            className="p-1.5 rounded-lg text-gray-400 hover:text-blue-400 hover:bg-blue-400/10 transition-colors"
+                            title="View Ticket"
+                          >
+                            <Eye className="w-3.5 h-3.5" />
+                          </button>
+                          {!isClient && canCheckIn(b) && (
+                            <button
+                              onClick={() => handleCheckIn(b)}
+                              className="p-1.5 rounded-lg text-gray-400 hover:text-green-400 hover:bg-green-400/10 transition-colors"
+                              title="Check In"
+                            >
+                              <CheckCircle className="w-3.5 h-3.5" />
+                            </button>
+                          )}
+                          {canCancel(b) && (
+                            <button
+                              onClick={() => setConfirm(b)}
+                              className="p-1.5 rounded-lg text-gray-400 hover:text-red-400 hover:bg-red-400/10 transition-colors"
+                              title="Cancel Booking"
+                            >
+                              <XCircle className="w-3.5 h-3.5" />
+                            </button>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <div className="flex items-center justify-center gap-2 mt-5">
+              <button
+                disabled={page === 1}
+                onClick={() => setPage((p) => p - 1)}
+                className="px-3 py-1.5 text-sm border border-copper/20 text-muted-text rounded-lg disabled:opacity-40 hover:border-copper transition-colors"
+              >
+                Prev
+              </button>
+              <span className="text-sm text-muted-text px-2">
+                Page {page} of {totalPages} ({filtered.length} total)
+              </span>
+              <button
+                disabled={page === totalPages}
+                onClick={() => setPage((p) => p + 1)}
+                className="px-3 py-1.5 text-sm border border-copper/20 text-muted-text rounded-lg disabled:opacity-40 hover:border-copper transition-colors"
+              >
+                Next
+              </button>
+            </div>
+          )}
+        </>
       )}
 
       {/* QR Ticket Modal */}
-      {qrBooking && (
-        <QRTicketModal booking={qrBooking} onClose={() => setQrBooking(null)} />
-      )}
+      {qrBooking && <QRTicketModal booking={qrBooking} onClose={() => setQrBooking(null)} />}
 
       {/* Cancel Confirm Dialog */}
       {confirm && (
@@ -448,10 +486,8 @@ export default function Bookings() {
             <h3 className="font-bold text-ivory-light mb-2 text-lg">Cancel Booking?</h3>
             <p className="text-sm text-muted-text mb-5 leading-relaxed">
               Cancel booking{' '}
-              <span className="text-copper font-mono font-semibold">
-                {getRef(confirm)}
-              </span>
-              ? Seats will be released. This cannot be undone.
+              <span className="text-copper font-mono font-semibold">{getRef(confirm)}</span>?
+              Seats will be released. This cannot be undone.
             </p>
             <div className="flex gap-3">
               <button

@@ -6,17 +6,20 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
-// ─── Mega dropdown items (matches prompt spec exactly) ────────────────────────
+
+// ─── Mega dropdown items ───────────────────────────────────────────────────────
 const megaItems = [
   {
     label: 'Events Listing',
-    to: '/events',
+    to: null,           // handled via anchor scroll
+    hash: 'featured-events',
     icon: List,
     desc: 'Browse upcoming and trending events',
   },
   {
     label: 'Event Details',
     to: '/events',
+    hash: null,
     icon: Eye,
     desc: 'View schedules, speakers, tickets and venue',
   },
@@ -48,7 +51,6 @@ export default function Navbar() {
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
-  // Helper: clear any pending timeout
   const clearCloseTimeout = () => {
     if (closeTimeout.current) {
       clearTimeout(closeTimeout.current);
@@ -56,13 +58,11 @@ export default function Navbar() {
     }
   };
 
-  // Open dropdown (cancel any pending close)
   const handleMouseEnter = () => {
     clearCloseTimeout();
     setMegaOpen(true);
   };
 
-  // Close dropdown after a short delay (allows moving from button to dropdown)
   const handleMouseLeave = () => {
     clearCloseTimeout();
     closeTimeout.current = window.setTimeout(() => {
@@ -73,6 +73,21 @@ export default function Navbar() {
   const handleLogout = () => {
     logout();
     navigate('/');
+  };
+
+  // ── Handle Events Listing click: go to home then scroll to #featured-events
+  const handleFeaturedEventsClick = () => {
+    setMegaOpen(false);
+    if (location.pathname === '/') {
+      // Already on home — just scroll
+      document.getElementById('featured-events')?.scrollIntoView({ behavior: 'smooth' });
+    } else {
+      // Navigate to home, then scroll after render
+      navigate('/');
+      setTimeout(() => {
+        document.getElementById('featured-events')?.scrollIntoView({ behavior: 'smooth' });
+      }, 300);
+    }
   };
 
   const isActive = (path: string) => location.pathname === path;
@@ -108,7 +123,7 @@ export default function Navbar() {
             <Home className="w-3.5 h-3.5" />Home
           </Link>
 
-          {/* Events mega dropdown - fixed hover/click behavior */}
+          {/* Events mega dropdown */}
           <div className="relative">
             <button
               onMouseEnter={handleMouseEnter}
@@ -141,22 +156,45 @@ export default function Navbar() {
                   : 'opacity-0 scale-95 -translate-y-2 pointer-events-none'
                 }`}
             >
-              {megaItems.map((item) => (
-                <Link
-                  key={item.to + item.label}
-                  to={item.to}
-                  className="flex items-start gap-3 p-3 rounded-xl hover:bg-copper/8 transition-colors group"
-                  onClick={() => setMegaOpen(false)}
-                >
-                  <div className="w-8 h-8 rounded-lg bg-copper/12 flex items-center justify-center shrink-0 mt-0.5 group-hover:bg-copper/20 transition-colors">
-                    <item.icon className="w-4 h-4 text-copper" />
-                  </div>
-                  <div>
-                    <p className="text-sm font-semibold text-ivory-light">{item.label}</p>
-                    <p className="text-xs text-gray-400 mt-0.5 leading-relaxed">{item.desc}</p>
-                  </div>
-                </Link>
-              ))}
+              {megaItems.map((item) => {
+                const Icon = item.icon;
+                const inner = (
+                  <>
+                    <div className="w-8 h-8 rounded-lg bg-copper/12 flex items-center justify-center shrink-0 mt-0.5 group-hover:bg-copper/20 transition-colors">
+                      <Icon className="w-4 h-4 text-copper" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-semibold text-ivory-light">{item.label}</p>
+                      <p className="text-xs text-gray-400 mt-0.5 leading-relaxed">{item.desc}</p>
+                    </div>
+                  </>
+                );
+
+                if (item.hash) {
+                  // Events Listing — scroll to #featured-events on home
+                  return (
+                    <button
+                      key={item.label}
+                      onClick={handleFeaturedEventsClick}
+                      className="w-full flex items-start gap-3 p-3 rounded-xl hover:bg-copper/8 transition-colors group text-left"
+                    >
+                      {inner}
+                    </button>
+                  );
+                }
+
+                // Event Details — goes to /events
+                return (
+                  <Link
+                    key={item.label}
+                    to={item.to!}
+                    className="flex items-start gap-3 p-3 rounded-xl hover:bg-copper/8 transition-colors group"
+                    onClick={() => setMegaOpen(false)}
+                  >
+                    {inner}
+                  </Link>
+                );
+              })}
             </div>
           </div>
 
@@ -170,16 +208,15 @@ export default function Navbar() {
 
         {/* ── Right side ──────────────────────────────────────────────────── */}
         <div className="hidden md:flex items-center gap-3">
+        
           {isAuthenticated && user ? (
             <>
-              {/* User info + dashboard link */}
               <Link
                 to="/dashboard"
                 className="flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-medium
                   border border-copper/20 text-ivory-light
                   hover:bg-copper/8 transition-colors"
               >
-                {/* Avatar circle */}
                 {user.avatar ? (
                   <img
                     src={user.avatar}
@@ -195,7 +232,6 @@ export default function Navbar() {
                 <span className="hidden lg:inline max-w-[120px] truncate">
                   {user.full_name}
                 </span>
-                {/* Role badge */}
                 <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-semibold hidden xl:inline ${
                   user.role === 'admin'
                     ? 'bg-copper/20 text-copper'
@@ -207,7 +243,6 @@ export default function Navbar() {
                 </span>
               </Link>
 
-              {/* Logout */}
               <button
                 onClick={handleLogout}
                 className="px-3 py-2 rounded-xl text-sm font-medium text-gray-400
@@ -276,6 +311,7 @@ export default function Navbar() {
           ))}
 
           <div className="pt-3 border-t border-copper/10">
+           
             {isAuthenticated && user ? (
               <div className="space-y-2">
                 <Link

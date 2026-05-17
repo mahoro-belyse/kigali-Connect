@@ -5,6 +5,7 @@ import { Toaster } from './components/ui/toaster';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
 
+
 // ─── Query Client ─────────────────────────────────────────────────────────────
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -119,6 +120,7 @@ const AppRoutes = () => {
 // ─── Root App ─────────────────────────────────────────────────────────────────
 export default function App() {
   return (
+ 
     <AuthProvider>
       <QueryClientProvider client={queryClient}>
         <Router>
@@ -127,5 +129,6 @@ export default function App() {
         <Toaster />
       </QueryClientProvider>
     </AuthProvider>
+     
   );
 }

@@ -152,6 +152,116 @@ function tagsToString(tags?: string | string[]): string {
   return tags;
 }
 
+// ─── Mobile Event Card ────────────────────────────────────────────────────────
+
+function EventCard({
+  e,
+  onEdit,
+  onUpload,
+  onPublish,
+  onCancel,
+  onDelete,
+}: {
+  e: Event;
+  onEdit: () => void;
+  onView: () => void;
+  onUpload: () => void;
+  onPublish: () => void;
+  onCancel: () => void;
+  onDelete: () => void;
+}) {
+  return (
+    <div className="bg-dark-elevation rounded-xl border border-copper/15 p-4 space-y-3">
+      {/* Cover + title row */}
+      <div className="flex items-start gap-3">
+        {e.cover_image ? (
+          <img src={e.cover_image} alt="" className="w-14 h-10 object-cover rounded-lg shrink-0" />
+        ) : (
+          <div className="w-14 h-10 bg-copper/10 rounded-lg flex items-center justify-center shrink-0">
+            <ImageIcon className="w-4 h-4 text-copper/40" />
+          </div>
+        )}
+        <div className="flex-1 min-w-0">
+          <p className="text-sm font-semibold text-ivory-light truncate">{e.title}</p>
+          <p className="text-xs text-muted-text capitalize mt-0.5">{e.category}</p>
+        </div>
+        <Badge status={e.status ?? 'draft'} />
+      </div>
+
+      {/* Details grid */}
+      <div className="grid grid-cols-2 gap-x-4 gap-y-1.5 text-xs">
+        <div>
+          <span className="text-muted-text block">Start Date</span>
+          <span className="text-ivory-light">{formatDate(e.start_datetime)}</span>
+        </div>
+        <div>
+          <span className="text-muted-text block">City</span>
+          <span className="text-ivory-light">{e.city ?? '—'}</span>
+        </div>
+        <div>
+          <span className="text-muted-text block">Capacity</span>
+          <span className="text-ivory-light">{e.total_capacity ?? '—'}</span>
+        </div>
+        <div>
+          <span className="text-muted-text block">Available</span>
+          <span className="text-ivory-light">{e.available_seats ?? '—'}</span>
+        </div>
+        {e.featured && (
+          <div className="col-span-2">
+            <span className="text-copper text-xs">⭐ Featured</span>
+          </div>
+        )}
+      </div>
+
+      {/* Action buttons */}
+      <div className="flex items-center gap-1.5 pt-1 border-t border-copper/10 flex-wrap">
+        <button
+          onClick={onEdit}
+          className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs text-copper bg-copper/10 hover:bg-copper/20 transition-colors"
+        >
+          <Edit3 className="w-3.5 h-3.5" /> Edit
+        </button>
+        <a
+          href={`/events/${e.id}`}
+          target="_blank"
+          rel="noreferrer"
+          className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs text-blue-400 bg-blue-400/10 hover:bg-blue-400/20 transition-colors"
+        >
+          <Eye className="w-3.5 h-3.5" /> View
+        </a>
+        <button
+          onClick={onUpload}
+          className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs text-purple-400 bg-purple-400/10 hover:bg-purple-400/20 transition-colors"
+        >
+          <Upload className="w-3.5 h-3.5" /> Cover
+        </button>
+        {e.status === 'draft' && (
+          <button
+            onClick={onPublish}
+            className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs text-green-400 bg-green-400/10 hover:bg-green-400/20 transition-colors"
+          >
+            <Rocket className="w-3.5 h-3.5" /> Publish
+          </button>
+        )}
+        {e.status === 'published' && (
+          <button
+            onClick={onCancel}
+            className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs text-orange-400 bg-orange-400/10 hover:bg-orange-400/20 transition-colors"
+          >
+            <XCircle className="w-3.5 h-3.5" /> Cancel
+          </button>
+        )}
+        <button
+          onClick={onDelete}
+          className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs text-red-400 bg-red-400/10 hover:bg-red-400/20 transition-colors"
+        >
+          <Trash2 className="w-3.5 h-3.5" /> Delete
+        </button>
+      </div>
+    </div>
+  );
+}
+
 // ─── Main component ───────────────────────────────────────────────────────────
 
 export default function ManageEvents() {
@@ -172,7 +282,7 @@ export default function ManageEvents() {
   const [saving,      setSaving]      = useState(false);
   const [coverTarget, setCoverTarget] = useState<Event | null>(null);
 
-  // ── Fetch events ──────────────────────────────────────────────────────────
+  // ── Fetch ─────────────────────────────────────────────────────────────────
   const fetchEvents = useCallback(async () => {
     setLoading(true);
     try {
@@ -189,7 +299,6 @@ export default function ManageEvents() {
 
   useEffect(() => { fetchEvents(); }, []);
 
-  // ── Open create modal ─────────────────────────────────────────────────────
   const openCreate = () => {
     setEditEvent(null);
     setForm(defaultForm());
@@ -197,7 +306,6 @@ export default function ManageEvents() {
     setShowModal(true);
   };
 
-  // ── Open edit modal ───────────────────────────────────────────────────────
   const openEdit = (e: Event) => {
     setEditEvent(e);
     setForm({
@@ -225,7 +333,6 @@ export default function ManageEvents() {
     setShowModal(true);
   };
 
-  // ── Save (create or update) ───────────────────────────────────────────────
   const handleSave = async () => {
     if (!form.title.trim()) {
       toast({ title: 'Title is required', variant: 'destructive' }); return;
@@ -239,7 +346,6 @@ export default function ManageEvents() {
     if (form.ticket_tiers.length === 0) {
       toast({ title: 'At least one ticket tier is required', variant: 'destructive' }); return;
     }
-
     setSaving(true);
     const payload = {
       ...form,
@@ -254,7 +360,6 @@ export default function ManageEvents() {
         max_per_booking: Number(t.max_per_booking) || 10,
       })),
     };
-
     try {
       if (editEvent) {
         await eventsApi.update(editEvent.id, payload as any);
@@ -276,32 +381,23 @@ export default function ManageEvents() {
     }
   };
 
-  // ── Publish / Cancel / Delete ─────────────────────────────────────────────
   const handleConfirmAction = async () => {
     if (!confirm) return;
     setActing(true);
     try {
-      if (confirmType === 'publish') await eventsApi.publish(confirm.id);
-      else if (confirmType === 'cancel') await eventsApi.cancel(confirm.id);
-      else if (confirmType === 'delete') await eventsApi.delete(confirm.id);
-
-      toast({
-        title: `Event ${confirmType === 'delete' ? 'deleted' : confirmType + 'ed'} successfully`,
-      });
+      if (confirmType === 'publish')      await eventsApi.publish(confirm.id);
+      else if (confirmType === 'cancel')  await eventsApi.cancel(confirm.id);
+      else if (confirmType === 'delete')  await eventsApi.delete(confirm.id);
+      toast({ title: `Event ${confirmType === 'delete' ? 'deleted' : confirmType + 'ed'} successfully` });
       fetchEvents();
     } catch (err: any) {
-      toast({
-        title: 'Action failed',
-        description: err.response?.data?.detail ?? err.message,
-        variant: 'destructive',
-      });
+      toast({ title: 'Action failed', description: err.response?.data?.detail ?? err.message, variant: 'destructive' });
     } finally {
       setActing(false);
       setConfirm(null);
     }
   };
 
-  // ── Cover image upload ────────────────────────────────────────────────────
   const handleCoverUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file || !coverTarget) return;
@@ -318,18 +414,20 @@ export default function ManageEvents() {
     if (fileRef.current) fileRef.current.value = '';
   };
 
-  // ── Ticket tier helpers ───────────────────────────────────────────────────
   const addTier    = () => setForm((f) => ({ ...f, ticket_tiers: [...f.ticket_tiers, { name: 'general', price: '', quantity: '', description: '', max_per_booking: 10 }] }));
   const removeTier = (i: number) => setForm((f) => ({ ...f, ticket_tiers: f.ticket_tiers.filter((_, j) => j !== i) }));
   const updateTier = (i: number, key: keyof TicketTier, val: string | number) =>
     setForm((f) => ({ ...f, ticket_tiers: f.ticket_tiers.map((t, j) => j === i ? { ...t, [key]: val } : t) }));
 
-  // ── Client-side filter + pagination ──────────────────────────────────────
   const filtered   = events.filter((e) => !search || e.title.toLowerCase().includes(search.toLowerCase()));
   const totalPages = Math.max(1, Math.ceil(filtered.length / PER_PAGE));
   const paginated  = filtered.slice((page - 1) * PER_PAGE, page * PER_PAGE);
 
   useEffect(() => { setPage(1); }, [search]);
+
+  // ── Action helpers to avoid repetition ───────────────────────────────────
+  const triggerConfirm = (e: Event, type: ConfirmType) => { setConfirm(e); setConfirmType(type); };
+  const triggerUpload  = (e: Event) => { setCoverTarget(e); fileRef.current?.click(); };
 
   // ─── Render ───────────────────────────────────────────────────────────────
   return (
@@ -346,11 +444,13 @@ export default function ManageEvents() {
           onClick={openCreate}
           className="px-4 py-2.5 text-white text-sm rounded-xl font-semibold flex items-center gap-2 hover:opacity-90 transition-opacity bg-gradient-to-br from-copper to-copper-light"
         >
-          <Plus className="w-4 h-4" /> Create Event
+          <Plus className="w-4 h-4" />
+          <span className="hidden sm:inline">Create Event</span>
+          <span className="sm:hidden">New</span>
         </button>
       </div>
 
-      {/* Search bar */}
+      {/* Search */}
       <div className="flex flex-wrap gap-3 mb-5">
         <div className="flex-1 min-w-[180px] relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
@@ -370,7 +470,7 @@ export default function ManageEvents() {
         </button>
       </div>
 
-      {/* Table */}
+      {/* ── Table / Cards ─────────────────────────────────────────────────── */}
       <div className="bg-dark-card rounded-2xl border border-copper/20 overflow-hidden">
         {loading ? (
           <div className="py-20 flex justify-center"><Spinner /></div>
@@ -386,73 +486,97 @@ export default function ManageEvents() {
             </button>
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-copper/15 bg-black/20">
-                  {['Cover','Title','Category','Status','Start Date','City','Capacity','Available','Featured','Actions'].map((h) => (
-                    <th key={h} className="text-left py-3 px-3 text-xs font-medium text-muted-text whitespace-nowrap">{h}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {paginated.map((e) => (
-                  <tr key={e.id} className="border-b border-copper/8 hover:bg-copper/4 transition-colors">
-                    {/* Cover */}
-                    <td className="py-3 px-3">
-                      {e.cover_image ? (
-                        <img src={e.cover_image} alt="" className="w-12 h-8 object-cover rounded-lg" />
-                      ) : (
-                        <div className="w-12 h-8 bg-copper/10 rounded-lg flex items-center justify-center">
-                          <ImageIcon className="w-4 h-4 text-copper/40" />
-                        </div>
-                      )}
-                    </td>
-                    <td className="py-3 px-3 text-ivory-light font-medium text-xs max-w-[160px] truncate">{e.title}</td>
-                    <td className="py-3 px-3 text-muted-text text-xs capitalize">{e.category}</td>
-                    <td className="py-3 px-3"><Badge status={e.status ?? 'draft'} /></td>
-                    <td className="py-3 px-3 text-muted-text text-xs whitespace-nowrap">{formatDate(e.start_datetime)}</td>
-                    <td className="py-3 px-3 text-muted-text text-xs">{e.city ?? '—'}</td>
-                    <td className="py-3 px-3 text-muted-text text-xs">{e.total_capacity ?? '—'}</td>
-                    <td className="py-3 px-3 text-muted-text text-xs">{e.available_seats ?? '—'}</td>
-                    <td className="py-3 px-3 text-center text-xs">{e.featured ? '⭐' : '—'}</td>
+          <>
+            {/* ── Mobile: stacked cards (< md) ── */}
+            <div className="md:hidden divide-y divide-copper/10 p-3 space-y-3">
+              {paginated.map((e) => (
+                <EventCard
+                  key={e.id}
+                  e={e}
+                  onEdit={() => openEdit(e)}
+                  onView={() => window.open(`/events/${e.id}`, '_blank')}
+                  onUpload={() => triggerUpload(e)}
+                  onPublish={() => triggerConfirm(e, 'publish')}
+                  onCancel={() => triggerConfirm(e, 'cancel')}
+                  onDelete={() => triggerConfirm(e, 'delete')}
+                />
+              ))}
+            </div>
 
-                    {/* Actions */}
-                    <td className="py-3 px-3">
-                      <div className="flex items-center gap-1">
-                        <button onClick={() => openEdit(e)} className="p-1.5 rounded-lg text-gray-400 hover:text-copper hover:bg-copper/10 transition-colors" title="Edit">
-                          <Edit3 className="w-3.5 h-3.5" />
-                        </button>
-                        <a href={`/events/${e.id}`} target="_blank" rel="noreferrer" className="p-1.5 rounded-lg text-gray-400 hover:text-blue-400 hover:bg-blue-400/10 transition-colors" title="View Public Page">
-                          <Eye className="w-3.5 h-3.5" />
-                        </a>
-                        <button
-                          onClick={() => { setCoverTarget(e); fileRef.current?.click(); }}
-                          className="p-1.5 rounded-lg text-gray-400 hover:text-purple-400 hover:bg-purple-400/10 transition-colors"
-                          title="Upload Cover Image"
-                        >
-                          <Upload className="w-3.5 h-3.5" />
-                        </button>
-                        {e.status === 'draft' && (
-                          <button onClick={() => { setConfirm(e); setConfirmType('publish'); }} className="p-1.5 rounded-lg text-gray-400 hover:text-green-400 hover:bg-green-400/10 transition-colors" title="Publish">
-                            <Rocket className="w-3.5 h-3.5" />
-                          </button>
-                        )}
-                        {e.status === 'published' && (
-                          <button onClick={() => { setConfirm(e); setConfirmType('cancel'); }} className="p-1.5 rounded-lg text-gray-400 hover:text-orange-400 hover:bg-orange-400/10 transition-colors" title="Cancel Event">
-                            <XCircle className="w-3.5 h-3.5" />
-                          </button>
-                        )}
-                        <button onClick={() => { setConfirm(e); setConfirmType('delete'); }} className="p-1.5 rounded-lg text-gray-400 hover:text-red-400 hover:bg-red-400/10 transition-colors" title="Delete">
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </button>
-                      </div>
-                    </td>
+            {/* ── Tablet / Desktop: scrollable table (≥ md) ── */}
+            <div className="hidden md:block overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-copper/15 bg-black/20">
+                    <th className="text-left py-3 px-3 text-xs font-medium text-muted-text whitespace-nowrap">Cover</th>
+                    <th className="text-left py-3 px-3 text-xs font-medium text-muted-text whitespace-nowrap">Title</th>
+                    {/* Category hidden on md, shown lg+ */}
+                    <th className="text-left py-3 px-3 text-xs font-medium text-muted-text whitespace-nowrap hidden lg:table-cell">Category</th>
+                    <th className="text-left py-3 px-3 text-xs font-medium text-muted-text whitespace-nowrap">Status</th>
+                    <th className="text-left py-3 px-3 text-xs font-medium text-muted-text whitespace-nowrap">Start Date</th>
+                    {/* City hidden on md, shown lg+ */}
+                    <th className="text-left py-3 px-3 text-xs font-medium text-muted-text whitespace-nowrap hidden lg:table-cell">City</th>
+                    {/* Capacity hidden on md, shown xl+ */}
+                    <th className="text-left py-3 px-3 text-xs font-medium text-muted-text whitespace-nowrap hidden xl:table-cell">Capacity</th>
+                    {/* Available hidden on md, shown xl+ */}
+                    <th className="text-left py-3 px-3 text-xs font-medium text-muted-text whitespace-nowrap hidden xl:table-cell">Available</th>
+                    {/* Featured hidden on md, shown lg+ */}
+                    <th className="text-left py-3 px-3 text-xs font-medium text-muted-text whitespace-nowrap hidden lg:table-cell">Featured</th>
+                    <th className="text-left py-3 px-3 text-xs font-medium text-muted-text whitespace-nowrap">Actions</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody>
+                  {paginated.map((e) => (
+                    <tr key={e.id} className="border-b border-copper/8 hover:bg-copper/4 transition-colors">
+                      <td className="py-3 px-3">
+                        {e.cover_image ? (
+                          <img src={e.cover_image} alt="" className="w-12 h-8 object-cover rounded-lg" />
+                        ) : (
+                          <div className="w-12 h-8 bg-copper/10 rounded-lg flex items-center justify-center">
+                            <ImageIcon className="w-4 h-4 text-copper/40" />
+                          </div>
+                        )}
+                      </td>
+                      <td className="py-3 px-3 text-ivory-light font-medium text-xs max-w-[160px] truncate">{e.title}</td>
+                      <td className="py-3 px-3 text-muted-text text-xs capitalize hidden lg:table-cell">{e.category}</td>
+                      <td className="py-3 px-3"><Badge status={e.status ?? 'draft'} /></td>
+                      <td className="py-3 px-3 text-muted-text text-xs whitespace-nowrap">{formatDate(e.start_datetime)}</td>
+                      <td className="py-3 px-3 text-muted-text text-xs hidden lg:table-cell">{e.city ?? '—'}</td>
+                      <td className="py-3 px-3 text-muted-text text-xs hidden xl:table-cell">{e.total_capacity ?? '—'}</td>
+                      <td className="py-3 px-3 text-muted-text text-xs hidden xl:table-cell">{e.available_seats ?? '—'}</td>
+                      <td className="py-3 px-3 text-center text-xs hidden lg:table-cell">{e.featured ? '⭐' : '—'}</td>
+                      <td className="py-3 px-3">
+                        <div className="flex items-center gap-1">
+                          <button onClick={() => openEdit(e)} className="p-1.5 rounded-lg text-gray-400 hover:text-copper hover:bg-copper/10 transition-colors" title="Edit">
+                            <Edit3 className="w-3.5 h-3.5" />
+                          </button>
+                          <a href={`/events/${e.id}`} target="_blank" rel="noreferrer" className="p-1.5 rounded-lg text-gray-400 hover:text-blue-400 hover:bg-blue-400/10 transition-colors" title="View Public Page">
+                            <Eye className="w-3.5 h-3.5" />
+                          </a>
+                          <button onClick={() => triggerUpload(e)} className="p-1.5 rounded-lg text-gray-400 hover:text-purple-400 hover:bg-purple-400/10 transition-colors" title="Upload Cover">
+                            <Upload className="w-3.5 h-3.5" />
+                          </button>
+                          {e.status === 'draft' && (
+                            <button onClick={() => triggerConfirm(e, 'publish')} className="p-1.5 rounded-lg text-gray-400 hover:text-green-400 hover:bg-green-400/10 transition-colors" title="Publish">
+                              <Rocket className="w-3.5 h-3.5" />
+                            </button>
+                          )}
+                          {e.status === 'published' && (
+                            <button onClick={() => triggerConfirm(e, 'cancel')} className="p-1.5 rounded-lg text-gray-400 hover:text-orange-400 hover:bg-orange-400/10 transition-colors" title="Cancel Event">
+                              <XCircle className="w-3.5 h-3.5" />
+                            </button>
+                          )}
+                          <button onClick={() => triggerConfirm(e, 'delete')} className="p-1.5 rounded-lg text-gray-400 hover:text-red-400 hover:bg-red-400/10 transition-colors" title="Delete">
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </>
         )}
       </div>
 
@@ -476,7 +600,6 @@ export default function ManageEvents() {
       {showModal && (
         <div className="fixed inset-0 z-50 flex items-start justify-center p-4 overflow-y-auto bg-black/70 backdrop-blur-sm">
           <div className="relative bg-dark-surface rounded-2xl border border-copper/20 w-full max-w-2xl shadow-2xl my-8">
-            {/* Modal header */}
             <div className="flex items-center justify-between p-5 border-b border-copper/15">
               <h3 className="font-bold text-ivory-light text-lg">
                 {editEvent ? 'Edit Event' : 'Create Event'}
@@ -486,7 +609,6 @@ export default function ManageEvents() {
               </button>
             </div>
 
-            {/* Tab bar */}
             <div className="flex border-b border-copper/15">
               {['Basic Info', 'Settings', 'Ticket Tiers'].map((t, i) => (
                 <button
@@ -503,10 +625,7 @@ export default function ManageEvents() {
               ))}
             </div>
 
-            {/* Tab content */}
             <div className="p-5 space-y-4 max-h-[60vh] overflow-y-auto">
-
-              {/* ── Tab 0: Basic Info ────────────────────────────────────── */}
               {tab === 0 && (
                 <>
                   <div>
@@ -531,7 +650,7 @@ export default function ManageEvents() {
                       </select>
                     </div>
                   </div>
-                  <div className="grid grid-cols-2 gap-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
                       <label className="text-xs font-medium text-muted-text mb-1.5 block">Start Date &amp; Time *</label>
                       <input type="datetime-local" value={form.start_datetime} onChange={(e) => setForm((f) => ({ ...f, start_datetime: e.target.value }))} className={INPUT_CLS} />
@@ -541,7 +660,7 @@ export default function ManageEvents() {
                       <input type="datetime-local" value={form.end_datetime} onChange={(e) => setForm((f) => ({ ...f, end_datetime: e.target.value }))} className={INPUT_CLS} />
                     </div>
                   </div>
-                  <div className="grid grid-cols-2 gap-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
                       <label className="text-xs font-medium text-muted-text mb-1.5 block">Venue Name</label>
                       <input value={form.venue_name} onChange={(e) => setForm((f) => ({ ...f, venue_name: e.target.value }))} className={INPUT_CLS} placeholder="e.g. Kigali Arena" />
@@ -555,7 +674,7 @@ export default function ManageEvents() {
                     <label className="text-xs font-medium text-muted-text mb-1.5 block">Venue Address</label>
                     <input value={form.venue_address} onChange={(e) => setForm((f) => ({ ...f, venue_address: e.target.value }))} className={INPUT_CLS} placeholder="Full address" />
                   </div>
-                  <div className="grid grid-cols-3 gap-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                     <div>
                       <label className="text-xs font-medium text-muted-text mb-1.5 block">Country</label>
                       <input value={form.country} onChange={(e) => setForm((f) => ({ ...f, country: e.target.value }))} className={INPUT_CLS} />
@@ -572,7 +691,6 @@ export default function ManageEvents() {
                 </>
               )}
 
-              {/* ── Tab 1: Settings ──────────────────────────────────────── */}
               {tab === 1 && (
                 <>
                   <div>
@@ -600,7 +718,6 @@ export default function ManageEvents() {
                 </>
               )}
 
-              {/* ── Tab 2: Ticket Tiers ───────────────────────────────────── */}
               {tab === 2 && (
                 <div className="space-y-3">
                   {form.ticket_tiers.map((tier, i) => (
@@ -660,7 +777,6 @@ export default function ManageEvents() {
               )}
             </div>
 
-            {/* Footer buttons */}
             <div className="flex gap-3 p-5 border-t border-copper/15">
               <button
                 onClick={() => tab > 0 ? setTab((t) => t - 1) : setShowModal(false)}
@@ -689,22 +805,18 @@ export default function ManageEvents() {
         </div>
       )}
 
-      {/* ── Confirm Dialog ────────────────────────────────────────────────── */}
+      {/* ── Confirm Dialog ─────────────────────────────────────────────────── */}
       {confirm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
           <div className="relative bg-dark-card rounded-2xl border border-copper/20 w-full max-w-sm p-6 text-center shadow-2xl">
             <div className="w-14 h-14 rounded-2xl bg-yellow-500/10 flex items-center justify-center mx-auto mb-4">
               <AlertTriangle className="w-7 h-7 text-yellow-400" />
             </div>
-            <h3 className="font-bold text-ivory-light mb-2 text-lg">
-              {CONFIRM_META[confirmType].title}
-            </h3>
+            <h3 className="font-bold text-ivory-light mb-2 text-lg">{CONFIRM_META[confirmType].title}</h3>
             <p className="text-sm text-muted-text mb-1">
               <span className="font-semibold text-copper">{confirm.title}</span>
             </p>
-            <p className="text-sm text-muted-text mb-5">
-              {CONFIRM_META[confirmType].msg}
-            </p>
+            <p className="text-sm text-muted-text mb-5">{CONFIRM_META[confirmType].msg}</p>
             <div className="flex gap-3">
               <button
                 onClick={() => setConfirm(null)}

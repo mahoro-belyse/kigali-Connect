@@ -80,6 +80,64 @@ function formatDate(d?: string) {
   return new Date(d).toLocaleDateString('en-RW', { month: 'short', day: '2-digit', year: 'numeric' });
 }
 
+// ─── Mobile User Card ─────────────────────────────────────────────────────────
+
+function UserCard({
+  u,
+  onEdit,
+  onDeactivate,
+}: {
+  u: AppUser;
+  onEdit: (u: AppUser) => void;
+  onDeactivate: (u: AppUser) => void;
+}) {
+  return (
+    <div className="bg-dark-elevation rounded-xl border border-copper/15 p-4">
+      <div className="flex items-start gap-3">
+        <Avatar user={u} size="md" />
+        <div className="flex-1 min-w-0">
+          <div className="flex items-start justify-between gap-2">
+            <div className="min-w-0">
+              <p className="text-sm font-semibold text-ivory-light truncate">{u.full_name}</p>
+              <p className="text-xs text-muted-text font-mono">@{u.username}</p>
+            </div>
+            {/* Actions */}
+            <div className="flex items-center gap-1 shrink-0">
+              <button
+                onClick={() => onEdit(u)}
+                className="p-1.5 rounded-lg text-gray-400 hover:text-copper hover:bg-copper/10 transition-colors"
+                title="Edit role / status"
+              >
+                <Edit3 className="w-3.5 h-3.5" />
+              </button>
+              {u.is_active && (
+                <button
+                  onClick={() => onDeactivate(u)}
+                  className="p-1.5 rounded-lg text-gray-400 hover:text-red-400 hover:bg-red-400/10 transition-colors"
+                  title="Deactivate user"
+                >
+                  <UserX className="w-3.5 h-3.5" />
+                </button>
+              )}
+            </div>
+          </div>
+
+          <p className="text-xs text-muted-text mt-1 truncate">{u.email}</p>
+
+          <div className="flex items-center gap-2 flex-wrap mt-2">
+            <RoleBadge role={u.role} />
+            <StatusBadge active={u.is_active} />
+          </div>
+
+          <p className="text-xs text-muted-text mt-2">
+            Joined {formatJoined(u.created_at)}
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ─── Component ────────────────────────────────────────────────────────────────
 
 export default function UsersPage() {
@@ -123,7 +181,7 @@ export default function UsersPage() {
 
   useEffect(() => { fetchUsers(); }, [roleFilter, activeFilter]);
 
-  // ── Save role/status edit ─────────────────────────────────────────────────
+  // ── Save edit ─────────────────────────────────────────────────────────────
   const handleSaveEdit = async () => {
     if (!editUser) return;
     setSaving(true);
@@ -152,7 +210,7 @@ export default function UsersPage() {
     }
   };
 
-  // ── Deactivate user ───────────────────────────────────────────────────────
+  // ── Deactivate ────────────────────────────────────────────────────────────
   const handleDeactivate = async () => {
     if (!deactivateUser) return;
     setDeactivating(true);
@@ -174,7 +232,6 @@ export default function UsersPage() {
     }
   };
 
-  // ── Action buttons per user ───────────────────────────────────────────────
   const UserActions = ({ u }: { u: AppUser }) => (
     <div className="flex items-center gap-1">
       <button
@@ -196,7 +253,6 @@ export default function UsersPage() {
     </div>
   );
 
-  // ── Client-side search filter ─────────────────────────────────────────────
   const filtered = users.filter((u) => {
     if (!search) return true;
     const term = search.toLowerCase();
@@ -220,8 +276,8 @@ export default function UsersPage() {
             {loading ? 'Loading…' : `${filtered.length} user${filtered.length !== 1 ? 's' : ''}`}
           </p>
         </div>
-        {/* View toggle */}
-        <div className="flex items-center gap-2">
+        {/* View toggle — only meaningful on md+ (cards are forced on mobile) */}
+        <div className="hidden sm:flex items-center gap-2">
           {(['grid', 'list'] as ViewMode[]).map((v) => (
             <button
               key={v}
@@ -232,10 +288,7 @@ export default function UsersPage() {
                   : 'border-copper/20 text-muted-text hover:border-copper/40'
               }`}
             >
-              {v === 'grid'
-                ? <LayoutGrid className="w-4 h-4" />
-                : <List className="w-4 h-4" />
-              }
+              {v === 'grid' ? <LayoutGrid className="w-4 h-4" /> : <List className="w-4 h-4" />}
             </button>
           ))}
         </div>
@@ -255,7 +308,7 @@ export default function UsersPage() {
         </div>
         <select value={roleFilter} onChange={(e) => setRoleFilter(e.target.value)} className={INPUT_CLS}>
           <option value="">All Roles</option>
-          {['admin','event_manager','client'].map((r) => (
+          {['admin', 'event_manager', 'client'].map((r) => (
             <option key={r} value={r}>{ROLE_LABELS[r] ?? r}</option>
           ))}
         </select>
@@ -307,9 +360,7 @@ export default function UsersPage() {
                   <RoleBadge role={u.role} />
                   <StatusBadge active={u.is_active} />
                 </div>
-                <p className="text-xs text-muted-text mt-3">
-                  Joined {formatJoined(u.created_at)}
-                </p>
+                <p className="text-xs text-muted-text mt-3">Joined {formatJoined(u.created_at)}</p>
               </div>
             ))}
           </div>
@@ -318,58 +369,93 @@ export default function UsersPage() {
 
       {/* ── List view ─────────────────────────────────────────────────────── */}
       {view === 'list' && (
-        <div className="bg-dark-card rounded-2xl border border-copper/20 overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-copper/15 bg-black/20">
-                  {['User', 'Email', 'Username', 'Role', 'Status', 'Joined', 'Actions'].map((h) => (
-                    <th key={h} className="text-left py-3 px-4 text-xs font-medium text-muted-text whitespace-nowrap">{h}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {loading ? (
-                  Array.from({ length: 6 }).map((_, i) => (
-                    <tr key={i} className="border-b border-copper/8">
-                      {Array.from({ length: 7 }).map((_, j) => (
-                        <td key={j} className="py-3 px-4">
-                          <div className="h-4 bg-gray-400/10 rounded animate-pulse w-20" />
-                        </td>
-                      ))}
-                    </tr>
-                  ))
-                ) : filtered.length === 0 ? (
-                  <tr>
-                    <td colSpan={7} className="py-20 text-center text-muted-text">
-                      No users found
-                    </td>
-                  </tr>
-                ) : (
-                  filtered.map((u) => (
-                    <tr
-                      key={u.id}
-                      className="border-b border-copper/8 hover:bg-copper/4 transition-colors"
-                    >
-                      <td className="py-3 px-4">
-                        <div className="flex items-center gap-2">
-                          <Avatar user={u} size="sm" />
-                          <span className="text-ivory-light font-medium text-xs">{u.full_name}</span>
-                        </div>
-                      </td>
-                      <td className="py-3 px-4 text-muted-text text-xs">{u.email}</td>
-                      <td className="py-3 px-4 text-muted-text text-xs font-mono">@{u.username}</td>
-                      <td className="py-3 px-4"><RoleBadge role={u.role} /></td>
-                      <td className="py-3 px-4"><StatusBadge active={u.is_active} /></td>
-                      <td className="py-3 px-4 text-muted-text text-xs whitespace-nowrap">{formatDate(u.created_at)}</td>
-                      <td className="py-3 px-4"><UserActions u={u} /></td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
+        <>
+          {/* Mobile: stacked cards (< md) */}
+          <div className="md:hidden space-y-3">
+            {loading ? (
+              Array.from({ length: 5 }).map((_, i) => (
+                <div key={i} className="bg-dark-card rounded-xl border border-copper/20 p-4 space-y-2 animate-pulse">
+                  <div className="flex gap-3">
+                    <div className="w-9 h-9 rounded-full bg-gray-400/10 shrink-0" />
+                    <div className="flex-1 space-y-2">
+                      <div className="h-4 bg-gray-400/10 rounded w-1/2" />
+                      <div className="h-3 bg-gray-400/10 rounded w-3/4" />
+                    </div>
+                  </div>
+                </div>
+              ))
+            ) : filtered.length === 0 ? (
+              <div className="py-20 flex flex-col items-center gap-3">
+                <Users className="w-12 h-12 text-copper/30" />
+                <p className="text-base font-medium text-ivory-light">No users found</p>
+              </div>
+            ) : (
+              filtered.map((u) => (
+                <UserCard
+                  key={u.id}
+                  u={u}
+                  onEdit={(u) => { setEditUser(u); setEditForm({ role: u.role, is_active: u.is_active }); }}
+                  onDeactivate={setDeactivateUser}
+                />
+              ))
+            )}
           </div>
-        </div>
+
+          {/* Tablet / Desktop: scrollable table (≥ md) */}
+          <div className="hidden md:block bg-dark-card rounded-2xl border border-copper/20 overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-copper/15 bg-black/20">
+                    <th className="text-left py-3 px-4 text-xs font-medium text-muted-text whitespace-nowrap">User</th>
+                    <th className="text-left py-3 px-4 text-xs font-medium text-muted-text whitespace-nowrap">Email</th>
+                    {/* Username hidden on md, shown lg+ */}
+                    <th className="text-left py-3 px-4 text-xs font-medium text-muted-text whitespace-nowrap hidden lg:table-cell">Username</th>
+                    <th className="text-left py-3 px-4 text-xs font-medium text-muted-text whitespace-nowrap">Role</th>
+                    <th className="text-left py-3 px-4 text-xs font-medium text-muted-text whitespace-nowrap">Status</th>
+                    {/* Joined hidden on md, shown lg+ */}
+                    <th className="text-left py-3 px-4 text-xs font-medium text-muted-text whitespace-nowrap hidden lg:table-cell">Joined</th>
+                    <th className="text-left py-3 px-4 text-xs font-medium text-muted-text whitespace-nowrap">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {loading ? (
+                    Array.from({ length: 6 }).map((_, i) => (
+                      <tr key={i} className="border-b border-copper/8">
+                        {Array.from({ length: 7 }).map((_, j) => (
+                          <td key={j} className="py-3 px-4">
+                            <div className="h-4 bg-gray-400/10 rounded animate-pulse w-20" />
+                          </td>
+                        ))}
+                      </tr>
+                    ))
+                  ) : filtered.length === 0 ? (
+                    <tr>
+                      <td colSpan={7} className="py-20 text-center text-muted-text">No users found</td>
+                    </tr>
+                  ) : (
+                    filtered.map((u) => (
+                      <tr key={u.id} className="border-b border-copper/8 hover:bg-copper/4 transition-colors">
+                        <td className="py-3 px-4">
+                          <div className="flex items-center gap-2">
+                            <Avatar user={u} size="sm" />
+                            <span className="text-ivory-light font-medium text-xs">{u.full_name}</span>
+                          </div>
+                        </td>
+                        <td className="py-3 px-4 text-muted-text text-xs max-w-[160px] truncate">{u.email}</td>
+                        <td className="py-3 px-4 text-muted-text text-xs font-mono hidden lg:table-cell">@{u.username}</td>
+                        <td className="py-3 px-4"><RoleBadge role={u.role} /></td>
+                        <td className="py-3 px-4"><StatusBadge active={u.is_active} /></td>
+                        <td className="py-3 px-4 text-muted-text text-xs whitespace-nowrap hidden lg:table-cell">{formatDate(u.created_at)}</td>
+                        <td className="py-3 px-4"><UserActions u={u} /></td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </>
       )}
 
       {/* ── Edit modal ────────────────────────────────────────────────────── */}
@@ -384,8 +470,6 @@ export default function UsersPage() {
                 <X className="w-5 h-5" />
               </button>
             </div>
-
-            {/* User info */}
             <div className="flex items-center gap-3 mb-5 p-3 rounded-xl bg-dark-elevation border border-copper/15">
               <Avatar user={editUser} size="md" />
               <div className="min-w-0">
@@ -393,15 +477,13 @@ export default function UsersPage() {
                 <p className="text-xs text-muted-text truncate">{editUser.email}</p>
               </div>
             </div>
-
             <div className="space-y-4">
               <div>
                 <label className="text-xs font-medium text-muted-text mb-1.5 block">Role</label>
                 <select
                   value={editForm.role}
                   onChange={(e) => setEditForm((f) => ({ ...f, role: e.target.value }))}
-                  className={`w-full px-3 py-2.5 border border-copper/20 rounded-xl
-                    focus:border-copper focus:outline-none text-sm bg-dark-elevation text-ivory-light`}
+                  className="w-full px-3 py-2.5 border border-copper/20 rounded-xl focus:border-copper focus:outline-none text-sm bg-dark-elevation text-ivory-light"
                 >
                   <option value="admin">Admin</option>
                   <option value="event_manager">Event Manager</option>
@@ -413,15 +495,13 @@ export default function UsersPage() {
                 <select
                   value={editForm.is_active ? 'active' : 'inactive'}
                   onChange={(e) => setEditForm((f) => ({ ...f, is_active: e.target.value === 'active' }))}
-                  className={`w-full px-3 py-2.5 border border-copper/20 rounded-xl
-                    focus:border-copper focus:outline-none text-sm bg-dark-elevation text-ivory-light`}
+                  className="w-full px-3 py-2.5 border border-copper/20 rounded-xl focus:border-copper focus:outline-none text-sm bg-dark-elevation text-ivory-light"
                 >
                   <option value="active">Active</option>
                   <option value="inactive">Inactive</option>
                 </select>
               </div>
             </div>
-
             <div className="flex gap-3 mt-5">
               <button
                 onClick={() => setEditUser(null)}

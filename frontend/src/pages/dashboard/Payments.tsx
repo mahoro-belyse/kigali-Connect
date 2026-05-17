@@ -1,9 +1,11 @@
+// src/pages/dashboard/Payments.tsx
+// ─── FIXED: Shows unpaid bookings + paid payments for all roles ───────────────
 import { useState, useEffect, useCallback } from 'react';
 import {
   DollarSign, CreditCard, TrendingUp, RefreshCw,
-  Receipt, AlertTriangle, Search, Filter, X,
+   AlertTriangle, Search, Filter, X, Clock, CheckCircle, Ticket,
 } from 'lucide-react';
-import { paymentsApi } from '../../api/client';
+import { paymentsApi, bookingsApi } from '../../api/client';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../components/ui/use-toast';
 
@@ -13,15 +15,25 @@ interface Payment {
   id: number;
   transaction_id?: string;
   booking_id?: number;
-  booking_reference?: string;
-  event_title?: string;
   amount?: number | string;
-  method?: string;
-  status: string;
   receipt_number?: string;
   receipt_url?: string;
+}
+
+interface Booking {
+  id: number;
+  booking_reference?: string;
+  status: string;
+  payment_status: string;
+  final_amount?: number | string;
+  total_amount?: number | string;
   created_at?: string;
-  booking?: { booking_reference?: string; event?: { title?: string } };
+  quantity?: number;
+  event?: { title?: string; start_datetime?: string };
+  event_title?: string;
+  ticket_tier?: { name?: string };
+  ticket_type_name?: string;
+  payment?: Payment | null;
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -38,7 +50,7 @@ const STATUS_COLORS: Record<string, string> = {
 function Badge({ status }: { status: string }) {
   return (
     <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium border capitalize ${STATUS_COLORS[status] ?? 'bg-gray-500/15 text-gray-400 border-gray-500/30'}`}>
-      {status.replace('_', ' ')}
+      {status.replace(/_/g, ' ')}
     </span>
   );
 }
@@ -54,10 +66,10 @@ function formatDate(d?: string) {
   return new Date(d).toLocaleDateString('en-RW', { month: 'short', day: '2-digit', year: 'numeric' });
 }
 
-const getBookingRef = (p: Payment) => p.booking?.booking_reference ?? p.booking_reference ?? '—';
-const getEventTitle = (p: Payment) => p.booking?.event?.title ?? p.event_title ?? '—';
-const getAmount     = (p: Payment) => Number(p.amount ?? 0).toLocaleString();
-const getTxnId      = (p: Payment) => p.transaction_id ?? `#${p.id}`;
+const getAmount     = (b: Booking) => Number(b.final_amount ?? b.total_amount ?? 0);
+const getEventTitle = (b: Booking) => b.event?.title ?? b.event_title ?? '—';
+const getTicket     = (b: Booking) => (b.ticket_tier?.name ?? b.ticket_type_name ?? '—').replace('_', ' ');
+const getRef        = (b: Booking) => b.booking_reference ?? `#${b.id}`;
 
 const INPUT_CLS = `px-3 py-2.5 border border-copper/20 rounded-xl
   focus:border-copper focus:outline-none focus:ring-1 focus:ring-copper/30
@@ -70,73 +82,72 @@ const PAY_METHODS = [
   { value: 'simulated',    label: '🧪 Simulated'    },
 ] as const;
 
-// ─── Mobile Payment Card ──────────────────────────────────────────────────────
+// ─── Mobile card ──────────────────────────────────────────────────────────────
 
-function PaymentCard({
-  p, isClient, isAdmin,
+function BookingPaymentCard({
+  b, isClient, isAdmin,
   onPay, onRefund,
 }: {
-  p: Payment;
+  b: Booking;
   isClient: boolean;
   isAdmin: boolean;
-  onPay: (p: Payment) => void;
+  onPay: (b: Booking) => void;
   onRefund: (p: Payment) => void;
 }) {
+  const amt       = getAmount(b);
+  const isPaid    = b.payment_status === 'paid';
+  const isUnpaid  = b.payment_status === 'unpaid';
+  const isFree    = amt === 0;
+
   return (
     <div className="bg-dark-elevation rounded-xl border border-copper/15 p-4 space-y-3">
-      {/* Top row: txn id + status */}
       <div className="flex items-center justify-between gap-2">
-        <span className="font-mono text-xs text-copper truncate">{getTxnId(p)}</span>
-        <Badge status={p.status ?? 'unpaid'} />
+        <span className="font-mono text-xs text-copper truncate">{getRef(b)}</span>
+        <Badge status={isFree ? 'paid' : b.payment_status} />
       </div>
-
-      {/* Event title */}
-      <p className="text-sm font-medium text-ivory-light truncate">{getEventTitle(p)}</p>
-
-      {/* Details grid */}
+      <p className="text-sm font-medium text-ivory-light truncate">{getEventTitle(b)}</p>
       <div className="grid grid-cols-2 gap-x-4 gap-y-1.5 text-xs">
         <div>
-          <span className="text-muted-text block">Booking Ref</span>
-          <span className="font-mono text-ivory-light">{getBookingRef(p)}</span>
+          <span className="text-muted-text block">Ticket</span>
+          <span className="text-ivory-light capitalize">{getTicket(b)}</span>
         </div>
         <div>
           <span className="text-muted-text block">Amount</span>
-          <span className="font-semibold text-ivory-light">{getAmount(p)} RWF</span>
+          <span className="font-semibold text-ivory-light">{isFree ? 'Free' : `${amt.toLocaleString()} RWF`}</span>
         </div>
         <div>
-          <span className="text-muted-text block">Method</span>
-          <span className="text-ivory-light capitalize">{(p.method ?? 'simulated').replace('_', ' ')}</span>
+          <span className="text-muted-text block">Qty</span>
+          <span className="text-ivory-light">{b.quantity ?? 1}</span>
         </div>
         <div>
           <span className="text-muted-text block">Date</span>
-          <span className="text-ivory-light">{formatDate(p.created_at)}</span>
+          <span className="text-ivory-light">{formatDate(b.created_at)}</span>
         </div>
-        {(p.receipt_number || p.receipt_url) && (
+        {b.payment?.transaction_id && (
+          <div className="col-span-2">
+            <span className="text-muted-text block">Transaction</span>
+            <span className="font-mono text-ivory-light text-xs">{b.payment.transaction_id}</span>
+          </div>
+        )}
+        {b.payment?.receipt_number && (
           <div className="col-span-2">
             <span className="text-muted-text block">Receipt</span>
-            {p.receipt_number ? (
-              <span className="font-mono text-ivory-light">{p.receipt_number}</span>
-            ) : (
-              <a href={p.receipt_url} target="_blank" rel="noreferrer" className="text-blue-400 hover:underline flex items-center gap-1">
-                <Receipt className="w-3.5 h-3.5" /> View
-              </a>
-            )}
+            <span className="font-mono text-ivory-light">{b.payment.receipt_number}</span>
           </div>
         )}
       </div>
 
-      {/* Actions */}
-      {isClient && p.status === 'unpaid' && (
+      {isClient && isUnpaid && !isFree && (
         <button
-          onClick={() => onPay(p)}
-          className="w-full py-2 text-xs text-white rounded-lg font-medium hover:opacity-90 transition-opacity bg-gradient-to-br from-copper to-copper-light"
+          onClick={() => onPay(b)}
+          className="w-full py-2 text-xs text-white rounded-lg font-semibold hover:opacity-90 transition-opacity bg-gradient-to-br from-copper to-copper-light"
         >
-          Pay Now
+          💳 Pay Now
         </button>
       )}
-      {isAdmin && p.status === 'paid' && (
+      {isAdmin && isPaid && b.payment && (
         <button
-          onClick={() => onRefund(p)}
+          onClick={() => onRefund(b.payment!)}
           className="w-full py-2 text-xs bg-purple-500/20 text-purple-400 hover:bg-purple-500/30 rounded-lg font-medium transition-colors"
         >
           Refund
@@ -146,7 +157,7 @@ function PaymentCard({
   );
 }
 
-// ─── Component ────────────────────────────────────────────────────────────────
+// ─── Main Component ───────────────────────────────────────────────────────────
 
 export default function Payments() {
   const { user }  = useAuth();
@@ -154,69 +165,71 @@ export default function Payments() {
   const isAdmin   = user?.role === 'admin';
   const isClient  = user?.role === 'client';
 
-  const [payments,      setPayments]      = useState<Payment[]>([]);
+  const [bookings,      setBookings]      = useState<Booking[]>([]);
   const [loading,       setLoading]       = useState(true);
   const [search,        setSearch]        = useState('');
   const [statusFilter,  setStatusFilter]  = useState('');
+  const [payTarget,     setPayTarget]     = useState<Booking | null>(null);
+  const [payMethod,     setPayMethod]     = useState('simulated');
   const [refundTarget,  setRefundTarget]  = useState<Payment | null>(null);
   const [refundForm,    setRefundForm]    = useState({ reason: '', amount: '' });
-  const [payTarget,     setPayTarget]     = useState<Payment | null>(null);
-  const [payMethod,     setPayMethod]     = useState<string>('simulated');
   const [actionLoading, setActionLoading] = useState(false);
 
-  // ── Fetch ─────────────────────────────────────────────────────────────────
-  const fetchPayments = useCallback(async () => {
+  // ── KEY FIX: fetch BOOKINGS not payments ──────────────────────────────────
+  // Old version used paymentsApi.list() which only returns records AFTER
+  // payment is made — so unpaid bookings were invisible.
+  // Now we fetch bookings which always have a payment_status field.
+  const fetchData = useCallback(async () => {
     setLoading(true);
     try {
-      const params: Record<string, unknown> = {
-        per_page: 50,
-        ...(statusFilter && { status: statusFilter }),
-      };
-      const res  = await paymentsApi.list(params);
+      const params: Record<string, unknown> = { per_page: 50};
+      if (statusFilter) params.payment_status = statusFilter;
+
+      const res = isClient
+        ? await bookingsApi.myBookings(params)
+        : await bookingsApi.list(params);
+
       const data = res.data;
-      const list: Payment[] = Array.isArray(data)
+      const list: Booking[] = Array.isArray(data)
         ? data
-        : data?.payments ?? data?.items ?? [];
-      setPayments(list);
+        : data?.bookings ?? data?.items ?? [];
+
+      // Only show non-cancelled bookings
+      setBookings(list.filter(b => b.status !== 'cancelled'));
     } catch {
-      setPayments([]);
-      toast({ title: 'Failed to load payments', variant: 'destructive' });
+      setBookings([]);
+      toast({ title: 'Failed to load payment data', variant: 'destructive' });
     } finally {
       setLoading(false);
     }
-  }, [statusFilter]);
+  }, [isClient, statusFilter]);
 
-  useEffect(() => { fetchPayments(); }, [fetchPayments]);
+  useEffect(() => { fetchData(); }, [fetchData]);
 
   // ── Totals ────────────────────────────────────────────────────────────────
-  const totalRevenue  = payments.reduce((s, p) => s + (Number(p.amount) || 0), 0);
-  const totalPaid     = payments.filter((p) => p.status === 'paid').reduce((s, p) => s + (Number(p.amount) || 0), 0);
-  const totalRefunded = payments.filter((p) => ['refunded', 'partially_refunded'].includes(p.status))
-    .reduce((s, p) => s + (Number(p.amount) || 0), 0);
+  const totalPaid     = bookings.filter(b => b.payment_status === 'paid').reduce((s, b) => s + getAmount(b), 0);
+  const totalUnpaid   = bookings.filter(b => b.payment_status === 'unpaid').reduce((s, b) => s + getAmount(b), 0);
+  const totalRefunded = bookings.filter(b => ['refunded','partially_refunded'].includes(b.payment_status)).reduce((s, b) => s + getAmount(b), 0);
 
-  // ── Search filter ─────────────────────────────────────────────────────────
-  const filtered = payments.filter((p) => {
+  // ── Search ────────────────────────────────────────────────────────────────
+  const filtered = bookings.filter(b => {
     if (!search) return true;
     const term = search.toLowerCase();
     return (
-      getTxnId(p).toLowerCase().includes(term) ||
-      getBookingRef(p).toLowerCase().includes(term) ||
-      getEventTitle(p).toLowerCase().includes(term)
+      getRef(b).toLowerCase().includes(term) ||
+      getEventTitle(b).toLowerCase().includes(term)
     );
   });
 
   // ── Pay ───────────────────────────────────────────────────────────────────
   const handlePay = async () => {
-    if (!payTarget?.booking_id) {
-      toast({ title: 'No booking ID found', variant: 'destructive' });
-      return;
-    }
+    if (!payTarget) return;
     setActionLoading(true);
     try {
-      await paymentsApi.pay(payTarget.booking_id, payMethod);
-      toast({ title: '✅ Payment processed successfully!' });
+      await paymentsApi.pay(payTarget.id, payMethod);
+      toast({ title: '✅ Payment successful!' });
       setPayTarget(null);
-      fetchPayments();
+      fetchData();
     } catch (err: any) {
       toast({ title: 'Payment failed', description: err.response?.data?.detail ?? err.message, variant: 'destructive' });
     } finally {
@@ -226,20 +239,20 @@ export default function Payments() {
 
   // ── Refund ────────────────────────────────────────────────────────────────
   const handleRefund = async () => {
-    if (!refundForm.reason.trim()) {
-      toast({ title: 'Refund reason is required', variant: 'destructive' });
+    if (!refundTarget || !refundForm.reason.trim()) {
+      toast({ title: 'Reason is required', variant: 'destructive' });
       return;
     }
-    if (!refundTarget) return;
     setActionLoading(true);
     try {
       await paymentsApi.refund(refundTarget.id, {
         reason: refundForm.reason,
         amount: refundForm.amount ? parseFloat(refundForm.amount) : undefined,
       });
-      toast({ title: '✅ Refund processed successfully' });
+      toast({ title: '✅ Refund processed' });
       setRefundTarget(null);
-      fetchPayments();
+      setRefundForm({ reason: '', amount: '' });
+      fetchData();
     } catch (err: any) {
       toast({ title: 'Refund failed', description: err.response?.data?.detail ?? err.message, variant: 'destructive' });
     } finally {
@@ -256,24 +269,27 @@ export default function Payments() {
           <DollarSign className="w-6 h-6 text-copper" /> Payments
         </h1>
         <p className="text-sm text-muted-text mt-1">
-          {isClient ? 'Your payment history' : 'Track all transactions and revenue'}
+          {isClient ? 'Your bookings and payment status' : 'All booking payments across the platform'}
         </p>
       </div>
 
       {/* Summary cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
         {[
-          { label: 'Total Revenue (RWF)',  value: `${totalRevenue.toLocaleString()} RWF`,  icon: DollarSign, color: 'bg-copper/20 text-copper'             },
-          { label: 'Total Paid (RWF)',     value: `${totalPaid.toLocaleString()} RWF`,     icon: TrendingUp, color: 'bg-green-500/20 text-green-400'        },
-          { label: 'Total Refunded (RWF)', value: `${totalRefunded.toLocaleString()} RWF`, icon: RefreshCw,  color: 'bg-purple-500/20 text-purple-400'      },
-        ].map(({ label, value, icon: Icon, color }) => (
+          { label: 'Total Paid (RWF)',    value: totalPaid,     icon: TrendingUp, color: 'bg-green-500/20 text-green-400',   count: bookings.filter(b => b.payment_status === 'paid').length },
+          { label: 'Pending (RWF)',       value: totalUnpaid,   icon: Clock,      color: 'bg-yellow-500/20 text-yellow-400', count: bookings.filter(b => b.payment_status === 'unpaid').length },
+          { label: 'Refunded (RWF)',      value: totalRefunded, icon: RefreshCw,  color: 'bg-purple-500/20 text-purple-400', count: bookings.filter(b => ['refunded','partially_refunded'].includes(b.payment_status)).length },
+        ].map(({ label, value, icon: Icon, color, count }) => (
           <div key={label} className="bg-dark-card rounded-2xl border border-copper/20 p-5 flex items-center gap-4">
             <div className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 ${color}`}>
               <Icon className="w-5 h-5" />
             </div>
             <div>
               <p className="text-xs text-muted-text">{label}</p>
-              <p className="text-lg font-bold text-ivory-light mt-0.5">{value}</p>
+              <p className="text-lg font-bold text-ivory-light mt-0.5">
+                {value === 0 ? '—' : `${value.toLocaleString()} RWF`}
+              </p>
+              <p className="text-xs text-muted-text">{count} booking{count !== 1 ? 's' : ''}</p>
             </div>
           </div>
         ))}
@@ -285,26 +301,26 @@ export default function Payments() {
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
           <input
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Transaction ID or booking ref…"
+            onChange={e => setSearch(e.target.value)}
+            placeholder="Booking ref or event name…"
             className={`${INPUT_CLS} w-full pl-9`}
           />
         </div>
-        <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className={INPUT_CLS}>
+        <select value={statusFilter} onChange={e => setStatusFilter(e.target.value)} className={INPUT_CLS}>
           <option value="">All Statuses</option>
-          {['paid', 'unpaid', 'refunded', 'partially_refunded', 'failed'].map((s) => (
-            <option key={s} value={s}>{s.replace('_', ' ')}</option>
-          ))}
+          <option value="unpaid">Unpaid</option>
+          <option value="paid">Paid</option>
+          <option value="refunded">Refunded</option>
         </select>
         <button
-          onClick={fetchPayments}
+          onClick={fetchData}
           className="px-4 py-2.5 text-white text-sm rounded-xl font-medium flex items-center gap-2 hover:opacity-90 transition-opacity bg-gradient-to-br from-copper to-copper-light"
         >
           <Filter className="w-4 h-4" /> Refresh
         </button>
       </div>
 
-      {/* ── Table/Cards ───────────────────────────────────────────────────────── */}
+      {/* Table / Cards */}
       <div className="bg-dark-card rounded-2xl border border-copper/20 overflow-hidden">
         {loading ? (
           <div className="py-20 flex justify-center"><Spinner /></div>
@@ -312,84 +328,114 @@ export default function Payments() {
           <div className="py-20 flex flex-col items-center gap-3">
             <DollarSign className="w-12 h-12 text-copper/30" />
             <p className="text-base font-medium text-ivory-light">No payments found</p>
+            <p className="text-sm text-muted-text">
+              {isClient ? 'Book an event to see your payment status here' : 'No bookings match your filters'}
+            </p>
           </div>
         ) : (
           <>
-            {/* ── Mobile: stacked cards (< md) ── */}
+            {/* ── Mobile: stacked cards ── */}
             <div className="md:hidden divide-y divide-copper/10 p-3 space-y-3">
-              {filtered.map((p) => (
-                <PaymentCard
-                  key={p.id}
-                  p={p}
-                  isClient={isClient}
-                  isAdmin={isAdmin}
-                  onPay={setPayTarget}
-                  onRefund={(p) => { setRefundTarget(p); setRefundForm({ reason: '', amount: '' }); }}
+              {filtered.map(b => (
+                <BookingPaymentCard
+                  key={b.id} b={b}
+                  isClient={isClient} isAdmin={isAdmin}
+                  onPay={b => { setPayTarget(b); setPayMethod('simulated'); }}
+                  onRefund={p => { setRefundTarget(p); setRefundForm({ reason: '', amount: '' }); }}
                 />
               ))}
             </div>
 
-            {/* ── Tablet / Desktop: scrollable table (≥ md) ── */}
+            {/* ── Desktop: table ── */}
             <div className="hidden md:block overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-copper/15 bg-black/20">
-                    <th className="text-left py-3 px-3 text-xs font-medium text-muted-text whitespace-nowrap">Transaction ID</th>
-                    {/* Booking ref hidden on md, visible lg+ */}
-                    <th className="text-left py-3 px-3 text-xs font-medium text-muted-text whitespace-nowrap hidden lg:table-cell">Booking Ref</th>
-                    <th className="text-left py-3 px-3 text-xs font-medium text-muted-text whitespace-nowrap">Event</th>
-                    <th className="text-left py-3 px-3 text-xs font-medium text-muted-text whitespace-nowrap">Amount (RWF)</th>
-                    {/* Method hidden on md, visible lg+ */}
-                    <th className="text-left py-3 px-3 text-xs font-medium text-muted-text whitespace-nowrap hidden lg:table-cell">Method</th>
-                    <th className="text-left py-3 px-3 text-xs font-medium text-muted-text whitespace-nowrap">Status</th>
-                    {/* Receipt hidden on md, visible xl+ */}
-                    <th className="text-left py-3 px-3 text-xs font-medium text-muted-text whitespace-nowrap hidden xl:table-cell">Receipt</th>
-                    {/* Date hidden on md, visible lg+ */}
-                    <th className="text-left py-3 px-3 text-xs font-medium text-muted-text whitespace-nowrap hidden lg:table-cell">Date</th>
-                    <th className="text-left py-3 px-3 text-xs font-medium text-muted-text whitespace-nowrap">Actions</th>
+                    {['Booking Ref', 'Event', 'Ticket', 'Qty', 'Amount (RWF)', 'Status', 'Transaction ID', 'Date', 'Action'].map(h => (
+                      <th key={h} className="text-left py-3 px-3 text-xs font-medium text-muted-text whitespace-nowrap">{h}</th>
+                    ))}
                   </tr>
                 </thead>
                 <tbody>
-                  {filtered.map((p) => (
-                    <tr key={p.id} className="border-b border-copper/8 hover:bg-copper/4 transition-colors">
-                      <td className="py-3 px-3 font-mono text-xs text-copper whitespace-nowrap">{getTxnId(p)}</td>
-                      <td className="py-3 px-3 font-mono text-xs text-muted-text hidden lg:table-cell">{getBookingRef(p)}</td>
-                      <td className="py-3 px-3 text-ivory-light text-xs max-w-[140px] truncate">{getEventTitle(p)}</td>
-                      <td className="py-3 px-3 text-ivory-light font-semibold text-xs whitespace-nowrap">{getAmount(p)} RWF</td>
-                      <td className="py-3 px-3 text-muted-text text-xs capitalize hidden lg:table-cell">{(p.method ?? 'simulated').replace('_', ' ')}</td>
-                      <td className="py-3 px-3"><Badge status={p.status ?? 'unpaid'} /></td>
-                      <td className="py-3 px-3 hidden xl:table-cell">
-                        {p.receipt_number ? (
-                          <span className="text-xs text-muted-text font-mono">{p.receipt_number}</span>
-                        ) : p.receipt_url ? (
-                          <a href={p.receipt_url} target="_blank" rel="noreferrer" className="text-xs text-blue-400 hover:underline flex items-center gap-1">
-                            <Receipt className="w-3.5 h-3.5" /> View
-                          </a>
-                        ) : (
-                          <span className="text-xs text-muted-text">—</span>
-                        )}
-                      </td>
-                      <td className="py-3 px-3 text-muted-text text-xs whitespace-nowrap hidden lg:table-cell">{formatDate(p.created_at)}</td>
-                      <td className="py-3 px-3">
-                        {isClient && p.status === 'unpaid' && (
-                          <button
-                            onClick={() => setPayTarget(p)}
-                            className="px-2.5 py-1 text-xs text-white rounded-lg font-medium hover:opacity-90 transition-opacity bg-gradient-to-br from-copper to-copper-light"
-                          >
-                            Pay Now
-                          </button>
-                        )}
-                        {isAdmin && p.status === 'paid' && (
-                          <button
-                            onClick={() => { setRefundTarget(p); setRefundForm({ reason: '', amount: '' }); }}
-                            className="px-2.5 py-1 text-xs bg-purple-500/20 text-purple-400 hover:bg-purple-500/30 rounded-lg font-medium transition-colors"
-                          >
-                            Refund
-                          </button>
-                        )}
-                      </td>
-                    </tr>
-                  ))}
+                  {filtered.map(b => {
+                    const amt      = getAmount(b);
+                    const isPaid   = b.payment_status === 'paid';
+                    const isUnpaid = b.payment_status === 'unpaid';
+                    const isFree   = amt === 0;
+
+                    return (
+                      <tr
+                        key={b.id}
+                        className={`border-b border-copper/8 hover:bg-copper/4 transition-colors ${isUnpaid && !isFree ? 'border-l-2 border-l-yellow-500/50' : ''}`}
+                      >
+                        {/* Ref */}
+                        <td className="py-3 px-3 font-mono text-xs text-copper whitespace-nowrap">{getRef(b)}</td>
+
+                        {/* Event */}
+                        <td className="py-3 px-3 text-ivory-light text-xs max-w-[130px] truncate">{getEventTitle(b)}</td>
+
+                        {/* Ticket */}
+                        <td className="py-3 px-3 text-muted-text text-xs capitalize">{getTicket(b)}</td>
+
+                        {/* Qty */}
+                        <td className="py-3 px-3 text-ivory-light text-xs text-center">{b.quantity ?? 1}</td>
+
+                        {/* Amount */}
+                        <td className="py-3 px-3 font-semibold text-xs whitespace-nowrap">
+                          <span className={isFree ? 'text-green-400' : 'text-copper'}>
+                            {isFree ? 'Free' : `${amt.toLocaleString()} RWF`}
+                          </span>
+                        </td>
+
+                        {/* Status */}
+                        <td className="py-3 px-3">
+                          <div className="flex items-center gap-1.5">
+                            {isUnpaid && !isFree && <Clock className="w-3 h-3 text-yellow-400 shrink-0" />}
+                            {(isPaid || isFree)   && <CheckCircle className="w-3 h-3 text-green-400 shrink-0" />}
+                            <Badge status={isFree ? 'paid' : b.payment_status} />
+                          </div>
+                        </td>
+
+                        {/* Transaction */}
+                        <td className="py-3 px-3 text-muted-text text-xs font-mono">
+                          {b.payment?.transaction_id ?? (isPaid ? b.payment?.receipt_number ?? '—' : '—')}
+                        </td>
+
+                        {/* Date */}
+                        <td className="py-3 px-3 text-muted-text text-xs whitespace-nowrap">{formatDate(b.created_at)}</td>
+
+                        {/* Action */}
+                        <td className="py-3 px-3">
+                          {isClient && isUnpaid && !isFree && (
+                            <button
+                              onClick={() => { setPayTarget(b); setPayMethod('simulated'); }}
+                              className="px-3 py-1.5 text-xs text-white rounded-lg font-semibold hover:opacity-90 transition-opacity flex items-center gap-1 whitespace-nowrap bg-gradient-to-br from-copper to-copper-light"
+                            >
+                              <CreditCard className="w-3 h-3" /> Pay Now
+                            </button>
+                          )}
+                          {isAdmin && isPaid && b.payment && (
+                            <button
+                              onClick={() => { setRefundTarget(b.payment!); setRefundForm({ reason: '', amount: '' }); }}
+                              className="px-2.5 py-1 text-xs bg-purple-500/20 text-purple-400 hover:bg-purple-500/30 rounded-lg font-medium transition-colors"
+                            >
+                              Refund
+                            </button>
+                          )}
+                          {isPaid && !isAdmin && (
+                            <span className="text-xs text-green-400 flex items-center gap-1">
+                              <CheckCircle className="w-3 h-3" /> Paid
+                            </span>
+                          )}
+                          {isFree && (
+                            <span className="text-xs text-green-400 flex items-center gap-1">
+                              <CheckCircle className="w-3 h-3" /> Free
+                            </span>
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
@@ -403,17 +449,31 @@ export default function Payments() {
           <div className="relative bg-dark-card rounded-2xl border border-copper/20 w-full max-w-sm p-6 shadow-2xl">
             <div className="flex items-center justify-between mb-5">
               <h3 className="font-bold text-ivory-light flex items-center gap-2">
-                <CreditCard className="w-4 h-4 text-copper" /> Pay Now
+                <CreditCard className="w-4 h-4 text-copper" /> Complete Payment
               </h3>
-              <button onClick={() => setPayTarget(null)} className="text-gray-400 hover:text-ivory-light transition-colors">
+              <button onClick={() => setPayTarget(null)} className="text-muted-text hover:text-ivory-light transition-colors">
                 <X className="w-5 h-5" />
               </button>
             </div>
+
+            {/* Booking summary */}
             <div className="bg-dark-elevation rounded-xl p-4 mb-5 border border-copper/15">
-              <p className="text-xs text-muted-text mb-1">Amount due</p>
-              <p className="text-2xl font-extrabold text-copper">{getAmount(payTarget)} RWF</p>
-              <p className="text-xs text-muted-text mt-1">Booking: {getBookingRef(payTarget)}</p>
+              <div className="flex items-start gap-3 mb-3">
+                <Ticket className="w-5 h-5 text-copper shrink-0 mt-0.5" />
+                <div>
+                  <p className="text-sm font-semibold text-ivory-light">{getEventTitle(payTarget)}</p>
+                  <p className="text-xs text-muted-text mt-0.5 font-mono">{getRef(payTarget)}</p>
+                  <p className="text-xs text-muted-text capitalize mt-0.5">{getTicket(payTarget)} × {payTarget.quantity ?? 1}</p>
+                </div>
+              </div>
+              <div className="border-t border-copper/10 pt-3 flex justify-between items-center">
+                <span className="text-sm text-muted-text">Amount due</span>
+                <span className="text-2xl font-extrabold text-copper">
+                  {getAmount(payTarget).toLocaleString()} RWF
+                </span>
+              </div>
             </div>
+
             <p className="text-xs font-medium text-muted-text mb-3">Select payment method:</p>
             <div className="grid grid-cols-2 gap-2 mb-5">
               {PAY_METHODS.map(({ value, label }) => (
@@ -430,6 +490,7 @@ export default function Payments() {
                 </button>
               ))}
             </div>
+
             <div className="flex gap-3">
               <button
                 onClick={() => setPayTarget(null)}
@@ -440,7 +501,7 @@ export default function Payments() {
               <button
                 onClick={handlePay}
                 disabled={actionLoading}
-                className="flex-1 py-2.5 text-sm text-white rounded-xl font-medium hover:opacity-90 disabled:opacity-60 transition-opacity flex items-center justify-center gap-2 bg-gradient-to-br from-copper to-copper-light"
+                className="flex-1 py-2.5 text-sm text-white rounded-xl font-semibold hover:opacity-90 disabled:opacity-60 transition-opacity flex items-center justify-center gap-2 bg-gradient-to-br from-copper to-copper-light"
               >
                 {actionLoading ? <><Spinner small /> Processing…</> : 'Confirm Payment'}
               </button>
@@ -457,14 +518,16 @@ export default function Payments() {
               <h3 className="font-bold text-ivory-light flex items-center gap-2">
                 <AlertTriangle className="w-4 h-4 text-yellow-400" /> Process Refund
               </h3>
-              <button onClick={() => setRefundTarget(null)} className="text-gray-400 hover:text-ivory-light transition-colors">
+              <button onClick={() => setRefundTarget(null)} className="text-muted-text hover:text-ivory-light transition-colors">
                 <X className="w-5 h-5" />
               </button>
             </div>
             <div className="bg-dark-elevation rounded-xl p-4 mb-5 border border-copper/15">
-              <p className="text-xs text-muted-text">Payment amount</p>
-              <p className="text-xl font-bold text-copper">{getAmount(refundTarget)} RWF</p>
-              <p className="text-xs text-muted-text mt-1">TXN: {getTxnId(refundTarget)}</p>
+              <p className="text-xs text-muted-text">Transaction</p>
+              <p className="text-sm font-mono text-ivory-light mt-0.5">{refundTarget.transaction_id}</p>
+              <p className="text-xl font-bold text-copper mt-2">
+                {Number(refundTarget.amount ?? 0).toLocaleString()} RWF
+              </p>
             </div>
             <div className="space-y-4 mb-5">
               <div>
@@ -473,7 +536,7 @@ export default function Payments() {
                 </label>
                 <textarea
                   value={refundForm.reason}
-                  onChange={(e) => setRefundForm((f) => ({ ...f, reason: e.target.value }))}
+                  onChange={e => setRefundForm(f => ({ ...f, reason: e.target.value }))}
                   rows={3}
                   placeholder="Reason for refund…"
                   className="w-full px-3 py-2.5 border border-copper/20 rounded-xl focus:border-copper focus:outline-none text-sm bg-dark-input text-ivory-light placeholder-muted-text resize-none"
@@ -488,8 +551,8 @@ export default function Payments() {
                   min={1}
                   max={Number(refundTarget.amount)}
                   value={refundForm.amount}
-                  onChange={(e) => setRefundForm((f) => ({ ...f, amount: e.target.value }))}
-                  placeholder={`Max: ${getAmount(refundTarget)} RWF`}
+                  onChange={e => setRefundForm(f => ({ ...f, amount: e.target.value }))}
+                  placeholder={`Max: ${Number(refundTarget.amount ?? 0).toLocaleString()} RWF`}
                   className={`${INPUT_CLS} w-full`}
                 />
               </div>

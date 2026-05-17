@@ -346,7 +346,7 @@ export default function Home() {
       </motion.div>
 
       {/* ── Featured Events ───────────────────────────────────── */}
-      <section className="py-24 bg-dark-base">
+      <section id="featured-events" className="py-24 bg-dark-base">
         <div className="max-w-7xl mx-auto px-4 sm:px-6">
           <SectionTitle icon={Sparkles} title="Featured Events" subtitle="Handpicked experiences you don't want to miss" />
           <motion.div
