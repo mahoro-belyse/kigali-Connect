@@ -11,6 +11,7 @@ import {
 import { useAuth } from '../../context/AuthContext';
 import { analyticsApi, bookingsApi, eventsApi } from '../../api/client';
 import QRTicketModal from '../../components/QRTicketModal';
+import { getImageUrl } from '../../utils/imageUrl';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -249,7 +250,7 @@ function ClientDashboard() {
         )}
       </div>
 
-      {/* AI Recommendations */}
+      {/*  Recommendations */}
       {!loading && recommended.length > 0 && (
         <div className="mb-8">
           <h2 className="font-bold text-ivory-light mb-4 flex items-center gap-2">
@@ -261,13 +262,16 @@ function ClientDashboard() {
                 key={e.id}
                 className="bg-dark-card border border-copper/20 rounded-2xl overflow-hidden hover:-translate-y-1 transition-all duration-200"
               >
-                {e.cover_image ? (
-                  <img src={e.cover_image} alt={e.title} className="w-full h-36 object-cover" />
-                ) : (
-                  <div className="w-full h-36 bg-copper/8 flex items-center justify-center">
-                    <Calendar className="w-8 h-8 text-copper/40" />
-                  </div>
-                )}
+                {(() => {
+  const imageUrl = getImageUrl(e.cover_image);
+  return imageUrl ? (
+    <img src={imageUrl} alt={e.title} className="w-full h-36 object-cover" />
+  ) : (
+    <div className="w-full h-36 bg-copper/8 flex items-center justify-center">
+      <Calendar className="w-8 h-8 text-copper/40" />
+    </div>
+  );
+})()}
                 <div className="p-4">
                   <p className="font-semibold text-ivory-light text-sm mb-2 line-clamp-2">{e.title}</p>
                   <p className="text-xs text-muted-text mb-3 flex items-center gap-1">

@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { notificationsApi } from '../api/client';
+import { getImageUrl } from '../utils/imageUrl';
 
 // ─── Nav item definition ──────────────────────────────────────────────────────
 interface NavItem {
@@ -96,17 +97,20 @@ function Sidebar({ collapsed, onCollapse, navItems, unreadCount }: SidebarProps)
       {/* User info */}
       <div className={`p-4 border-b border-copper/15 ${!showLabel ? 'flex justify-center' : ''}`}>
         <div className="flex items-center gap-3">
-          {user?.avatar ? (
-            <img
-              src={user.avatar}
-              alt={user.full_name}
-              className="w-9 h-9 rounded-full object-cover ring-2 ring-copper shrink-0"
-            />
-          ) : (
-            <div className="w-9 h-9 rounded-full flex items-center justify-center text-white text-sm font-bold shrink-0 ring-2 ring-copper bg-gradient-to-br from-copper to-copper-light">
-              {(user?.full_name ?? 'U').charAt(0).toUpperCase()}
-            </div>
-          )}
+          {(() => {
+  const avatarUrl = getImageUrl(user?.avatar);
+  return avatarUrl ? (
+    <img
+      src={avatarUrl}
+      alt={user?.full_name}
+      className="w-9 h-9 rounded-full object-cover ring-2 ring-copper shrink-0"
+    />
+  ) : (
+    <div className="w-9 h-9 rounded-full flex items-center justify-center text-white text-sm font-bold shrink-0 ring-2 ring-copper bg-gradient-to-br from-copper to-copper-light">
+      {(user?.full_name ?? 'U').charAt(0).toUpperCase()}
+    </div>
+  );
+})()}
           {showLabel && (
             <div className="min-w-0">
               <p className="text-sm font-semibold text-ivory-light truncate">{user?.full_name ?? 'User'}</p>
@@ -204,13 +208,16 @@ function MoreDrawer({ items, unreadCount, onClose }: MoreDrawerProps) {
 
         {/* User info strip */}
         <div className="flex items-center gap-3 px-5 py-3 border-b border-copper/15">
-          {user?.avatar ? (
-            <img src={user.avatar} alt={user.full_name} className="w-9 h-9 rounded-full object-cover ring-2 ring-copper shrink-0" />
-          ) : (
-            <div className="w-9 h-9 rounded-full flex items-center justify-center text-white text-sm font-bold shrink-0 ring-2 ring-copper bg-gradient-to-br from-copper to-copper-light">
-              {(user?.full_name ?? 'U').charAt(0).toUpperCase()}
-            </div>
-          )}
+          {(() => {
+  const avatarUrl = getImageUrl(user?.avatar);
+  return avatarUrl ? (
+    <img src={avatarUrl} alt={user?.full_name} className="w-9 h-9 rounded-full object-cover ring-2 ring-copper shrink-0" />
+  ) : (
+    <div className="w-9 h-9 rounded-full flex items-center justify-center text-white text-sm font-bold shrink-0 ring-2 ring-copper bg-gradient-to-br from-copper to-copper-light">
+      {(user?.full_name ?? 'U').charAt(0).toUpperCase()}
+    </div>
+  );
+})()}
           <div className="min-w-0">
             <p className="text-sm font-semibold text-ivory-light truncate">{user?.full_name ?? 'User'}</p>
             <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${ROLE_BADGE[user?.role ?? 'client']}`}>
@@ -407,13 +414,16 @@ export default function DashboardLayout() {
             </Link>
 
             <Link to="/dashboard/profile" className="flex items-center gap-2 pl-1">
-              {user?.avatar ? (
-                <img src={user.avatar} alt={user.full_name} className="w-7 h-7 rounded-full object-cover border border-copper" />
-              ) : (
-                <div className="w-7 h-7 rounded-full flex items-center justify-center text-white text-xs font-bold border border-copper bg-gradient-to-br from-copper to-copper-light">
-                  {(user?.full_name ?? 'U').charAt(0).toUpperCase()}
-                </div>
-              )}
+             {(() => {
+    const avatarUrl = getImageUrl(user?.avatar);
+    return avatarUrl ? (
+      <img src={avatarUrl} alt={user?.full_name} className="w-7 h-7 rounded-full object-cover border border-copper" />
+    ) : (
+      <div className="w-7 h-7 rounded-full flex items-center justify-center text-white text-xs font-bold border border-copper bg-gradient-to-br from-copper to-copper-light">
+        {(user?.full_name ?? 'U').charAt(0).toUpperCase()}
+      </div>
+    );
+  })()}
             </Link>
           </div>
         </div>

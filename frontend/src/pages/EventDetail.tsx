@@ -10,6 +10,7 @@ import { eventsApi, bookingsApi, reviewsApi } from '../api/client';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../components/ui/use-toast';
 import QRTicketModal from '../components/QRTicketModal';
+import { getImageUrl } from '../utils/imageUrl';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -211,7 +212,7 @@ export default function EventDetail() {
         {/* ── Hero banner ─────────────────────────────────────────────── */}
         <div className="relative h-72 sm:h-80 rounded-2xl overflow-hidden mb-8">
           {event.cover_image ? (
-            <img src={event.cover_image} alt={event.title} className="w-full h-full object-cover" />
+             <img src={getImageUrl(event.cover_image)} alt={event.title} className="w-full h-full object-cover" />
           ) : (
             <div className="w-full h-full bg-gradient-to-br from-dark-elevation via-dark-card to-copper/30" />
           )}
@@ -458,7 +459,7 @@ export default function EventDetail() {
                   <p className="text-xs font-semibold text-ivory-light mb-3">Organizer</p>
                   <div className="flex items-center gap-3">
                     {event.creator.avatar ? (
-                      <img src={event.creator.avatar} alt={event.creator.full_name} className="w-10 h-10 rounded-full object-cover" />
+                       <img src={getImageUrl(event.creator.avatar)} alt={event.creator.full_name} className="w-10 h-10 rounded-full object-cover" />
                     ) : (
                       <div className="w-10 h-10 rounded-full bg-copper/20 flex items-center justify-center text-copper font-bold text-sm">
                         {(event.creator.full_name ?? 'O').charAt(0).toUpperCase()}

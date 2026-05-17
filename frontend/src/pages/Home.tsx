@@ -9,6 +9,7 @@ import {
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import { eventsApi } from '../api/client';
+import { getImageUrl } from '../utils/imageUrl';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -160,6 +161,8 @@ function EventCard({ event }: { event: EventItem }) {
     ? new Date(event.start_datetime).toLocaleDateString('en-RW', { month: 'short', day: 'numeric', year: 'numeric' })
     : '—';
 
+  const imageUrl = getImageUrl(event.cover_image);
+
   return (
     <motion.div
       variants={cardHover}
@@ -169,8 +172,8 @@ function EventCard({ event }: { event: EventItem }) {
       className="group relative bg-gradient-to-br from-dark-card to-dark-surface rounded-2xl overflow-hidden shadow-xl border border-copper/20 hover:shadow-2xl transition-shadow"
     >
       <div className="relative h-56 overflow-hidden">
-        {event.cover_image ? (
-          <img src={event.cover_image} alt={event.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+        {imageUrl ? (
+          <img src={imageUrl} alt={event.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
         ) : (
           <div className="w-full h-full bg-copper/10 flex items-center justify-center">
             <Calendar className="w-12 h-12 text-copper/40" />

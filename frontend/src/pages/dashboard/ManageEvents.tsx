@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import { eventsApi } from '../../api/client';
 import { useToast } from '../../components/ui/use-toast';
+import { getImageUrl } from '../../utils/imageUrl';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -175,7 +176,7 @@ function EventCard({
       {/* Cover + title row */}
       <div className="flex items-start gap-3">
         {e.cover_image ? (
-          <img src={e.cover_image} alt="" className="w-14 h-10 object-cover rounded-lg shrink-0" />
+          <img src={getImageUrl(e.cover_image)} alt="" className="w-14 h-10 object-cover rounded-lg shrink-0" />
         ) : (
           <div className="w-14 h-10 bg-copper/10 rounded-lg flex items-center justify-center shrink-0">
             <ImageIcon className="w-4 h-4 text-copper/40" />
@@ -530,7 +531,7 @@ export default function ManageEvents() {
                     <tr key={e.id} className="border-b border-copper/8 hover:bg-copper/4 transition-colors">
                       <td className="py-3 px-3">
                         {e.cover_image ? (
-                          <img src={e.cover_image} alt="" className="w-12 h-8 object-cover rounded-lg" />
+                          <img src={getImageUrl(e.cover_image)} alt="" className="w-12 h-8 object-cover rounded-lg" />
                         ) : (
                           <div className="w-12 h-8 bg-copper/10 rounded-lg flex items-center justify-center">
                             <ImageIcon className="w-4 h-4 text-copper/40" />

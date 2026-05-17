@@ -19,13 +19,13 @@ logger = logging.getLogger(__name__)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    logger.info(f"🚀 {settings.APP_NAME} v{settings.APP_VERSION} starting ({settings.ENVIRONMENT})")
+    logger.info(f" {settings.APP_NAME} v{settings.APP_VERSION} starting ({settings.ENVIRONMENT})")
     create_tables()
     for folder in ["events/covers", "events/banners", "avatars"]:
         Path(f"{settings.UPLOAD_DIR}/{folder}").mkdir(parents=True, exist_ok=True)
-    logger.info("✅ Ready")
+    logger.info(" Ready")
     yield
-    logger.info("👋 Shutting down")
+    logger.info("Shutting down")
 
 
 app = FastAPI(

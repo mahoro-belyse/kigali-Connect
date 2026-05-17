@@ -6,6 +6,7 @@ import {
 import { usersApi, authApi } from '../../api/client';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../components/ui/use-toast';
+import { getImageUrl } from '../../utils/imageUrl';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -243,13 +244,16 @@ export default function Profile() {
         <div className="absolute -bottom-12 left-6">
           <div className="relative">
             <div className="w-24 h-24 rounded-full ring-4 ring-copper overflow-hidden bg-copper/20 flex items-center justify-center">
-              {profileData.avatar ? (
-                <img src={profileData.avatar} alt={profileData.full_name} className="w-full h-full object-cover" />
-              ) : (
-                <span className="text-3xl font-bold text-copper">
-                  {profileData.full_name.charAt(0).toUpperCase()}
-                </span>
-              )}
+             {(() => {
+  const avatarUrl = getImageUrl(profileData.avatar);
+  return avatarUrl ? (
+    <img src={avatarUrl} alt={profileData.full_name} className="w-full h-full object-cover" />
+  ) : (
+    <span className="text-3xl font-bold text-copper">
+      {profileData.full_name.charAt(0).toUpperCase()}
+    </span>
+  );
+})()}
               {uploading && (
                 <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
                   <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin" />

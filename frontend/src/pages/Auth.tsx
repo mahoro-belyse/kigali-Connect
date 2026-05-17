@@ -2,12 +2,13 @@ import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import {
   Mail, Lock, Eye, EyeOff, User,
-  AtSign, Phone, Shield, ArrowLeft,
+  AtSign, Phone, Shield, ArrowLeft, Camera,
 } from 'lucide-react';
 import Navbar from '../components/Navbar';
 import { useAuth } from '../context/AuthContext';
-import { authApi } from '../api/client';
+import { authApi, usersApi } from '../api/client';
 import { useToast } from '../components/ui/use-toast';
+
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -104,7 +105,7 @@ function FieldInput({
 
 function LockoutTimer({ seconds, onExpire }: { seconds: number; onExpire: () => void }) {
   const [remaining, setRemaining] = useState(seconds);
-const timerRef = useRef<ReturnType<typeof setInterval> | undefined>(undefined);
+  const timerRef = useRef<ReturnType<typeof setInterval> | undefined>(undefined);
 
   useEffect(() => {
     setRemaining(seconds);
@@ -115,7 +116,7 @@ const timerRef = useRef<ReturnType<typeof setInterval> | undefined>(undefined);
       });
     }, 1000);
     return () => clearInterval(timerRef.current);
-  }, [seconds]);
+  }, [seconds, onExpire]);
 
   return (
     <div className="mt-3 p-3 rounded-xl bg-red-500/10 border border-red-500/30 text-center">
@@ -144,7 +145,7 @@ const SIDE_IMAGES: Record<ViewMode, { src: string; quote: string }> = {
 // ─── Main component ───────────────────────────────────────────────────────────
 
 export default function Auth() {
-  const { login: authLogin, isAuthenticated } = useAuth();
+  const { login: authLogin, refreshUser, isAuthenticated } = useAuth();
   const navigate  = useNavigate();
   const location  = useLocation();
   const { toast } = useToast();
@@ -158,6 +159,11 @@ export default function Auth() {
   const [errors,      setErrors]      = useState<FieldErrors>({});
   const [lockout,     setLockout]     = useState<number | null>(null);
 
+  // Avatar state for registration
+  const [avatarFile, setAvatarFile] = useState<File | null>(null);
+  const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
+
   const [loginForm, setLoginForm] = useState<LoginForm>({ email: '', password: '' });
   const [regForm,   setRegForm]   = useState<RegisterForm>({
     full_name: '', username: '', email: '', phone: '', password: '', confirm_password: '',
@@ -167,25 +173,69 @@ export default function Auth() {
   // Redirect already-authenticated users
   useEffect(() => {
     if (isAuthenticated) navigate('/dashboard', { replace: true });
-  }, [isAuthenticated]);
+  }, [isAuthenticated, navigate]);
 
   // Sync view with URL path
   useEffect(() => {
     setView(location.pathname === '/register' ? 'register' : 'login');
   }, [location.pathname]);
 
-  // ── Login (error now stays on screen) ─────────────────────────────────────
+  // Cleanup avatar preview URL to avoid memory leaks
+  useEffect(() => {
+    return () => {
+      if (avatarPreview) URL.revokeObjectURL(avatarPreview);
+    };
+  }, [avatarPreview]);
+
+  // ── Avatar file handler ─────────────────────────────────────────────────────
+  const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validation
+    if (!file.type.startsWith('image/')) {
+      toast({ title: 'Please select an image file', variant: 'destructive' });
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      toast({ title: 'Image must be smaller than 5MB', variant: 'destructive' });
+      return;
+    }
+
+    setAvatarFile(file);
+    const preview = URL.createObjectURL(file);
+    setAvatarPreview(preview);
+  };
+
+  // ── Upload avatar after registration & auto-login ───────────────────────────
+  const uploadAvatarAfterLogin = async () => {
+    if (!avatarFile) return;
+    setUploadingAvatar(true);
+    const fd = new FormData();
+    fd.append('file', avatarFile);
+    try {
+      await usersApi.uploadAvatar(fd);
+      await refreshUser(); // Update global user context with new avatar
+      toast({ title: '✅ Profile picture uploaded' });
+    } catch (err) {
+      console.warn('Avatar upload failed', err);
+      toast({ title: 'Profile picture upload failed, you can add it later', variant: 'destructive' });
+    } finally {
+      setUploadingAvatar(false);
+    }
+  };
+
+  // ── Login (error stays on screen) ─────────────────────────────────────────
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     if (lockout) return;
 
     setLoading(true);
-    // Clear only the general error on new attempt (but previous error will be replaced)
-   setErrors((prev) => {
-  const next = { ...prev };
-  delete next.general;
-  return next;
-});
+    setErrors((prev) => {
+      const next = { ...prev };
+      delete next.general;
+      return next;
+    });
 
     const result = await authLogin(loginForm.email, loginForm.password);
 
@@ -196,14 +246,13 @@ export default function Auth() {
     } else if (result.locked) {
       setLockout(result.retryAfter ?? 60);
     } else {
-      // This error will stay until next submit (or optionally cleared on input)
       setErrors({ general: result.error ?? 'Invalid credentials' });
     }
 
     setLoading(false);
   };
 
-  // ── Register with auto-login (unchanged) ──────────────────────────────────
+  // ── Register with auto-login and optional avatar upload ────────────────────
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -235,6 +284,10 @@ export default function Auth() {
       const loginResult = await authLogin(regForm.email, regForm.password);
       if (loginResult.success) {
         toast({ title: '✅ Account created! Welcome aboard.' });
+        // Upload avatar if one was selected (non-blocking)
+        if (avatarFile) {
+          await uploadAvatarAfterLogin();
+        }
         navigate('/dashboard', { replace: true });
       } else {
         setErrors({ general: 'Account created but auto-login failed. Please sign in manually.' });
@@ -255,7 +308,7 @@ export default function Auth() {
     }
   };
 
-  // ── Forgot password (unchanged) ───────────────────────────────────────────
+  // ── Forgot password (placeholder) ──────────────────────────────────────────
   const handleForgot = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -269,7 +322,6 @@ export default function Auth() {
 
   const side = SIDE_IMAGES[view];
 
-  // ─── Render ───────────────────────────────────────────────────────────────
   return (
     <div className="min-h-screen bg-[#1a1a1a]">
       <Navbar />
@@ -322,17 +374,13 @@ export default function Auth() {
               </p>
             </div>
 
-            {/* ── LOGIN FORM (error now persists) ─────────────────────────── */}
+            {/* ── LOGIN FORM ─────────────────────────────────────────────── */}
             {view === 'login' && (
               <form onSubmit={handleLogin} className="space-y-4">
                 <FieldInput
                   icon={Mail} label="Email" type="email"
                   value={loginForm.email}
-                  onChange={(e) => {
-                    setLoginForm((f) => ({ ...f, email: e.target.value }));
-                    // Optionally clear error when user starts typing (uncomment if desired)
-                    // if (errors.general) setErrors((prev) => ({ ...prev, general: undefined }));
-                  }}
+                  onChange={(e) => setLoginForm((f) => ({ ...f, email: e.target.value }))}
                   placeholder="you@example.com"
                   autoComplete="email"
                   disabled={!!lockout}
@@ -340,10 +388,7 @@ export default function Auth() {
                 <FieldInput
                   icon={Lock} label="Password"
                   value={loginForm.password}
-                  onChange={(e) => {
-                    setLoginForm((f) => ({ ...f, password: e.target.value }));
-                    // if (errors.general) setErrors((prev) => ({ ...prev, general: undefined }));
-                  }}
+                  onChange={(e) => setLoginForm((f) => ({ ...f, password: e.target.value }))}
                   showToggle show={showPw} onToggle={() => setShowPw((v) => !v)}
                   placeholder="••••••••"
                   autoComplete="current-password"
@@ -398,7 +443,7 @@ export default function Auth() {
               </form>
             )}
 
-            {/* ── REGISTER FORM (unchanged) ───────────────────────────────── */}
+            {/* ── REGISTER FORM with Avatar picker ───────────────────────── */}
             {view === 'register' && (
               <form onSubmit={handleRegister} className="space-y-3">
                 <FieldInput
@@ -429,6 +474,31 @@ export default function Auth() {
                   placeholder="+250 788 000 000"
                   autoComplete="tel"
                 />
+
+                {/* Avatar uploader */}
+                <div>
+                  <label className="text-xs font-medium text-[#9a8f82] mb-1.5 block">Profile Picture (optional)</label>
+                  <div className="flex items-center gap-3">
+                    <div className="w-20 h-20 rounded-full bg-[#2a2a2a] border border-copper/30 overflow-hidden flex items-center justify-center">
+                      {avatarPreview ? (
+                        <img src={avatarPreview} alt="Preview" className="w-full h-full object-cover" />
+                      ) : (
+                        <Camera className="w-8 h-8 text-gray-500" />
+                      )}
+                    </div>
+                    <label className="cursor-pointer px-4 py-2 rounded-xl text-sm font-medium border border-copper/30 text-copper hover:bg-copper/10 transition-colors">
+                      Choose Image
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={handleAvatarChange}
+                      />
+                    </label>
+                  </div>
+                  <p className="text-xs text-[#9a8f82] mt-2">JPEG, PNG, WebP up to 5MB</p>
+                </div>
+
                 <div>
                   <FieldInput
                     icon={Lock} label="Password"
@@ -457,11 +527,11 @@ export default function Auth() {
 
                 <button
                   type="submit"
-                  disabled={loading}
+                  disabled={loading || uploadingAvatar}
                   className="w-full py-3 text-white font-bold rounded-xl hover:opacity-90 disabled:opacity-60 transition-opacity mt-2"
                   style={{ background: 'linear-gradient(135deg,#b87333,#d4956a)' }}
                 >
-                  {loading ? 'Creating Account…' : 'Create Account'}
+                  {loading ? 'Creating Account…' : uploadingAvatar ? 'Uploading picture…' : 'Create Account'}
                 </button>
 
                 <p className="text-center text-sm text-[#9a8f82]">
@@ -477,7 +547,7 @@ export default function Auth() {
               </form>
             )}
 
-            {/* ── FORGOT PASSWORD FORM (unchanged) ─────────────────────────── */}
+            {/* ── FORGOT PASSWORD FORM ───────────────────────────────────── */}
             {view === 'forgot' && (
               <form onSubmit={handleForgot} className="space-y-4">
                 <p className="text-sm text-[#9a8f82] text-center mb-4">

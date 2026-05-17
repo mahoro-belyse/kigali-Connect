@@ -5,6 +5,7 @@ import {
 } from 'lucide-react';
 import { usersApi } from '../../api/client';
 import { useToast } from '../../components/ui/use-toast';
+import { getImageUrl } from '../../utils/imageUrl';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -61,8 +62,10 @@ function StatusBadge({ active }: { active: boolean }) {
 
 function Avatar({ user, size = 'md' }: { user: AppUser; size?: 'sm' | 'md' | 'lg' }) {
   const sz = size === 'lg' ? 'w-14 h-14 text-2xl' : size === 'md' ? 'w-9 h-9 text-sm' : 'w-7 h-7 text-xs';
-  return user.avatar ? (
-    <img src={user.avatar} alt={user.full_name} className={`${sz} rounded-full object-cover ring-2 ring-copper/30 shrink-0`} />
+  const avatarUrl = getImageUrl(user.avatar);
+  
+  return avatarUrl ? (
+    <img src={avatarUrl} alt={user.full_name} className={`${sz} rounded-full object-cover ring-2 ring-copper/30 shrink-0`} />
   ) : (
     <div className={`${sz} rounded-full bg-copper/20 flex items-center justify-center font-bold text-copper shrink-0`}>
       {user.full_name.charAt(0).toUpperCase()}
@@ -409,11 +412,9 @@ export default function UsersPage() {
                   <tr className="border-b border-copper/15 bg-black/20">
                     <th className="text-left py-3 px-4 text-xs font-medium text-muted-text whitespace-nowrap">User</th>
                     <th className="text-left py-3 px-4 text-xs font-medium text-muted-text whitespace-nowrap">Email</th>
-                    {/* Username hidden on md, shown lg+ */}
                     <th className="text-left py-3 px-4 text-xs font-medium text-muted-text whitespace-nowrap hidden lg:table-cell">Username</th>
                     <th className="text-left py-3 px-4 text-xs font-medium text-muted-text whitespace-nowrap">Role</th>
                     <th className="text-left py-3 px-4 text-xs font-medium text-muted-text whitespace-nowrap">Status</th>
-                    {/* Joined hidden on md, shown lg+ */}
                     <th className="text-left py-3 px-4 text-xs font-medium text-muted-text whitespace-nowrap hidden lg:table-cell">Joined</th>
                     <th className="text-left py-3 px-4 text-xs font-medium text-muted-text whitespace-nowrap">Actions</th>
                   </tr>

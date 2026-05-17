@@ -7,6 +7,7 @@ import {
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import { eventsApi } from '../api/client';
+import { getImageUrl } from '../utils/imageUrl';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -78,12 +79,14 @@ function SkeletonCard() {
 // ─── Event card ───────────────────────────────────────────────────────────────
 
 function EventCard({ event }: { event: Event }) {
+  const imageUrl = getImageUrl(event.cover_image);
+  
   return (
     <div className="bg-dark-card rounded-2xl border border-copper/20 overflow-hidden hover:-translate-y-1 hover:shadow-xl hover:border-copper/40 transition-all duration-200 group">
       <div className="relative overflow-hidden">
-        {event.cover_image ? (
+        {imageUrl ? (
           <img
-            src={event.cover_image}
+            src={imageUrl}
             alt={event.title}
             className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-500"
             loading="lazy"
@@ -132,7 +135,6 @@ function EventCard({ event }: { event: Event }) {
     </div>
   );
 }
-
 // ─── Trending strip ───────────────────────────────────────────────────────────
 
 function TrendingStrip() {

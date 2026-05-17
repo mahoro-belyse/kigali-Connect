@@ -5,6 +5,7 @@ import {
   Menu, X, LayoutDashboard, LogOut, List, Eye
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { getImageUrl } from '../utils/imageUrl';
 
 
 // ─── Mega dropdown items ───────────────────────────────────────────────────────
@@ -217,17 +218,20 @@ export default function Navbar() {
                   border border-copper/20 text-ivory-light
                   hover:bg-copper/8 transition-colors"
               >
-                {user.avatar ? (
-                  <img
-                    src={user.avatar}
-                    alt={user.full_name}
-                    className="w-6 h-6 rounded-full object-cover border border-copper"
-                  />
-                ) : (
-                  <div className="w-6 h-6 rounded-full bg-copper flex items-center justify-center text-white text-xs font-bold">
-                    {user.full_name?.charAt(0).toUpperCase() ?? 'U'}
-                  </div>
-                )}
+                {(() => {
+  const avatarUrl = getImageUrl(user?.avatar);
+  return avatarUrl ? (
+    <img
+      src={avatarUrl}
+      alt={user?.full_name}
+      className="w-6 h-6 rounded-full object-cover border border-copper"
+    />
+  ) : (
+    <div className="w-6 h-6 rounded-full bg-copper flex items-center justify-center text-white text-xs font-bold">
+      {user?.full_name?.charAt(0).toUpperCase() ?? 'U'}
+    </div>
+  );
+})()}
                 <LayoutDashboard className="w-4 h-4 text-copper" />
                 <span className="hidden lg:inline max-w-[120px] truncate">
                   {user.full_name}
