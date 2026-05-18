@@ -86,7 +86,7 @@ export default function Reports() {
       const calls: Promise<any>[] = [
         analyticsApi.dashboard(),
         analyticsApi.monthlyRevenue(year),
-        analyticsApi.byCategory(),
+        analyticsApi.summary(),
         analyticsApi.topEvents(5),
       ];
       if (isAdmin) calls.push(analyticsApi.userStats());
@@ -99,14 +99,14 @@ export default function Reports() {
         setRevenue(Array.isArray(d) ? d : []);
       }
       if (results[2].status === 'fulfilled') {
-        const d = results[2].value.data;
-        const list = Array.isArray(d) ? d : [];
-        setCategories(list.map((item: any) => ({
-          name:     item.category ?? item.name ?? '—',
-          value:    item.bookings ?? item.value ?? 0,
-          bookings: item.bookings ?? 0,
-        })));
-      }
+  const d = results[2].value.data;
+  const list = Array.isArray(d?.bookings_by_category) ? d.bookings_by_category : [];
+  setCategories(list.map((item: any) => ({
+    name:     item.category ?? item.name ?? '—',
+    value:    item.bookings ?? item.value ?? 0,
+    bookings: item.bookings ?? 0,
+  })));
+}
       if (results[3].status === 'fulfilled') {
         const d = results[3].value.data;
         setTopEvents(Array.isArray(d) ? d : []);

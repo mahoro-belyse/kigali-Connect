@@ -8,6 +8,7 @@ import { FaTwitter, FaInstagram, FaFacebook, FaLinkedin } from 'react-icons/fa';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import { useToast } from '../components/ui/use-toast';
+import { contactApi } from '../api/client';
 
 // ─── Static data ──────────────────────────────────────────────────────────────
 
@@ -52,16 +53,21 @@ export default function Contact() {
     (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
       setForm((f) => ({ ...f, [key]: e.target.value }));
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    // Simulate API call — replace with real endpoint when available
-    await new Promise((r) => setTimeout(r, 900));
+ const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
+  setLoading(true);
+  try {
+    await contactApi.send(form);
     toast({ title: "✅ Message sent! We'll get back to you within 24 hours." });
     setForm(EMPTY_FORM);
     setSent(true);
+  } catch (error) {
+    console.error('Contact form error:', error);
+    toast({ title: "❌ Failed to send. Please try again later.", variant: "destructive" });
+  } finally {
     setLoading(false);
-  };
+  }
+};
 
   return (
     <div className="min-h-screen bg-[#1a1a1a]">

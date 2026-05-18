@@ -129,6 +129,13 @@ export const notificationsApi = {
   delete: (id: number) => apiClient.delete(`/notifications/${id}/`),
 };
 
+// Add after existing API exports 
+
+export const contactApi = {
+  send: (data: { name: string; email: string; subject: string; message: string }) =>
+    apiClient.post('/contact/', data),
+};
+
 // ─── Type definitions ─────────────────────────────────────────────────────────
 
 export interface RegisterPayload {

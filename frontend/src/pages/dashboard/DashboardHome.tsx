@@ -12,6 +12,8 @@ import { useAuth } from '../../context/AuthContext';
 import { analyticsApi, bookingsApi, eventsApi } from '../../api/client';
 import QRTicketModal from '../../components/QRTicketModal';
 import { getImageUrl } from '../../utils/imageUrl';
+import { useWebSocket } from '../../hooks/useWebSocket';
+import { useToast } from '../../components/ui/use-toast';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -324,6 +326,19 @@ function ClientDashboard() {
 
 function AdminManagerDashboard() {
   const { user } = useAuth();
+  const { toast } = useToast();
+const token = localStorage.getItem('access_token');
+const { lastMessage } = useWebSocket('ws://localhost:8000/api/v1/ws/admin', token);
+
+useEffect(() => {
+  if (lastMessage?.event === 'new_contact_message') {
+    toast({
+      title: `📬 New contact message from ${lastMessage.data.name}`,
+      description: lastMessage.data.subject,
+    });
+    // Optional: refresh the page or notification list
+  }
+}, [lastMessage, toast]);
   const role = user?.role ?? 'event_manager';
 
   const [stats,          setStats]          = useState<DashStats | null>(null);
@@ -421,7 +436,7 @@ function AdminManagerDashboard() {
         <h2 className="font-bold text-ivory-light mb-4 flex items-center gap-2">
           <TrendingUp className="w-4 h-4 text-copper" /> Monthly Revenue (RWF)
         </h2>
-        <div className="h-56">
+        <div className="h-56 w-full min-h-[224px]">
           {loading ? (
             <div className="h-full flex items-center justify-center"><Spinner /></div>
           ) : (

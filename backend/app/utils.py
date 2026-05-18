@@ -79,8 +79,8 @@ def total_pages(total: int, per_page: int) -> int:
 
 def push_notification(db, user_id: int, ntype, title: str, message: str, data: dict = None):
     from app.models import Notification
-    n = Notification(user_id=user_id, type=ntype, title=title, message=message,
-                     data=json.dumps(data) if data else None)
+    n = Notification(user_id=user_id, type=ntype.value, title=title, message=message,
+                 data=json.dumps(data) if data else None)
     db.add(n)
     return n
 

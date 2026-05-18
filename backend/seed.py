@@ -1,7 +1,3 @@
-"""
-Seed the database with default accounts + sample events.
-Run:  python seed.py
-"""
 from app.core import SessionLocal, create_tables, hash_password
 from app.models import (
     User, Event, TicketTier, Booking, Payment, Notification,

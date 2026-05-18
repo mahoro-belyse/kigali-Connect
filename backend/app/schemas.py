@@ -273,5 +273,30 @@ class Msg(BaseModel):
     message: str; success: bool = True
 
 
+
+class ContactMessageCreate(BaseModel):
+    name: str
+    email: EmailStr
+    subject: str
+    message: str
+
+class ContactMessageOut(BaseModel):
+    id: int
+    name: str
+    email: str
+    subject: str
+    message: str
+    is_read: bool
+    created_at: Optional[datetime]
+    model_config = {"from_attributes": True}
+
+class ContactMessageList(BaseModel):
+    messages: List[ContactMessageOut]
+    total: int
+    page: int
+    per_page: int
+    total_pages: int    
+
+
 # Rebuild forward refs
 BookingOut.model_rebuild()

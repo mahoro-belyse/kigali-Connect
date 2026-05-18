@@ -3,6 +3,9 @@ from sqlalchemy.orm import Session, joinedload
 from sqlalchemy import func, extract, or_, and_
 from datetime import datetime, timedelta,timezone
 from typing import Optional, List
+from fastapi import WebSocket, WebSocketDisconnect, Query 
+
+from app.websocket_manager import manager
 
 from app.core import (
     get_db, get_current_user, get_optional_user,
@@ -15,7 +18,7 @@ from app.models import (
     User, Event, TicketTier, Booking, Payment, Review,
     Notification, Waitlist,
     UserRole, EventStatus, EventCategory, BookingStatus,
-    PaymentStatus, PaymentMethod, TicketType, NotificationType
+    PaymentStatus, PaymentMethod, TicketType, NotificationType, ContactMessage
 )
 from app.schemas import (
     UserRegister, UserLogin, UserOut, UserUpdate, UserAdminUpdate, Token, PasswordChange, RefreshTokenRequest,
@@ -25,7 +28,7 @@ from app.schemas import (
     ReviewIn, ReviewOut,
     NotificationOut,
     DashboardStats, RevenueMonth, EventAnalytics,
-    Msg
+    Msg, ContactMessageCreate, ContactMessageOut, ContactMessageList
 )
 from app.utils import (
     gen_booking_ref, gen_transaction_id, gen_receipt_number,
@@ -755,6 +758,128 @@ def delete_notification(nid: int, current=Depends(get_current_user), db: Session
     db.delete(n); db.commit(); return Msg(message="Notification deleted")
 
 
+ # ──────────────────────────────────────────────────────────────────────────────
+#  CONTACT MESSAGES (public + admin)
+# ──────────────────────────────────────────────────────────────────────────────
+
+contact_router = APIRouter(prefix="/contact", tags=["Contact"])
+
+@contact_router.post("/", response_model=Msg, status_code=201)
+async def create_contact_message(data: ContactMessageCreate, db: Session = Depends(get_db)):
+    # Save to contact_messages table
+    msg = ContactMessage(
+        name=data.name,
+        email=data.email,
+        subject=data.subject,
+        message=data.message,
+        is_read=False
+    )
+    db.add(msg)
+    db.flush()
+
+    # Create a notification for every admin user
+    admins = db.query(User).filter(User.role == UserRole.ADMIN).all()
+    for admin in admins:
+        push_notification(
+            db=db,
+            user_id=admin.id,
+            ntype=NotificationType.CONTACT_MESSAGE,
+            title="New Contact Message",
+            message=f"From {data.name}: {data.subject[:50]}",
+            data={"contact_id": msg.id, "email": data.email, "full_message": data.message}
+        )
+
+    db.commit()
+    db.refresh(msg)
+
+    # Broadcast via WebSocket
+    from app.websocket_manager import manager
+    await manager.broadcast({
+        "event": "new_contact_message",
+        "data": {
+            "id": msg.id,
+            "name": data.name,
+            "email": data.email,
+            "subject": data.subject,
+            "message": data.message[:100],
+            "created_at": msg.created_at.isoformat() if msg.created_at else None
+        }
+    })
+
+    return Msg(message="Message sent successfully")
+
+@contact_router.get("/admin/messages", response_model=ContactMessageList)
+def list_contact_messages(
+    page: int = Query(1, ge=1),
+    per_page: int = Query(20, ge=1, le=100),
+    unread_only: bool = False,
+    current_user = Depends(require_admin),
+    db: Session = Depends(get_db)
+):
+    q = db.query(ContactMessage)
+    if unread_only:
+        q = q.filter(ContactMessage.is_read == False)
+    total = q.count()
+    offset = (page - 1) * per_page
+    messages = q.order_by(ContactMessage.created_at.desc()).offset(offset).limit(per_page).all()
+    total_pages = (total + per_page - 1) // per_page
+    return ContactMessageList(
+        messages=messages,
+        total=total,
+        page=page,
+        per_page=per_page,
+        total_pages=total_pages
+    )
+
+@contact_router.put("/admin/messages/{message_id}/read", response_model=Msg)
+def mark_contact_message_read(
+    message_id: int,
+    current_user = Depends(require_admin),
+    db: Session = Depends(get_db)
+):
+    msg = db.query(ContactMessage).filter(ContactMessage.id == message_id).first()
+    if not msg:
+        raise HTTPException(404, "Message not found")
+    msg.is_read = True
+    db.commit()
+    return Msg(message="Marked as read")
+
+# ──────────────────────────────────────────────────────────────────────────────
+#  WEBSOCKET FOR ADMIN REAL-TIME NOTIFICATIONS
+# ──────────────────────────────────────────────────────────────────────────────
+
+from fastapi import WebSocket, WebSocketDisconnect, Query
+from app.websocket_manager import manager
+
+@router.websocket("/ws/admin")
+async def admin_websocket(
+    websocket: WebSocket,
+    token: str = Query(...),
+    db: Session = Depends(get_db)
+):
+    await manager.connect(websocket)
+    try:
+        # Authenticate using JWT token from query param
+        payload = decode_token(token)
+        if not payload:
+            await websocket.close(code=1008)
+            return
+        user_id = int(payload.get("sub"))
+        user = db.query(User).filter(User.id == user_id, User.is_active == True).first()
+        if not user or user.role != UserRole.ADMIN:
+            await websocket.close(code=1008)
+            return
+        # Keep connection alive
+        while True:
+            data = await websocket.receive_text()
+            if data == "ping":
+                await websocket.send_text("pong")
+    except WebSocketDisconnect:
+        manager.disconnect(websocket)
+    except Exception:
+        manager.disconnect(websocket)
+
+
 # ─── Register all sub-routers ─────────────────────────────────────────────────
 
 router.include_router(auth)
@@ -765,3 +890,4 @@ router.include_router(payments)
 router.include_router(analytics)
 router.include_router(reviews)
 router.include_router(notifications)
+router.include_router(contact_router)

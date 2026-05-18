@@ -67,7 +67,17 @@ class NotificationType(str, enum.Enum):
     EVENT_CANCELLED = "event_cancelled"
     PAYMENT_RECEIVED = "payment_received"
     GENERAL = "general"
+    CONTACT_MESSAGE = "contact_message"
 
+class ContactMessage(Base):
+    __tablename__ = "contact_messages"
+    id         = Column(Integer, primary_key=True, index=True)
+    name       = Column(String(200), nullable=False)
+    email      = Column(String(255), nullable=False, index=True)
+    subject    = Column(String(300), nullable=False)
+    message    = Column(Text, nullable=False)
+    is_read    = Column(Boolean, default=False, nullable=False)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
 
 # ─── User ─────────────────────────────────────────────────────────────────────
 
@@ -233,7 +243,7 @@ class Notification(Base):
     __tablename__ = "notifications"
     id         = Column(Integer, primary_key=True, index=True)
     user_id    = Column(Integer, ForeignKey("users.id"), nullable=False)
-    type       = Column(Enum(NotificationType), nullable=False)
+    type       = Column(Enum(NotificationType, values_callable=lambda x: [e.value for e in x]), nullable=False)
     title      = Column(String(300), nullable=False)
     message    = Column(Text, nullable=False)
     is_read    = Column(Boolean, default=False, nullable=False)
