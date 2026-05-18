@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import {
   Mail, Lock, Eye, EyeOff, User,
   AtSign, Phone, Shield, ArrowLeft, Camera,
+  Crown, Briefcase, UserCheck, Sparkles
 } from 'lucide-react';
 import Navbar from '../components/Navbar';
 import { useAuth } from '../context/AuthContext';
@@ -18,6 +19,31 @@ interface LoginForm   { email: string; password: string }
 interface RegisterForm { full_name: string; username: string; email: string; phone: string; password: string; confirm_password: string }
 interface ForgotForm  { email: string }
 interface FieldErrors { [key: string]: string }
+
+// ─── Demo Accounts (as specified) ────────────────────────────────────────────
+const DEMO_ACCOUNTS = [
+  {
+    role: 'Admin',
+    email: 'admin@smartevents.com',
+    password: 'Admin@1234',
+    icon: Crown,
+    gradient: 'from-amber-500 to-orange-600',
+  },
+  {
+    role: 'Manager',
+    email: 'manager@smartevents.com',
+    password: 'Manager@1234',
+    icon: Briefcase,
+    gradient: 'from-blue-500 to-indigo-600',
+  },
+  {
+    role: 'Client',
+    email: 'john@example.com',
+    password: 'Client@1234',
+    icon: UserCheck,
+    gradient: 'from-emerald-500 to-teal-600',
+  },
+];
 
 // ─── Password strength bar ────────────────────────────────────────────────────
 
@@ -252,6 +278,24 @@ export default function Auth() {
     setLoading(false);
   };
 
+  // ── Demo Login (uses the same authLogin) ───────────────────────────────────
+  const handleDemoLogin = async (email: string, password: string) => {
+    if (lockout || loading) return;
+    setLoading(true);
+    setErrors({});
+    const result = await authLogin(email, password);
+    if (result.success) {
+      toast({ title: `✅ Logged in as ${email.split('@')[0]} (Demo)` });
+      navigate('/dashboard', { replace: true });
+    } else if (result.locked) {
+      setLockout(result.retryAfter ?? 60);
+      setErrors({ general: 'Too many attempts. Please wait.' });
+    } else {
+      setErrors({ general: 'Demo login failed. Please try again later.' });
+    }
+    setLoading(false);
+  };
+
   // ── Register with auto-login and optional avatar upload ────────────────────
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -376,55 +420,101 @@ export default function Auth() {
 
             {/* ── LOGIN FORM ─────────────────────────────────────────────── */}
             {view === 'login' && (
-              <form onSubmit={handleLogin} className="space-y-4">
-                <FieldInput
-                  icon={Mail} label="Email" type="email"
-                  value={loginForm.email}
-                  onChange={(e) => setLoginForm((f) => ({ ...f, email: e.target.value }))}
-                  placeholder="you@example.com"
-                  autoComplete="email"
-                  disabled={!!lockout}
-                />
-                <FieldInput
-                  icon={Lock} label="Password"
-                  value={loginForm.password}
-                  onChange={(e) => setLoginForm((f) => ({ ...f, password: e.target.value }))}
-                  showToggle show={showPw} onToggle={() => setShowPw((v) => !v)}
-                  placeholder="••••••••"
-                  autoComplete="current-password"
-                  disabled={!!lockout}
-                />
+              <>
+                <form onSubmit={handleLogin} className="space-y-4">
+                  <FieldInput
+                    icon={Mail} label="Email" type="email"
+                    value={loginForm.email}
+                    onChange={(e) => setLoginForm((f) => ({ ...f, email: e.target.value }))}
+                    placeholder="you@example.com"
+                    autoComplete="email"
+                    disabled={!!lockout}
+                  />
+                  <FieldInput
+                    icon={Lock} label="Password"
+                    value={loginForm.password}
+                    onChange={(e) => setLoginForm((f) => ({ ...f, password: e.target.value }))}
+                    showToggle show={showPw} onToggle={() => setShowPw((v) => !v)}
+                    placeholder="••••••••"
+                    autoComplete="current-password"
+                    disabled={!!lockout}
+                  />
 
-                {errors.general && (
-                  <p className="text-red-400 text-sm text-center bg-red-500/10 border border-red-500/20 rounded-xl px-4 py-2">
-                    {errors.general}
-                  </p>
-                )}
+                  {errors.general && (
+                    <p className="text-red-400 text-sm text-center bg-red-500/10 border border-red-500/20 rounded-xl px-4 py-2">
+                      {errors.general}
+                    </p>
+                  )}
 
-                {lockout && (
-                  <LockoutTimer seconds={lockout} onExpire={() => setLockout(null)} />
-                )}
+                  {lockout && (
+                    <LockoutTimer seconds={lockout} onExpire={() => setLockout(null)} />
+                  )}
 
-                <div className="flex justify-end">
+                  <div className="flex justify-end">
+                    <button
+                      type="button"
+                      onClick={() => setView('forgot')}
+                      className="text-xs text-[#b87333] hover:underline transition-colors"
+                    >
+                      Forgot Password?
+                    </button>
+                  </div>
+
                   <button
-                    type="button"
-                    onClick={() => setView('forgot')}
-                    className="text-xs text-[#b87333] hover:underline transition-colors"
+                    type="submit"
+                    disabled={loading || !!lockout}
+                    className="w-full py-3 text-white font-bold rounded-xl hover:opacity-90 disabled:opacity-60 transition-opacity"
+                    style={{ background: 'linear-gradient(135deg,#b87333,#d4956a)' }}
                   >
-                    Forgot Password?
+                    {loading ? 'Signing In…' : 'Sign In'}
                   </button>
+                </form>
+
+                {/* ── DEMO LOGIN SECTION (Professional) ─────────────────── */}
+                <div className="mt-8">
+                  <div className="relative mb-4">
+                    <div className="absolute inset-0 flex items-center">
+                      <div className="w-full border-t border-white/10"></div>
+                    </div>
+                    <div className="relative flex justify-center text-xs">
+                      <span className="px-3 bg-[#242424] text-[#9a8f82] flex items-center gap-1">
+                        <Sparkles className="w-3 h-3" /> Quick Demo Access
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="grid gap-3">
+                    {DEMO_ACCOUNTS.map((account) => (
+                      <button
+                        key={account.role}
+                        onClick={() => handleDemoLogin(account.email, account.password)}
+                        disabled={loading || !!lockout}
+                        className="group relative flex items-center justify-between p-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed overflow-hidden"
+                      >
+                        {/* Subtle gradient bar on hover */}
+                        <div className={`absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity bg-gradient-to-r ${account.gradient} opacity-10`} />
+
+                        <div className="flex items-center gap-3 relative z-10">
+                          <div className={`p-1.5 rounded-lg bg-gradient-to-br ${account.gradient} bg-opacity-20`}>
+                            <account.icon className="w-4 h-4 text-white" />
+                          </div>
+                          <div className="text-left">
+                            <p className="text-sm font-semibold text-white">{account.role}</p>
+                            <p className="text-xs text-[#9a8f82] font-mono">{account.email}</p>
+                          </div>
+                        </div>
+                        <div className="relative z-10 text-xs font-mono text-[#9a8f82] group-hover:text-white transition-colors">
+                          {account.password}
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                  <p className="text-center text-xs text-[#9a8f82] mt-4">
+                    Demo accounts are pre‑configured. Click any to log in instantly.
+                  </p>
                 </div>
 
-                <button
-                  type="submit"
-                  disabled={loading || !!lockout}
-                  className="w-full py-3 text-white font-bold rounded-xl hover:opacity-90 disabled:opacity-60 transition-opacity"
-                  style={{ background: 'linear-gradient(135deg,#b87333,#d4956a)' }}
-                >
-                  {loading ? 'Signing In…' : 'Sign In'}
-                </button>
-
-                <div className="flex items-center gap-3 my-2">
+                <div className="flex items-center gap-3 my-6">
                   <div className="flex-1 h-px bg-white/10" />
                   <span className="text-xs text-[#9a8f82]">or</span>
                   <div className="flex-1 h-px bg-white/10" />
@@ -440,7 +530,7 @@ export default function Auth() {
                     Register
                   </button>
                 </p>
-              </form>
+              </>
             )}
 
             {/* ── REGISTER FORM with Avatar picker ───────────────────────── */}

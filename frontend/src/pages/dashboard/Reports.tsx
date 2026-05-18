@@ -11,6 +11,12 @@ import {
 import { analyticsApi } from '../../api/client';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../components/ui/use-toast';
+ 
+declare module 'jspdf' {
+  interface jsPDF {
+    lastAutoTable: { finalY: number };
+  }
+}
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -20,7 +26,7 @@ interface TopEvent      { event_title?: string; title?: string; total_bookings?:
 interface DashStats     { total_events?: number; total_bookings?: number; total_revenue?: number; total_users?: number; new_users_30d?: number; upcoming_events?: number; cancelled_bookings?: number }
 interface UserStats     { total_users?: number; active_users?: number; new_users_30d?: number; by_role?: { role: string; count: number }[] }
 
-// ─── Constants – using CSS custom properties (tokens) for all colors ─────────
+// ─── Constants ────────────────────────────────────────────────────────────────
 
 const CHART_COLORS = [
   'var(--color-copper)',
@@ -32,7 +38,7 @@ const CHART_COLORS = [
 ];
 
 const TOOLTIP_STYLE = {
-  background:   '#242424',          // Keep as is – recharts expects a string; can't use Tailwind
+  background:   '#242424',
   border:       '1px solid rgba(184,115,51,0.2)',
   borderRadius: 12,
   color:        '#f5f0e8',
@@ -43,6 +49,8 @@ const AXIS_TICK = { fill: '#9a8f82', fontSize: 11 };
 
 const INPUT_CLS = `px-3 py-2.5 border border-copper/20 rounded-xl
   focus:border-copper focus:outline-none text-sm bg-dark-elevation text-ivory-light transition-colors`;
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
 
 function Spinner() {
   return <div className="w-6 h-6 border-2 border-copper/30 border-t-copper rounded-full animate-spin" />;
@@ -64,6 +72,227 @@ function ChartCard({ title, icon: Icon, children, loading, className }: {
   );
 }
 
+// ─── PDF Export ───────────────────────────────────────────────────────────────
+
+async function exportToPDF(params: {
+  year: number;
+  stats: DashStats | null;
+  revenue: RevenueMonth[];
+  categories: CategoryData[];
+  topEvents: TopEvent[];
+  userStats: UserStats | null;
+  isAdmin: boolean;
+}) {
+  // Dynamically import jsPDF + autoTable to keep initial bundle lean
+  const [{ default: jsPDF }, { default: autoTable }] = await Promise.all([
+    import('jspdf'),
+    import('jspdf-autotable'),
+  ]);
+
+  const { year, stats, revenue, categories, topEvents, userStats, isAdmin } = params;
+  const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+  const pageW = doc.internal.pageSize.getWidth();
+  const pageH = doc.internal.pageSize.getHeight();
+  const today = new Date();
+  const dateStr = today.toLocaleDateString('en-GB', { day:'2-digit', month:'short', year:'numeric' });
+
+  // ── Brand colors (hex for jsPDF) ──
+  const COPPER   = [184, 115, 51]  as [number,number,number];
+  const DARK     = [28,  26,  22]  as [number,number,number];
+  const IVORY    = [245, 240, 232] as [number,number,number];
+  const MUTED    = [154, 143, 130] as [number,number,number];
+  const ROW_ALT  = [38,  34,  28]  as [number,number,number];
+
+   let cursorY = 46;
+
+  // ── Helper: add page footer ──
+  function addFooter(pageNum: number, totalPages: number) {
+    doc.setFillColor(...DARK);
+    doc.rect(0, pageH - 12, pageW, 12, 'F');
+    doc.setFontSize(8);
+    doc.setTextColor(...MUTED);
+    doc.text('SmartEvent Platform © ' + year, 14, pageH - 4);
+    doc.text(`Page ${pageNum} of ${totalPages}`, pageW - 14, pageH - 4, { align: 'right' });
+  }
+
+  // ── Helper: section title ──
+  function sectionTitle(text: string, y: number): number {
+    doc.setFillColor(...COPPER);
+    doc.rect(14, y, pageW - 28, 7, 'F');
+    doc.setFontSize(9);
+    doc.setTextColor(...IVORY);
+    doc.setFont('helvetica', 'bold');
+    doc.text(text, 18, y + 5);
+    doc.setFont('helvetica', 'normal');
+    return y + 10;
+  }
+
+  // ════════════════════════════════════════════
+  // PAGE 1 — Header + KPIs + Monthly Revenue
+  // ════════════════════════════════════════════
+
+  // Header bar
+  doc.setFillColor(...DARK);
+  doc.rect(0, 0, pageW, 38, 'F');
+
+  // Logo text
+  doc.setFontSize(20);
+  doc.setTextColor(...COPPER);
+  doc.setFont('helvetica', 'bold');
+  doc.text('SmartEvent', 14, 16);
+
+  doc.setFontSize(9);
+  doc.setTextColor(...MUTED);
+  doc.setFont('helvetica', 'normal');
+  doc.text('Smart Event & Booking Management', 14, 23);
+
+  // Report meta (right side)
+  doc.setFontSize(9);
+  doc.setTextColor(...IVORY);
+  doc.text(`Annual Report — ${year}`, pageW - 14, 12, { align: 'right' });
+  doc.setTextColor(...MUTED);
+  doc.text(`Generated: ${dateStr}`, pageW - 14, 18, { align: 'right' });
+  doc.text(`By: SmartEvent Analytics`, pageW - 14, 24, { align: 'right' });
+
+  
+
+  // ── Platform Overview KPIs ──
+  cursorY = sectionTitle('Platform Overview', cursorY);
+
+  autoTable(doc, {
+    startY: cursorY,
+    head: [['Metric', 'Value']],
+    body: [
+      ['Total Revenue (RWF)', stats?.total_revenue != null ? `${Number(stats.total_revenue).toLocaleString()} RWF` : '—'],
+      ['Total Bookings',      String(stats?.total_bookings ?? '—')],
+      ['Total Events',        String(stats?.total_events   ?? '—')],
+      [isAdmin ? 'Total Users' : 'Upcoming Events',
+       isAdmin ? String(stats?.total_users ?? '—') : String(stats?.upcoming_events ?? '—')],
+      ...(isAdmin ? [['New Users (30 days)', String(stats?.new_users_30d ?? '—')]] : []),
+    ],
+    theme: 'plain',
+    headStyles:  { fillColor: COPPER, textColor: IVORY, fontStyle: 'bold', fontSize: 9 },
+    bodyStyles:  { textColor: IVORY, fontSize: 9, fillColor: DARK },
+    alternateRowStyles: { fillColor: ROW_ALT },
+    columnStyles: { 0: { cellWidth: 80, fontStyle: 'bold' } },
+    margin: { left: 14, right: 14 },
+  });
+
+  cursorY = (doc as any).lastAutoTable.finalY + 10;
+
+  // ── Monthly Revenue ──
+  cursorY = sectionTitle('Monthly Revenue', cursorY);
+
+  const revBody = revenue.map(r => [
+    r.month ?? '—',
+    r.revenue != null ? `${Number(r.revenue).toLocaleString()} RWF` : '—',
+    String(r.bookings ?? '—'),
+  ]);
+
+  autoTable(doc, {
+    startY: cursorY,
+    head: [['Month', 'Revenue (RWF)', 'Bookings']],
+    body: revBody.length ? revBody : [['No data', '—', '—']],
+    theme: 'plain',
+    headStyles:  { fillColor: COPPER, textColor: IVORY, fontStyle: 'bold', fontSize: 9 },
+    bodyStyles:  { textColor: IVORY, fontSize: 9, fillColor: DARK },
+    alternateRowStyles: { fillColor: ROW_ALT },
+    margin: { left: 14, right: 14 },
+  });
+
+  
+
+  // ════════════════════════════════════════════
+  // PAGE 2 — Top Events + Categories + (Admin) User Stats
+  // ════════════════════════════════════════════
+
+  doc.addPage();
+  cursorY = 20;
+
+  // ── Top Performing Events ──
+  cursorY = sectionTitle('Top Performing Events', cursorY);
+
+  const evBody = topEvents.map(e => [
+    e.event_title ?? e.title ?? '—',
+    String(e.total_bookings ?? e.bookings ?? '—'),
+    e.total_revenue != null ? `${Number(e.total_revenue).toLocaleString()} RWF` : '—',
+    e.attendance_rate != null ? `${Number(e.attendance_rate).toFixed(1)}%` : '—',
+  ]);
+
+  autoTable(doc, {
+    startY: cursorY,
+    head: [['Event Name', 'Bookings', 'Revenue (RWF)', 'Attendance %']],
+    body: evBody.length ? evBody : [['No event data', '—', '—', '—']],
+    theme: 'plain',
+    headStyles:  { fillColor: COPPER, textColor: IVORY, fontStyle: 'bold', fontSize: 9 },
+    bodyStyles:  { textColor: IVORY, fontSize: 9, fillColor: DARK },
+    alternateRowStyles: { fillColor: ROW_ALT },
+    columnStyles: { 0: { cellWidth: 70 } },
+    margin: { left: 14, right: 14 },
+  });
+
+  cursorY = (doc as any).lastAutoTable.finalY + 10;
+
+  // ── Bookings by Category ──
+  cursorY = sectionTitle('Bookings by Category', cursorY);
+
+  const catBody = categories.map(c => [
+    c.name ?? '—',
+    String(c.value ?? c.bookings ?? '—'),
+  ]);
+
+  autoTable(doc, {
+    startY: cursorY,
+    head: [['Category', 'Bookings']],
+    body: catBody.length ? catBody : [['No category data', '—']],
+    theme: 'plain',
+    headStyles:  { fillColor: COPPER, textColor: IVORY, fontStyle: 'bold', fontSize: 9 },
+    bodyStyles:  { textColor: IVORY, fontSize: 9, fillColor: DARK },
+    alternateRowStyles: { fillColor: ROW_ALT },
+    margin: { left: 14, right: 14 },
+  });
+
+  cursorY = (doc as any).lastAutoTable.finalY + 10;
+
+  // ── Admin: User Statistics ──
+  if (isAdmin && userStats) {
+    cursorY = sectionTitle('User Statistics', cursorY);
+
+    const roleRows = userStats.by_role?.map(r => [
+      r.role.replace('_', ' '),
+      String(r.count),
+    ]) ?? [];
+
+    autoTable(doc, {
+      startY: cursorY,
+      head: [['Metric', 'Value']],
+      body: [
+        ['Total Users',       String(userStats.total_users   ?? '—')],
+        ['Active Users',      String(userStats.active_users  ?? '—')],
+        ['New Users (30 days)', String(userStats.new_users_30d ?? '—')],
+        ...roleRows.map(([role, count]) => [`Role: ${role}`, count]),
+      ],
+      theme: 'plain',
+      headStyles:  { fillColor: COPPER, textColor: IVORY, fontStyle: 'bold', fontSize: 9 },
+      bodyStyles:  { textColor: IVORY, fontSize: 9, fillColor: DARK },
+      alternateRowStyles: { fillColor: ROW_ALT },
+      columnStyles: { 0: { cellWidth: 80, fontStyle: 'bold' } },
+      margin: { left: 14, right: 14 },
+    });
+  }
+
+  // ── Add footers to all pages ──
+  const totalPages = (doc as any).internal.getNumberOfPages();
+  for (let i = 1; i <= totalPages; i++) {
+    doc.setPage(i);
+    addFooter(i, totalPages);
+  }
+
+  // ── Save ──
+  const fileName = `SmartEvent_Report_${year}_${today.toISOString().slice(0,10)}.pdf`;
+  doc.save(fileName);
+}
+
 // ─── Component ────────────────────────────────────────────────────────────────
 
 export default function Reports() {
@@ -71,14 +300,15 @@ export default function Reports() {
   const { toast } = useToast();
   const isAdmin   = user?.role === 'admin';
 
-  const [year, setYear] = useState(new Date().getFullYear());
+  const [year, setYear]           = useState(new Date().getFullYear());
+  const [exporting, setExporting] = useState(false);
 
-  const [stats,       setStats]       = useState<DashStats | null>(null);
-  const [revenue,     setRevenue]     = useState<RevenueMonth[]>([]);
-  const [categories,  setCategories]  = useState<CategoryData[]>([]);
-  const [topEvents,   setTopEvents]   = useState<TopEvent[]>([]);
-  const [userStats,   setUserStats]   = useState<UserStats | null>(null);
-  const [loading,     setLoading]     = useState(true);
+  const [stats,      setStats]      = useState<DashStats | null>(null);
+  const [revenue,    setRevenue]    = useState<RevenueMonth[]>([]);
+  const [categories, setCategories] = useState<CategoryData[]>([]);
+  const [topEvents,  setTopEvents]  = useState<TopEvent[]>([]);
+  const [userStats,  setUserStats]  = useState<UserStats | null>(null);
+  const [loading,    setLoading]    = useState(true);
 
   const fetchAll = useCallback(async () => {
     setLoading(true);
@@ -99,14 +329,14 @@ export default function Reports() {
         setRevenue(Array.isArray(d) ? d : []);
       }
       if (results[2].status === 'fulfilled') {
-  const d = results[2].value.data;
-  const list = Array.isArray(d?.bookings_by_category) ? d.bookings_by_category : [];
-  setCategories(list.map((item: any) => ({
-    name:     item.category ?? item.name ?? '—',
-    value:    item.bookings ?? item.value ?? 0,
-    bookings: item.bookings ?? 0,
-  })));
-}
+        const d = results[2].value.data;
+        const list = Array.isArray(d?.bookings_by_category) ? d.bookings_by_category : [];
+        setCategories(list.map((item: any) => ({
+          name:     item.category ?? item.name ?? '—',
+          value:    item.bookings ?? item.value ?? 0,
+          bookings: item.bookings ?? 0,
+        })));
+      }
       if (results[3].status === 'fulfilled') {
         const d = results[3].value.data;
         setTopEvents(Array.isArray(d) ? d : []);
@@ -123,11 +353,25 @@ export default function Reports() {
 
   useEffect(() => { fetchAll(); }, [fetchAll]);
 
+  // ── Export handler ──
+  const handleExport = async () => {
+    setExporting(true);
+    try {
+      await exportToPDF({ year, stats, revenue, categories, topEvents, userStats, isAdmin });
+      toast({ title: '✅ PDF exported successfully!' });
+    } catch (err) {
+      console.error(err);
+      toast({ title: 'Export failed', description: 'Could not generate PDF. Make sure jspdf and jspdf-autotable are installed.', variant: 'destructive' });
+    } finally {
+      setExporting(false);
+    }
+  };
+
   const kpis = [
     { icon: DollarSign, label: 'Total Revenue (RWF)', value: stats?.total_revenue != null ? `${Number(stats.total_revenue).toLocaleString()} RWF` : '—', trend: 'up' as const, trendVal: '' },
-    { icon: Ticket,      label: 'Total Bookings',      value: stats?.total_bookings ?? '—', trend: 'up' as const, trendVal: '' },
-    { icon: Calendar,    label: 'Total Events',        value: stats?.total_events ?? '—',  trend: 'up' as const, trendVal: '' },
-    { icon: Users,       label: isAdmin ? 'Total Users' : 'Upcoming Events', value: isAdmin ? (stats?.total_users ?? '—') : (stats?.upcoming_events ?? '—'), trend: 'up' as const, trendVal: '' },
+    { icon: Ticket,     label: 'Total Bookings',      value: stats?.total_bookings ?? '—', trend: 'up' as const, trendVal: '' },
+    { icon: Calendar,   label: 'Total Events',        value: stats?.total_events   ?? '—', trend: 'up' as const, trendVal: '' },
+    { icon: Users,      label: isAdmin ? 'Total Users' : 'Upcoming Events', value: isAdmin ? (stats?.total_users ?? '—') : (stats?.upcoming_events ?? '—'), trend: 'up' as const, trendVal: '' },
   ];
 
   const topEventsChartData = topEvents.map((e) => ({
@@ -164,10 +408,14 @@ export default function Reports() {
             <Calendar className="w-4 h-4" /> Refresh
           </button>
           <button
-            onClick={() => toast({ title: '🚀 Export feature coming soon!' })}
-            className="px-4 py-2.5 border border-copper/20 text-ivory-light text-sm rounded-xl font-medium flex items-center gap-2 hover:bg-copper/5 transition-colors"
+            onClick={handleExport}
+            disabled={exporting || loading}
+            className="px-4 py-2.5 border border-copper/20 text-ivory-light text-sm rounded-xl font-medium flex items-center gap-2 hover:bg-copper/5 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            <Download className="w-4 h-4" /> Export
+            {exporting
+              ? <><div className="w-4 h-4 border-2 border-copper/30 border-t-copper rounded-full animate-spin" /> Exporting…</>
+              : <><Download className="w-4 h-4" /> Export PDF</>
+            }
           </button>
         </div>
       </div>
