@@ -328,7 +328,11 @@ function AdminManagerDashboard() {
   const { user } = useAuth();
   const { toast } = useToast();
 const token = localStorage.getItem('access_token');
-const { lastMessage } = useWebSocket('ws://localhost:8000/api/v1/ws/admin', token);
+const WS_URL = (import.meta.env.VITE_API_URL || 'http://localhost:8000')
+  .replace('https://', 'wss://')
+  .replace('http://', 'ws://');
+
+const { lastMessage } = useWebSocket(`${WS_URL}/api/v1/ws/admin`, token);
 
 useEffect(() => {
   if (lastMessage?.event === 'new_contact_message') {
