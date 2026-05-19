@@ -427,12 +427,6 @@ Authorization: Bearer <access_token>
 
 ---
 
-## 👥 Team
-
-Built as a final assessment project for **Nexventures Ltd** — 2026.
-
----
-
 ## 📄 License
 
 This project is submitted as an individual academic assessment.  
