@@ -42,6 +42,14 @@ class Settings(BaseSettings):
     MAX_FILE_SIZE_MB: int = 5
     FRONTEND_URL: str = "http://localhost:3000"
 
+    # Environment
+    ENV: str = "development"
+
+    # Cloudinary
+    CLOUDINARY_CLOUD_NAME: str = ""
+    CLOUDINARY_API_KEY: str = ""
+    CLOUDINARY_API_SECRET: str = ""
+
     def get_origins(self):
         return [o.strip() for o in self.ALLOWED_ORIGINS.split(",")]
 

@@ -1,4 +1,6 @@
 import os, uuid, random, string, qrcode, json, base64, logging
+import cloudinary
+import cloudinary.uploader
 from io import BytesIO
 from datetime import datetime,timezone
 from pathlib import Path
@@ -48,7 +50,36 @@ def booking_qr(ref: str, event_title: str, email: str) -> str:
 def validate_image(content_type: str, size: int) -> bool:
     return content_type in ALLOWED_IMAGE_TYPES and size <= MAX_FILE_SIZE
 
+def _init_cloudinary():
+    cloudinary.config(
+        cloud_name=settings.CLOUDINARY_CLOUD_NAME,
+        api_key=settings.CLOUDINARY_API_KEY,
+        api_secret=settings.CLOUDINARY_API_SECRET,
+        secure=True
+    )
+
+def _get_content_type(ext: str) -> str:
+    return {
+        ".jpg": "image/jpeg",
+        ".jpeg": "image/jpeg",
+        ".png": "image/png",
+        ".webp": "image/webp",
+        ".gif": "image/gif",
+    }.get(ext, "application/octet-stream")
+
 def save_file(content: bytes, filename: str, folder: str = "events") -> str:
+    if settings.ENV == "production":
+        return _save_cloudinary(content, filename, folder)
+    else:
+        return _save_local(content, filename, folder)
+
+def delete_file(path: str):
+    if settings.ENV == "production":
+        _delete_cloudinary(path)
+    else:
+        _delete_local(path)
+
+def _save_local(content: bytes, filename: str, folder: str) -> str:
     path = Path(settings.UPLOAD_DIR) / folder
     path.mkdir(parents=True, exist_ok=True)
     ext = Path(filename).suffix.lower()
@@ -56,12 +87,39 @@ def save_file(content: bytes, filename: str, folder: str = "events") -> str:
     (path / name).write_bytes(content)
     return f"/{settings.UPLOAD_DIR}/{folder}/{name}"
 
-def delete_file(path: str):
+def _delete_local(path: str):
     try:
         p = Path(path.lstrip("/"))
-        if p.exists(): p.unlink()
+        if p.exists():
+            p.unlink()
     except Exception as e:
-        logger.error(f"Delete failed: {e}")
+        logger.error(f"Local delete failed: {e}")
+
+def _save_cloudinary(content: bytes, filename: str, folder: str) -> str:
+    try:
+        _init_cloudinary()
+        ext = Path(filename).suffix.lower()
+        result = cloudinary.uploader.upload(
+            content,
+            folder=f"smartevents/{folder}",
+            resource_type="image"
+        )
+        return result["secure_url"]
+    except Exception as e:
+        logger.error(f"Cloudinary upload failed: {e}")
+        raise
+
+def _delete_cloudinary(path: str):
+    try:
+        if not path or "cloudinary.com" not in path:
+            return
+        _init_cloudinary()
+        # Extract public_id from URL
+        # e.g. https://res.cloudinary.com/dx1tcvt3c/image/upload/v123/smartevents/events/abc.jpg
+        public_id = path.split("/upload/")[1].rsplit(".", 1)[0]
+        cloudinary.uploader.destroy(public_id)
+    except Exception as e:
+        logger.error(f"Cloudinary delete failed: {e}")
 
 
 # ─── Pagination ───────────────────────────────────────────────────────────────
