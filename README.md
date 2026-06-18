@@ -180,8 +180,7 @@ git --version
 ### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/NexventuresLtd/belyse_final_2026.git
-cd belyse_final_2026
+git clone https://github.com/mahoro-belyse/kigali-Connect.git
 ```
 
 ---
