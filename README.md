@@ -382,26 +382,26 @@ Authorization: Bearer <access_token>
 ## 🌐 Deployment
 
 ### Frontend — Netlify
-- **Live URL:** https://smartevents1.netlify.app
+- **Live URL:** https://kgl-connect.netlify.app/
 - Go to [netlify.com](https://netlify.com) → Add new site → Import from GitHub
 - Configure:
   - **Base directory**: `frontend`
   - **Build command**: `npm run build`
   - **Publish directory**: `frontend/dist`
 - Add Environment Variable:
-  - `VITE_API_URL` = `https://smartevent-backend.onrender.com/api/v1`
+  - `VITE_API_URL` = `https://kigali-connect-backend.onrender.com/`
 
 ### Backend — Render
-- **Live URL:** https://smartevent-backend.onrender.com
-- **API Docs:** https://smartevent-backend.onrender.com/docs
+- **Live URL:** https://kigali-connect-backend.onrender.com/
+- **API Docs:** https://kigali-connect-backend.onrender.com//docs
 - Go to [render.com](https://render.com) → New Web Service → Connect GitHub repo
 - Configure:
   - **Root Directory**: `backend`
   - **Build command**: `pip install -r requirements.txt`
   - **Start command**: `uvicorn main:app --host 0.0.0.0 --port 10000`
 - Add Environment Variables:
-  - `DATABASE_URL` = *(Render PostgreSQL Internal URL)*
-  - `ALLOWED_ORIGINS` = `https://smartevents1.netlify.app`
+  - `DATABASE_URL` = 
+  - `ALLOWED_ORIGINS` = `https://kgl-connect.netlify.app/`
   - `ENVIRONMENT` = `production`
   - `SECRET_KEY` = *(random secret key)*
 
