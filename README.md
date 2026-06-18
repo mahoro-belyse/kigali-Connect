@@ -203,10 +203,7 @@ APP_NAME="Smart Event & Booking Management System"
 DEBUG=True
 ENVIRONMENT=development
 
-# Database (SQLite for local dev)
-DATABASE_URL=sqlite:///./smart_events.db
-
-# For PostgreSQL (production):
+# For PostgreSQL:
 # DATABASE_URL=postgresql://user:password@localhost:5432/smart_events_db
 
 # Security — CHANGE THIS to a random 32+ char string
