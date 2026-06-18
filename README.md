@@ -26,7 +26,7 @@ The system simulates a real production-level platform used by event companies, c
 
 | | URL |
 |---|---|
-| 🌐 Frontend | https://smartevents1.netlify.app |
+| 🌐 Frontend | https://kgl-connect.netlify.app/ |
 | 🖥️ Backend | https://kigali-connect-backend.onrender.com|
 | ⚙️ Backend API | https://kigali-connect-backend.onrender.com/api/v1 |
 | 📖 API Docs | https://kigali-connect-backend.onrender.com/docs |
