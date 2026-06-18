@@ -422,8 +422,5 @@ Authorization: Bearer <access_token>
 - **Input validation** via Pydantic schemas
 
 ---
-
-## 📄 License
-
-This project is submitted as an individual academic assessment.  
+  
 © 2026 SmartEvent — All rights reserved.
